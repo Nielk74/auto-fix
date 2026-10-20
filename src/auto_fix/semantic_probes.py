@@ -25,6 +25,36 @@ CHECK_NAMES = (
     "FloorExactMinimumUnit",
     "CeilExactMinimumUnit",
 )
+BOUNDARY_CHECK_NAMES = (
+    *CHECK_NAMES,
+    "FloorMinimumPositiveThree",
+    "CeilMinimumPositiveThree",
+    "FloorMinimumNegativeThree",
+    "CeilMinimumNegativeThree",
+    "FloorMinimumInfiniteUnit",
+    "CeilMinimumInfiniteUnit",
+)
+BOUNDARY_CLASS = "SemanticGuard.DurationRoundingBoundaries"
+BOUNDARY_CONTRACTS = {
+    "FloorMinimumPositiveThree": (
+        "For d = Seconds(INT64_MIN), unit = Seconds(3), Floor must be -infinity."
+    ),
+    "CeilMinimumPositiveThree": (
+        "For d = Seconds(INT64_MIN), unit = Seconds(3), Ceil must be d + Seconds(2)."
+    ),
+    "FloorMinimumNegativeThree": (
+        "For d = Seconds(INT64_MIN), unit = Seconds(-3), Floor must be -infinity."
+    ),
+    "CeilMinimumNegativeThree": (
+        "For d = Seconds(INT64_MIN), unit = Seconds(-3), Ceil must be d + Seconds(2)."
+    ),
+    "FloorMinimumInfiniteUnit": (
+        "For d = Seconds(INT64_MIN), unit = InfiniteDuration(), Floor must be -infinity."
+    ),
+    "CeilMinimumInfiniteUnit": (
+        "For d = Seconds(INT64_MIN), unit = InfiniteDuration(), Ceil must be ZeroDuration()."
+    ),
+}
 
 # INT64_MIN is a finite Duration, but its absolute value saturates to infinity.
 # An exact multiple must survive rounding even when the unit is negative.
@@ -55,6 +85,31 @@ int main() {
 }
 """
 
+# A second independent development audit caught an early return for every
+# minimum input. MIN seconds is not an exact multiple of three seconds. Preserve
+# the four-check probe unchanged so historical evaluations remain replayable.
+BOUNDARY_PROBE = DURATION_PROBE.replace(
+    "#include <cstdint>", "#include <cstdint>\n#include <initializer_list>"
+).replace(
+    "  return okay ? 0 : 1;",
+    r"""  for (int seconds : {3, -3}) {
+    const auto non_multiple_unit = absl::Seconds(seconds);
+    const auto floor = absl::Floor(d, non_multiple_unit);
+    const auto ceil = absl::Ceil(d, non_multiple_unit);
+    okay &= Check(floor == -absl::InfiniteDuration(),
+                  seconds > 0 ? "FloorMinimumPositiveThree" : "FloorMinimumNegativeThree", floor);
+    okay &= Check(ceil == d + absl::Seconds(2),
+                  seconds > 0 ? "CeilMinimumPositiveThree" : "CeilMinimumNegativeThree", ceil);
+  }
+  const auto floor_infinite = absl::Floor(d, absl::InfiniteDuration());
+  const auto ceil_infinite = absl::Ceil(d, absl::InfiniteDuration());
+  okay &= Check(floor_infinite == -absl::InfiniteDuration(),
+                "FloorMinimumInfiniteUnit", floor_infinite);
+  okay &= Check(ceil_infinite == absl::ZeroDuration(),
+                "CeilMinimumInfiniteUnit", ceil_infinite);
+  return okay ? 0 : 1;""",
+)
+
 CMAKE_PROJECT = """cmake_minimum_required(VERSION 3.20)
 project(auto_fix_semantic_probe LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
@@ -72,8 +127,10 @@ set_target_properties(auto_fix_duration_min_unit PROPERTIES
 """
 
 
-def duration_min_unit_command() -> list[str]:
+def duration_min_unit_command(probe: str = "duration-min-unit") -> list[str]:
     """Return a trusted BuildConfig.additional_tests entry for time suites."""
+    if probe not in {"duration-min-unit", "duration-rounding-boundaries"}:
+        raise ValueError("Unknown duration semantic probe")
     return [
         sys.executable,
         str(Path(__file__).resolve()),
@@ -82,7 +139,7 @@ def duration_min_unit_command() -> list[str]:
         "--junit",
         "{junit}",
         "--probe",
-        "duration-min-unit",
+        probe,
     ]
 
 
@@ -108,37 +165,51 @@ def _command(argv: list[str], cwd: Path, log: Path) -> dict:
     return {"argv": argv, "returncode": returncode, "output": output, "log": str(log)}
 
 
-def _native_checks(output: str) -> dict[str, tuple[bool, str]]:
+def _native_checks(
+    output: str, check_names: tuple[str, ...] = CHECK_NAMES
+) -> dict[str, tuple[bool, str]]:
     checks: dict[str, tuple[bool, str]] = {}
     for line in output.splitlines():
         if not line.startswith("AUTO_FIX_PROBE\t"):
             continue
         parts = line.split("\t", 3)
-        if len(parts) != 4 or parts[1] not in CHECK_NAMES or parts[2] not in {"PASS", "FAIL"}:
+        if len(parts) != 4 or parts[1] not in check_names or parts[2] not in {"PASS", "FAIL"}:
             raise ValueError("Native probe emitted an invalid assertion record")
         if parts[1] in checks:
             raise ValueError(f"Native probe repeated assertion: {parts[1]}")
         checks[parts[1]] = parts[2] == "PASS", parts[3]
-    if set(checks) != set(CHECK_NAMES):
+    if set(checks) != set(check_names):
         raise ValueError("Native probe did not execute every trusted assertion")
     return checks
 
 
-def _junit(path: Path, checks: dict[str, tuple[bool, str]], error: str = "") -> None:
-    suite = XML.Element("testsuite", name=PROBE_CLASS)
-    for name in CHECK_NAMES:
+def _junit(
+    path: Path,
+    checks: dict[str, tuple[bool, str]],
+    error: str = "",
+    *,
+    check_names: tuple[str, ...] = CHECK_NAMES,
+    classname: str = PROBE_CLASS,
+) -> None:
+    suite = XML.Element("testsuite", name=classname)
+    for name in check_names:
         if name not in checks:
             continue
         passed, actual = checks[name]
-        case = XML.SubElement(suite, "testcase", classname=PROBE_CLASS, name=name)
+        case = XML.SubElement(suite, "testcase", classname=classname, name=name)
         if not passed:
-            failure = XML.SubElement(case, "failure", message="Exact finite multiple changed")
-            failure.text = (
-                "For finite d = unit = Seconds(INT64_MIN), rounding must preserve d. "
-                f"{name} produced {actual}."
+            message = (
+                "Duration rounding boundary changed"
+                if classname == BOUNDARY_CLASS
+                else "Exact finite multiple changed"
             )
+            failure = XML.SubElement(case, "failure", message=message)
+            contract = BOUNDARY_CONTRACTS.get(
+                name, "For finite d = unit = Seconds(INT64_MIN), rounding must preserve d."
+            )
+            failure.text = f"{contract} {name} produced {actual}."
     if error:
-        case = XML.SubElement(suite, "testcase", classname=PROBE_CLASS, name="Execution")
+        case = XML.SubElement(suite, "testcase", classname=classname, name="Execution")
         XML.SubElement(
             case, "error", message="Native semantic probe could not complete"
         ).text = error
@@ -146,7 +217,13 @@ def _junit(path: Path, checks: dict[str, tuple[bool, str]], error: str = "") -> 
     XML.ElementTree(suite).write(path, encoding="utf-8", xml_declaration=True)
 
 
-def run_probe(workspace: Path, junit: Path) -> int:
+def run_probe(workspace: Path, junit: Path, probe: str = "duration-min-unit") -> int:
+    if probe not in {"duration-min-unit", "duration-rounding-boundaries"}:
+        raise ValueError("Unknown duration semantic probe")
+    boundary = probe == "duration-rounding-boundaries"
+    source = BOUNDARY_PROBE if boundary else DURATION_PROBE
+    names = BOUNDARY_CHECK_NAMES if boundary else CHECK_NAMES
+    classname = BOUNDARY_CLASS if boundary else PROBE_CLASS
     workspace = workspace.resolve()
     if junit.exists() or junit.is_symlink():
         print("Semantic probe requires a fresh JUnit destination", file=sys.stderr)
@@ -155,11 +232,11 @@ def run_probe(workspace: Path, junit: Path) -> int:
     checks: dict[str, tuple[bool, str]] = {}
     error = ""
     evidence: dict = {
-        "probe": "duration-min-unit",
+        "probe": probe,
         "classification": "posthoc-development-semantic-guard",
         "workspace": str(workspace),
         "commands": [],
-        "probe_source_sha256": hashlib.sha256(DURATION_PROBE.encode()).hexdigest(),
+        "probe_source_sha256": hashlib.sha256(source.encode()).hexdigest(),
     }
     try:
         if (
@@ -167,15 +244,16 @@ def run_probe(workspace: Path, junit: Path) -> int:
             or not (workspace / "CMakeLists.txt").is_file()
         ):
             raise ValueError("Workspace is not an Abseil CMake source tree")
-        root = workspace / ".auto-fix-build/semantic-probes/duration-min-unit"
+        probe_directory = "duration-rounding" if boundary else "duration-min-unit"
+        root = workspace / ".auto-fix-build/semantic-probes" / probe_directory
         if not root.resolve().is_relative_to(workspace):
             raise ValueError("Semantic probe output must remain inside the candidate workspace")
         project, build = root / "project", root / "build"
         logs = root / "runs" / uuid.uuid4().hex[:12]
         project.mkdir(parents=True, exist_ok=True)
         logs.mkdir(parents=True)
-        (project / "probe.cc").write_text(DURATION_PROBE, encoding="utf-8")
-        (project / "CMakeLists.txt").write_text(CMAKE_PROJECT, encoding="utf-8")
+        (project / "probe.cc").write_bytes(source.encode("utf-8"))
+        (project / "CMakeLists.txt").write_bytes(CMAKE_PROJECT.encode("utf-8"))
         evidence["candidate_duration_sha256"] = hashlib.sha256(
             (workspace / "absl/time/duration.cc").read_bytes()
         ).hexdigest()
@@ -219,25 +297,31 @@ def run_probe(workspace: Path, junit: Path) -> int:
                 raise ValueError(f"Semantic probe {stage} failed with exit {result['returncode']}")
         result = _command([str(executable)], workspace, logs / "native.log")
         evidence["commands"].append(result)
-        checks = _native_checks(result["output"])
+        checks = _native_checks(result["output"], names)
         if result["returncode"] and all(passed for passed, _ in checks.values()):
             raise ValueError(f"Semantic probe process failed with exit {result['returncode']}")
     except Exception as exc:
         error = str(exc)
         print(f"Invalid semantic probe evidence: {error}", file=sys.stderr, flush=True)
-    _junit(junit, checks, error)
+    _junit(junit, checks, error, check_names=names, classname=classname)
     evidence.update(error=error, checks=checks)
     junit.with_suffix(".evidence.json").write_text(json.dumps(evidence, indent=2), encoding="utf-8")
-    return int(bool(error) or not checks or any(not passed for passed, _ in checks.values()))
+    # Builder treats 127 as incomplete execution. A compiler/runner failure is
+    # not an observed contract violation, even when its diagnostic XML is valid.
+    if error or not checks:
+        return 127
+    return int(any(not passed for passed, _ in checks.values()))
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workspace", type=Path, default=Path("."))
     parser.add_argument("--junit", type=Path, required=True)
-    parser.add_argument("--probe", choices=["duration-min-unit"], required=True)
+    parser.add_argument(
+        "--probe", choices=["duration-min-unit", "duration-rounding-boundaries"], required=True
+    )
     args = parser.parse_args(argv)
-    return run_probe(args.workspace, args.junit)
+    return run_probe(args.workspace, args.junit, args.probe)
 
 
 if __name__ == "__main__":

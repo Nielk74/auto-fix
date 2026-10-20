@@ -193,6 +193,64 @@ def test_baseline_rejects_an_unrelated_failure(make_flow):
     assert not flow.model.contexts
 
 
+@pytest.mark.parametrize(
+    "second",
+    [
+        report(failed=["math.add"], passed=["new.pass"], test_ok=False),
+        report(failed=["math.add", "new.failure"], test_ok=False),
+        report(failed=["math.add"], skipped=["changed.skip"], test_ok=False),
+    ],
+)
+def test_repeated_baseline_requires_all_outcome_identities_to_stay_the_same(make_flow, second):
+    flow = make_flow([report(failed=["math.add"], test_ok=False), second])
+    flow.settings.baseline_repetitions = 2
+    result = flow.baseline(state_for(flow))
+    assert result["status"] == "blocked" and "unstable" in result["reason"]
+    assert len(result["baseline_checks"]) == 2
+    saved = json.loads((flow.directory / "baseline-checks.json").read_text())
+    assert saved["requested"] == saved["observed"] == 2
+    assert not flow.model.contexts
+
+
+def test_baseline_invalid_evidence_cannot_be_inferred_from_test_ok_alone(make_flow):
+    baseline = report(failed=["math.add"], test_ok=False)
+    baseline.evidence_valid = False
+    flow = make_flow([baseline])
+    result = flow.baseline(state_for(flow))
+    assert result["status"] == "blocked" and "evidence" in result["reason"]
+    assert result["baseline_checks"][0]["evidence_valid"] is False
+    assert not flow.model.contexts
+
+
+def test_invalid_evidence_never_satisfies_candidate_validation():
+    result = report(passed=["math.add"])
+    result.evidence_valid = False
+    assert not validates_fix(result, {"math.add"})
+
+
+def test_first_repair_uses_assertions_from_the_latest_baseline_repetition(make_flow):
+    flow = make_flow()
+    flow.settings.structured_diagnostics = True
+    checks = []
+    for number in (1, 2):
+        directory = flow.directory / "evidence" / f"baseline-{number}"
+        directory.mkdir(parents=True)
+        junit = directory / "junit.xml"
+        junit.write_text(
+            '<testsuite><testcase classname="math" name="add">'
+            f"<failure>current baseline observation {number}</failure>"
+            "</testcase></testsuite>"
+        )
+        check = report(failed=["math.add"], test_ok=False).model_dump()
+        check["logs"] = [str(junit)]
+        checks.append(check)
+    state = {**state_for(flow), "baseline": checks[0], "baseline_checks": checks}
+    context = flow._model_context(state, 1)
+    assertions = json.dumps(context["latest_validation"]["assertions"])
+    assert "current baseline observation 2" in assertions
+    assert "current baseline observation 1" not in assertions
+
+
 def test_graph_checks_original_test_after_final_rebase_before_publication(make_flow):
     flow = make_flow(
         [
@@ -362,6 +420,37 @@ def test_resuming_changed_candidate_stops_before_rebase_or_push(make_flow, dirty
         flow.finalize(initial)
     assert not flow.workspace.operations
     assert not flow.builder.labels
+
+
+@pytest.mark.parametrize("observed", [0, 1])
+def test_resuming_old_candidate_cannot_bypass_an_increased_baseline_policy(make_flow, observed):
+    flow = make_flow()
+    flow.settings.baseline_repetitions = 2
+    initial = {
+        **state_for(flow),
+        "resume_ready": True,
+        "baseline_checks": [report(failed=["math.add"], test_ok=False).model_dump()] * observed,
+    }
+    result = flow.finalize(initial)
+    assert result["status"] == "blocked" and "fewer baseline checks" in result["reason"]
+    assert not flow.workspace.operations and not flow.builder.labels
+    assert not flow.bitbucket.created
+
+
+def test_resuming_candidate_with_sufficient_baseline_evidence_still_reverifies(make_flow):
+    flow = make_flow([report(passed=["math.add"])])
+    flow.settings.baseline_repetitions = 2
+    baseline = report(failed=["math.add"], test_ok=False).model_dump()
+    initial = {
+        **state_for(flow),
+        "resume_ready": True,
+        "baseline": baseline,
+        "baseline_checks": [baseline, baseline],
+    }
+    result = flow.finalize(initial)
+    assert result["status"] == "ready"
+    assert flow.builder.labels == ["final-rebased"]
+    assert flow.workspace.operations == [("rebase",)]
 
 
 def test_context_budget_pruning_preserves_durable_pr_and_jira_evidence(make_flow):

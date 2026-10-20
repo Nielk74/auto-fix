@@ -118,6 +118,7 @@ def main(argv: list[str] | None = None) -> int:
     evaluation.add_argument("--max-inspections", type=int, default=0)
     evaluation.add_argument("--inspections-per-attempt", type=int, default=6)
     evaluation.add_argument("--max-attempts", type=int, default=2)
+    evaluation.add_argument("--baseline-repetitions", type=int, default=1)
     evaluation.add_argument("--structured-diagnostics", action="store_true")
     evaluation.add_argument("--context-chars", type=int, default=60000)
     evaluation.add_argument("--definition-reads", action="store_true")
@@ -131,6 +132,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     operations.add_argument("--max-inspections", type=int, default=1)
     operations.add_argument("--inspections-per-attempt", type=int, default=6)
+    operations.add_argument("--baseline-repetitions", type=int, default=1)
     operations.add_argument("--context-chars", type=int, default=60000)
     operations.add_argument("--definition-reads", action="store_true")
     operations.add_argument("--reasoning-effort", choices=["medium", "high"], default="medium")
@@ -153,6 +155,7 @@ def main(argv: list[str] | None = None) -> int:
             prompt_version=args.prompt,
             max_inspections=args.max_inspections,
             inspections_per_attempt=args.inspections_per_attempt,
+            baseline_repetitions=args.baseline_repetitions,
             context_chars=args.context_chars,
             definition_reads=args.definition_reads,
             reasoning_effort=args.reasoning_effort,
@@ -178,6 +181,7 @@ def main(argv: list[str] | None = None) -> int:
             max_inspections=args.max_inspections,
             inspections_per_attempt=args.inspections_per_attempt,
             max_attempts=args.max_attempts,
+            baseline_repetitions=args.baseline_repetitions,
             reasoning_effort=args.reasoning_effort,
             structured_diagnostics=args.structured_diagnostics,
             context_chars=args.context_chars,

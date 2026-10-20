@@ -434,12 +434,14 @@ def _settings(
     inspections_per_attempt: int = 6,
     context_chars: int = 60000,
     definition_reads: bool = False,
+    baseline_repetitions: int = 1,
 ) -> Settings:
     service = {"token_env": mocks.TOKEN_ENV}
     return Settings.model_validate(
         {
             "state_dir": current / "state",
             "max_attempts": 3,
+            "baseline_repetitions": baseline_repetitions,
             "max_inspections": inspections,
             "inspections_per_attempt": inspections_per_attempt,
             "structured_diagnostics": True,
@@ -489,6 +491,7 @@ def _run_scenario(
     context_chars: int = 60000,
     definition_reads: bool = False,
     reasoning_effort: str,
+    baseline_repetitions: int = 1,
 ) -> dict:
     started = time.monotonic()
     current.mkdir()
@@ -498,6 +501,8 @@ def _run_scenario(
     preflight = Builder(BuildConfig.model_validate(build), current / "preflight").verify(
         source, "injected"
     )
+    if not preflight.evidence_valid:
+        raise RuntimeError("Operational preflight returned malformed native evidence")
     if not preflight.build_ok or not preflight.report.failed:
         raise RuntimeError("Operational control defect did not reproduce in native upstream tests")
     junit = next(Path(path) for path in preflight.logs if path.endswith("junit.xml"))
@@ -540,6 +545,7 @@ def _run_scenario(
         inspections_per_attempt,
         context_chars,
         definition_reads,
+        baseline_repetitions,
     )
     now = datetime.now(ZoneInfo("Europe/Paris"))
     issue_description = case["description"]
@@ -722,6 +728,8 @@ def _run_scenario(
                 "model": MODEL,
                 "model_calls": model.calls,
                 "model_call_count": len(model.calls),
+                "baseline_repetitions": baseline_repetitions,
+                "baseline_check_count": len(state.get("baseline_checks", [])),
                 "native_passed_test_count": len(
                     state.get("verification", {}).get("report", {}).get("passed", [])
                 ),
@@ -761,9 +769,12 @@ def run_operational_evaluation(
     reasoning_effort: str = "medium",
     upstream_cache: Path | None = None,
     selected: list[str] | None = None,
+    baseline_repetitions: int = 1,
 ) -> int:
     """Run selected operational scenarios with real native tests and live Luna."""
     repair_prompt(prompt_version)
+    if type(baseline_repetitions) is not int or not 1 <= baseline_repetitions <= 3:
+        raise ValueError("baseline_repetitions must be between one and three")
     if not 0 <= max_inspections <= 6:
         raise ValueError("max_inspections must be between zero and six")
     if type(inspections_per_attempt) is not int or not 1 <= inspections_per_attempt <= 6:
@@ -825,6 +836,7 @@ def run_operational_evaluation(
             "prompt_version": prompt_version,
             "prompt_sha256": hashlib.sha256(repair_prompt(prompt_version).encode()).hexdigest(),
             "max_attempts": 3,
+            "baseline_repetitions": baseline_repetitions,
             "max_inspections": max_inspections,
             "inspections_per_attempt": inspections_per_attempt,
             "context_chars": context_chars,
@@ -870,6 +882,7 @@ def run_operational_evaluation(
                     prompt_version=prompt_version,
                     max_inspections=max_inspections,
                     inspections_per_attempt=inspections_per_attempt,
+                    baseline_repetitions=baseline_repetitions,
                     context_chars=context_chars,
                     definition_reads=definition_reads,
                     reasoning_effort=reasoning_effort,
@@ -893,6 +906,7 @@ def run_operational_evaluation(
                     "control_is_not_new_unique_defect": True,
                     "max_inspections": max_inspections,
                     "inspections_per_attempt": inspections_per_attempt,
+                    "baseline_repetitions": baseline_repetitions,
                     "context_chars": context_chars,
                     "definition_reads": definition_reads,
                     "total": len(results),

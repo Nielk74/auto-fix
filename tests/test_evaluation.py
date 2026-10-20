@@ -24,11 +24,43 @@ from auto_fix.mock_services import (
     VCS_ROOT,
     ScenarioServices,
 )
-from auto_fix.models import FailedTest, Failure
+from auto_fix.models import FailedTest, Failure, Verification
+from auto_fix.models import TestReport as NativeTestReport
 from auto_fix.workflow import Workflow
 
 ORIGINAL = "return 0xA17F;"
 REGRESSION = "return 0xA16F;"
+
+
+@pytest.mark.parametrize("probe", ["duration-min-unit", "duration-rounding-boundaries"])
+def test_versioned_duration_guards_are_selected_explicitly_for_matching_targets(monkeypatch, probe):
+    from auto_fix import semantic_probes
+
+    observed = []
+
+    def command(probe="duration-min-unit"):
+        observed.append(probe)
+        return ["synthetic-guard-command", "--probe", probe, "--junit", "{junit}"]
+
+    monkeypatch.setattr(semantic_probes, "duration_min_unit_command", command)
+    project = {
+        "cmake_options": [],
+        "additional_test_suites": [{"targets_any": ["absl_time_test"], "probe": probe}],
+    }
+    build = _build_config(project, {"build_targets": ["absl_time_test"]}, None)
+    assert observed == [probe]
+    assert build["additional_tests"] == [command(probe)]
+    other = _build_config(project, {"build_targets": ["absl_status_test"]}, None)
+    assert "additional_tests" not in other
+
+
+def test_unknown_versioned_guard_is_rejected_instead_of_silently_skipped():
+    project = {
+        "cmake_options": [],
+        "additional_test_suites": [{"targets_any": ["absl_time_test"], "probe": "invented-guard"}],
+    }
+    with pytest.raises(ValueError, match="Unknown trusted"):
+        _build_config(project, {"build_targets": ["absl_time_test"]}, None)
 
 
 @pytest.mark.parametrize("platform_name", ["nt", "posix"])
@@ -279,3 +311,95 @@ def test_invalid_evaluation_request_stops_before_upstream_or_model_access(
         )
     if invalid == "occupied-directory":
         assert (destination / "prior-result.json").read_text(encoding="utf-8") == "preserved"
+
+
+@pytest.mark.parametrize("value", [0, 4, True, "3", 1.5])
+def test_invalid_baseline_repetitions_stop_before_loading_inputs_or_running_work(
+    tmp_path, monkeypatch, value
+):
+    monkeypatch.setattr(
+        evaluation,
+        "evaluation_root",
+        lambda: pytest.fail("Invalid counts must fail before loading evaluation inputs"),
+    )
+    output = tmp_path / "output"
+    with pytest.raises(ValueError, match="baseline_repetitions"):
+        evaluation.run_evaluation(output, baseline_repetitions=value)
+    assert not output.exists()
+
+
+@pytest.mark.parametrize(
+    "configured,requested,observed,evidence_valid",
+    [({}, 1, 1, True), ({"baseline_repetitions": 3}, 3, 2, True), ({}, 1, 0, False)],
+)
+def test_baseline_policy_reaches_settings_and_records_requested_and_observed_counts(
+    upstream, tmp_path, monkeypatch, configured, requested, observed, evidence_valid
+):
+    inputs = tmp_path / "inputs"
+    inputs.mkdir()
+    specification = case()
+    specification.update(build_targets=["tiny_target"])
+    specification["context"].update(jira_key="CORE-1842", jira_summary="Import normalization")
+    (inputs / "cases.json").write_text(json.dumps({"cases": [specification]}))
+    (inputs / "project.json").write_text(
+        json.dumps({"commit": _git(upstream, "rev-parse", "HEAD"), "cmake_options": []})
+    )
+    junit = tmp_path / "preflight-junit.xml"
+    junit.write_text(
+        '<testsuite><testcase classname="ValueTest" name="Normalize">'
+        "<failure>Structural preflight fixture</failure></testcase></testsuite>"
+    )
+    preflight = Verification(
+        build_ok=True,
+        test_ok=False,
+        evidence_valid=evidence_valid,
+        report=NativeTestReport(failed=["ValueTest.Normalize"]),
+        logs=[str(junit)] if evidence_valid else [],
+    )
+
+    class Preflight:
+        def __init__(self, *_args):
+            pass
+
+        def verify(self, *_args):
+            return preflight
+
+    class NoModel:
+        calls = []
+
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        def close(self):
+            pass
+
+    class CapturedWorkflow:
+        def __init__(self, settings, run_id, *_args, **_kwargs):
+            assert settings.baseline_repetitions == requested
+            self.directory = settings.state_dir / "runs" / run_id
+
+        def run(self, state):
+            return {
+                **state,
+                "status": "baseline_unstable",
+                "baseline_checks": [preflight.model_dump() for _ in range(observed)],
+            }
+
+    monkeypatch.setattr(evaluation, "evaluation_root", lambda: inputs)
+    monkeypatch.setattr(evaluation, "_upstream", lambda *_args: upstream)
+    monkeypatch.setattr(evaluation, "Builder", Preflight)
+    monkeypatch.setattr(evaluation, "CodexRepairModel", NoModel)
+    monkeypatch.setattr(evaluation, "Workflow", CapturedWorkflow)
+    output = tmp_path / "output"
+    if not evidence_valid:
+        with pytest.raises(RuntimeError, match="preflight returned malformed native evidence"):
+            evaluation.run_evaluation(output, **configured)
+        return
+    assert evaluation.run_evaluation(output, **configured) == 1
+    manifest = json.loads((output / "manifest.json").read_text())
+    summary = json.loads((output / "summary.json").read_text())
+    score = json.loads((output / specification["id"] / "score.json").read_text())
+    assert manifest["baseline_repetitions"] == summary["baseline_repetitions"] == requested
+    assert score["baseline_repetitions"] == requested
+    assert score["baseline_check_count"] == observed
+    assert summary["cases"][0] == score

@@ -47,6 +47,10 @@ def run(tmp_path):
         result.parent / "inspection-evidence-1.json",
         {"reads": [{"path": "example.cc", "content": "int f();"}]},
     )
+    write_json(
+        result.parent / "baseline-checks.json",
+        {"requested": 3, "observed": 2, "checks": [{"report": {"failed": ["Suite.a"]}}]},
+    )
     (result.parent / "fix.diff").write_text(
         "--- a/example.cc\n+++ b/example.cc\n@@ -1 +1 @@\n-return 0;\n+return 1;\n"
     )
@@ -144,6 +148,11 @@ def test_preserves_tree_exact_hashes_and_excludes_caches(run, tmp_path):
     native = "results/dev/sample_case/state/runs/sample-run/evidence/verification/junit.xml"
     hashes = json.loads((destination / "SHA256SUMS.json").read_text())
     assert native in hashes
+    baseline = "results/dev/sample_case/state/runs/sample-run/baseline-checks.json"
+    assert baseline in hashes
+    assert (destination / baseline).read_bytes() == (
+        source / "sample_case/state/runs/sample-run/baseline-checks.json"
+    ).read_bytes()
     for relative, expected in hashes.items():
         assert sha(destination / relative) == expected
     assert not any(
@@ -260,10 +269,15 @@ def test_recording_rejects_native_failures_and_bad_input_hashes(run, tmp_path):
         )
 
 
-def test_investigation_then_repair_records_replay_in_sequence(run, tmp_path):
+@pytest.mark.parametrize("repetitions", [None, 3])
+def test_investigation_then_repair_records_replay_in_sequence(run, tmp_path, repetitions):
     from auto_fix.recorded_model import RecordedRepairModel
 
     workspace, source = run
+    if repetitions is not None:
+        manifest = json.loads((source / "manifest.json").read_text())
+        manifest["baseline_repetitions"] = repetitions
+        write_json(source / "manifest.json", manifest)
     destination = tmp_path / "artifact"
     evidence.export(
         {"dev": source},
@@ -279,6 +293,7 @@ def test_investigation_then_repair_records_replay_in_sequence(run, tmp_path):
     )
     index = json.loads((destination / "recordings/expanded/index.json").read_text())
     entry = index["entries"][0]
+    assert entry["baseline_repetitions"] == (repetitions or 1)
     assert entry["ci_tags"] == ["windows-representative"]
     assert [call["kind"] for call in entry["recorded_calls"]] == ["investigation", "repair"]
     model = RecordedRepairModel(destination / entry["recordings_directory"])

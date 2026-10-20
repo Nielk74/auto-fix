@@ -113,6 +113,27 @@ def test_plan_does_not_accept_model_or_backend_overrides(tmp_path, override):
         load_plan(path)
 
 
+@pytest.mark.parametrize("repetitions", [0, 4, True, "2"])
+def test_baseline_repetition_plan_is_a_bounded_integer(tmp_path, repetitions):
+    with pytest.raises(ValidationError):
+        load_plan(plan_files(tmp_path, [job(baseline_repetitions=repetitions)]))
+
+
+def test_repeated_baseline_policy_reaches_the_evaluator_and_report(tmp_path):
+    specification = ExperimentJob.model_validate(job(baseline_repetitions=2))
+    argv = job_command(specification, tmp_path / "run", tmp_path / "p", tmp_path / "c")
+    assert argv[argv.index("--baseline-repetitions") + 1] == "2"
+    directory = tmp_path / "run"
+    make_run(directory, {"fmt_a": {"baseline_check_count": 2}})
+    manifest = json.loads((directory / "manifest.json").read_text())
+    manifest["baseline_repetitions"] = 2
+    write(directory / "manifest.json", manifest)
+    report = summarize_runs([descriptor(directory)], tmp_path / "report")
+    assert report["trials"][0]["baseline_repetitions"] == 2
+    assert report["trials"][0]["baseline_check_count"] == 2
+    assert report["groups"][0]["observed_baseline_checks"] == 2
+
+
 @pytest.mark.parametrize("parallel", [0, 4, True, "2"])
 def test_parallelism_must_be_an_integer_between_one_and_three(tmp_path, parallel):
     with pytest.raises(ValidationError):
@@ -460,6 +481,13 @@ def test_report_split_never_selects_or_combines_holdout_for_development(tmp_path
         ("Context exceeds configured model budget", {}, [], "context_budget_before_model"),
         ("Context exceeds configured model budget", {}, [call()], "context_budget_after_model"),
         ("Baseline build failed", {}, [], "baseline_build"),
+        ("Baseline test evidence is invalid or incomplete", {}, [], "baseline_evidence"),
+        (
+            "Baseline outcomes varied across repetitions; test suite is unstable",
+            {},
+            [],
+            "baseline_stability",
+        ),
         ("Corresponding TC tests not reproduced", {}, [], "baseline_reproduction"),
         (
             "Repair budget exhausted",

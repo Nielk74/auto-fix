@@ -269,6 +269,7 @@ def test_replay_command_pins_backend_and_all_workflow_settings(recording, tmp_pa
     assert command[command.index("--case") + 1] == "cpp_case"
     assert command[command.index("--prompt") + 1] == "contract-v3"
     assert command[command.index("--max-attempts") + 1] == "2"
+    assert command[command.index("--baseline-repetitions") + 1] == "1"
     assert "--structured-diagnostics" in command
     assert "--config" not in command and "--backend codex" not in " ".join(command)
 
@@ -281,6 +282,7 @@ def test_replay_preserves_the_registered_source_and_adaptive_budgets(recording, 
         inspections_per_attempt=2,
         context_chars=160000,
         definition_reads=True,
+        baseline_repetitions=3,
     )
     write(index, payload)
     case = replay.load_index(index, root).entries[0]
@@ -290,9 +292,19 @@ def test_replay_preserves_the_registered_source_and_adaptive_budgets(recording, 
         ("--max-inspections", "6"),
         ("--inspections-per-attempt", "2"),
         ("--context-chars", "160000"),
+        ("--baseline-repetitions", "3"),
     ]:
         assert command[command.index(flag) + 1] == value
     assert "--definition-reads" in command
+
+
+@pytest.mark.parametrize("value", [0, 4, True, "3", 1.5])
+def test_replay_rejects_invalid_baseline_repetitions_before_execution(recording, value):
+    root, index, payload = recording
+    payload["entries"][0]["baseline_repetitions"] = value
+    write(index, payload)
+    with pytest.raises(ValueError, match="baseline_repetitions"):
+        replay.load_index(index, root)
 
 
 def git(path, *args):
@@ -338,6 +350,7 @@ def evidence(root, case, directory):
             "prompt_version": case.prompt,
             "max_inspections": case.max_inspections,
             "max_attempts": case.max_attempts,
+            "baseline_repetitions": case.baseline_repetitions,
             "structured_diagnostics": case.structured_diagnostics,
             "reasoning_effort": case.reasoning_effort,
             "project_sha256": case.project_sha256,
@@ -389,6 +402,11 @@ def evidence(root, case, directory):
             "report": {"passed": ["Suite.Case", "Suite.Other"], "failed": []},
         },
     }
+    if case.baseline_repetitions > 1:
+        state["baseline_checks"] = [
+            {**state["baseline"], "evidence_valid": True, "build_ok": True}
+            for _ in range(case.baseline_repetitions)
+        ]
     write(current / "state/runs/tc-fixture/result.json", state)
     write(current / "pull-requests.json", [{"fromRef": {"latestCommit": head}}])
     return current
@@ -404,6 +422,61 @@ def test_verifies_native_identity_protected_files_and_exact_git_publication_evid
     assert result["live_inference"] is False and result["live_tokens"] == 0
     assert result["protected_tests_unchanged"] is True
     assert result["passed_test_count"] == 2
+
+
+@pytest.mark.parametrize(
+    "corruption",
+    [
+        None,
+        "manifest",
+        "count",
+        "evidence",
+        "evidence_missing",
+        "evidence_integer",
+        "build_false",
+        "build_missing",
+        "build_integer",
+        "passing",
+        "failing",
+        "skipped",
+    ],
+)
+def test_replay_requires_the_requested_repeated_baseline_evidence(recording, corruption):
+    root, index, payload = recording
+    payload["entries"][0]["baseline_repetitions"] = 3
+    write(index, payload)
+    case = replay.load_index(index, root).entries[0]
+    output = root / "output"
+    current = evidence(root, case, output)
+    if corruption == "manifest":
+        manifest = output / "run/manifest.json"
+        document = json.loads(manifest.read_text())
+        document["baseline_repetitions"] = 1
+        write(manifest, document)
+    elif corruption:
+        result = current / "state/runs/tc-fixture/result.json"
+        state = json.loads(result.read_text())
+        if corruption == "count":
+            state["baseline_checks"].pop()
+        elif corruption == "evidence":
+            state["baseline_checks"][1]["evidence_valid"] = False
+        elif corruption.endswith("_missing"):
+            field = "evidence_valid" if corruption.startswith("evidence") else "build_ok"
+            del state["baseline_checks"][1][field]
+        elif corruption.endswith("_integer"):
+            field = "evidence_valid" if corruption.startswith("evidence") else "build_ok"
+            state["baseline_checks"][1][field] = 1
+        elif corruption == "build_false":
+            state["baseline_checks"][1]["build_ok"] = False
+        else:
+            outcome = {"passing": "passed", "failing": "failed", "skipped": "skipped"}[corruption]
+            state["baseline_checks"][1]["report"][outcome] = ["Different.Case"]
+        write(result, state)
+    if corruption:
+        with pytest.raises(ValueError, match="manifest|baseline"):
+            replay.verify_result(case, root, output)
+    else:
+        assert replay.verify_result(case, root, output)["mechanical_replay_passed"] is True
 
 
 @pytest.mark.parametrize("corruption", ["test_identity", "pr_head", "call_kind", "live_usage"])

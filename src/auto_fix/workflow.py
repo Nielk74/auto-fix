@@ -32,6 +32,7 @@ class State(TypedDict, total=False):
     feedback: str
     proposal: dict[str, Any]
     baseline: dict[str, Any]
+    baseline_checks: list[dict[str, Any]]
     verification: dict[str, Any]
     status: str
     reason: str
@@ -78,7 +79,12 @@ def matched_names(settings: Settings, failure: Failure) -> set[str]:
 
 
 def validates_fix(report: Verification, expected: set[str]) -> bool:
-    return report.build_ok and report.test_ok and expected.issubset(set(report.report.passed))
+    return (
+        report.build_ok
+        and report.test_ok
+        and report.evidence_valid
+        and expected.issubset(set(report.report.passed))
+    )
 
 
 def pr_description(state: State) -> str:
@@ -100,11 +106,23 @@ def pr_description(state: State) -> str:
         for url in failure.evidence_urls
     )
     links_text = "\n".join(links)
+    count = len(state.get("baseline_checks", []))
+    reproduction = (
+        (
+            "Baseline reproduction: 1 native run before repair.\n\n"
+            if count == 1
+            else f"Baseline reproduction: {count} native runs with matching test outcomes "
+            "before repair.\n\n"
+        )
+        if count
+        else ""
+    )
     return redact(
         f"{proposal.get('explanation', 'Automated repair candidate.')}\n\n"
         f"Reproduced failing tests:\n{tests}\n\n"
         f"Original TeamCity revision: `{failure.revision}`\n\n"
         f"Verified commit after rebasing onto the configured base: `{state['head']}`\n\n"
+        f"{reproduction}"
         "Validation: configured native build and full test command passed; originally failing "
         "tests are present and passing in the fresh JUnit report.\n\n"
         f"Context:\n{links_text}\n\n{evidence}\n\n"
@@ -171,25 +189,65 @@ class Workflow:
 
     def baseline(self, state: State) -> State:
         self.event("baseline")
-        result = self.builder.verify(self.workspace.path, "baseline")
         failure = Failure.model_validate(state["failure"])
         expected = matched_names(self.settings, failure)
-        if not result.build_ok:
-            return {
-                "baseline": result.model_dump(),
-                "status": "blocked",
-                "reason": "Baseline build failed",
-            }
-        if not expected or not expected.issubset(set(result.report.failed)):
-            return {
-                "baseline": result.model_dump(),
-                "status": "blocked",
-                "reason": (
-                    "Corresponding TC test failures were not reproduced after rebase; "
-                    "check test_name_map or flaky tests"
-                ),
-            }
-        return {"baseline": result.model_dump(), "feedback": result.output, "status": "working"}
+        checks: list[dict[str, Any]] = []
+        reference = None
+        head = self.workspace.head() if self.settings.baseline_repetitions > 1 else None
+        for index in range(self.settings.baseline_repetitions):
+            label = "baseline" if index == 0 else f"baseline-repeat-{index + 1}"
+            result = self.builder.verify(self.workspace.path, label)
+            checks.append(result.model_dump())
+            write_json(
+                self.directory / "baseline-checks.json",
+                {
+                    "requested": self.settings.baseline_repetitions,
+                    "observed": len(checks),
+                    "checks": checks,
+                },
+            )
+            evidence = {"baseline": checks[0], "baseline_checks": checks}
+            if not result.build_ok:
+                return {**evidence, "status": "blocked", "reason": "Baseline build failed"}
+            if not result.evidence_valid:
+                return {
+                    **evidence,
+                    "status": "blocked",
+                    "reason": "Baseline test evidence is invalid or incomplete",
+                }
+            if head is not None and (
+                self.workspace.head() != head or not self.workspace.is_clean()
+            ):
+                return {
+                    **evidence,
+                    "status": "blocked",
+                    "reason": "Baseline verification changed tracked sources or commit",
+                }
+            outcomes = tuple(
+                frozenset(getattr(result.report, name)) for name in ("passed", "failed", "skipped")
+            )
+            if reference is not None and outcomes != reference:
+                return {
+                    **evidence,
+                    "status": "blocked",
+                    "reason": "Baseline outcomes varied across repetitions; test suite is unstable",
+                }
+            if not expected or not expected.issubset(set(result.report.failed)):
+                return {
+                    **evidence,
+                    "status": "blocked",
+                    "reason": (
+                        "Corresponding TC test failures were not reproduced after rebase; "
+                        "check test_name_map or flaky tests"
+                    ),
+                }
+            reference = outcomes
+        return {
+            "baseline": checks[0],
+            "baseline_checks": checks,
+            "feedback": result.output,
+            "status": "working",
+        }
 
     def _model_context(self, state: State, attempt: int) -> dict[str, Any]:
         cfg = self.settings
@@ -270,7 +328,9 @@ class Workflow:
                 "representative_details_only": True,
             }
             context["previous_validation"] = failure_diagnostics(state.get("feedback", ""))
-            latest = state.get("verification", state.get("baseline", {}))
+            baseline_checks = state.get("baseline_checks", [])
+            latest_baseline = baseline_checks[-1] if baseline_checks else state.get("baseline", {})
+            latest = state.get("verification", latest_baseline)
             context["latest_validation"] = {
                 "build_ok": latest.get("build_ok"),
                 "test_ok": latest.get("test_ok"),
@@ -448,6 +508,15 @@ class Workflow:
                 raise RuntimeError(
                     "Prepared candidate changed since verification; refusing publication"
                 )
+            if (
+                self.settings.baseline_repetitions > 1
+                and len(state.get("baseline_checks", [])) < self.settings.baseline_repetitions
+            ):
+                return {
+                    "status": "blocked",
+                    "reason": "Saved candidate has fewer baseline checks than required; "
+                    "start a fresh repair with the selected repetition policy",
+                }
         else:
             self.workspace.commit(state["proposal"]["summary"])
         head = self.workspace.rebase()

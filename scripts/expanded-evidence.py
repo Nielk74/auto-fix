@@ -29,7 +29,14 @@ CALL_FILES = {
     "schema.json",
     "stderr.log",
 }
-STATE_FILES = {"result.json", "context.json", "events.jsonl", "fix.diff", "publication.json"}
+STATE_FILES = {
+    "result.json",
+    "context.json",
+    "events.jsonl",
+    "fix.diff",
+    "publication.json",
+    "baseline-checks.json",
+}
 SECRET_KEY = re.compile(
     r"^(?:api[_-]?key|access[_-]?token|auth[_-]?token|token|password|secret|authorization)$", re.I
 )
@@ -353,6 +360,7 @@ def export_recordings(
                 "structured_diagnostics": manifest["structured_diagnostics"],
                 "reasoning_effort": manifest["reasoning_effort"],
                 "max_attempts": manifest["max_attempts"],
+                "baseline_repetitions": manifest.get("baseline_repetitions", 1),
                 "expected_completion": True,
                 "expected_test_names": entry["baseline_failed"],
                 "recorded_calls": recorded_calls,

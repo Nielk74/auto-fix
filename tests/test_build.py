@@ -61,6 +61,7 @@ def test_nonzero_test_exit_fails_even_with_passing_report(tmp_path):
         tmp_path, "nonzero"
     )
     assert not result.test_ok and result.report.passed == ["pass"]
+    assert not result.evidence_valid
 
 
 def test_stale_report_cannot_satisfy_next_run(tmp_path):
@@ -69,6 +70,7 @@ def test_stale_report_cannot_satisfy_next_run(tmp_path):
     config = BuildConfig(build=[python("pass")], test=python("pass", "{junit}"))
     result = Builder(config, tmp_path / "artifacts").verify(tmp_path, "stale")
     assert not result.test_ok
+    assert not result.evidence_valid
     assert "fresh JUnit" in result.output
 
 
@@ -80,6 +82,54 @@ def test_build_failure_prevents_tests(tmp_path):
     )
     result = Builder(config, tmp_path / "artifacts").verify(tmp_path, "build-failed")
     assert not result.build_ok and not result.test_ok and not marker.exists()
+    assert not result.evidence_valid
+
+
+@pytest.mark.parametrize(
+    "xml,exit_code,valid",
+    [
+        (
+            '<testsuite><testcase name="case"><failure>assertion</failure></testcase></testsuite>',
+            1,
+            True,
+        ),
+        (
+            '<testsuite><testcase name="case"><failure>assertion</failure></testcase></testsuite>',
+            124,
+            False,
+        ),
+        (
+            '<testsuite><testcase name="case"><failure>assertion</failure></testcase></testsuite>',
+            127,
+            False,
+        ),
+        ('<testsuite><testcase name="case"/></testsuite>', 3, False),
+        ("<testsuite><testcase", 0, False),
+    ],
+)
+def test_structured_evidence_flag_distinguishes_assertions_from_invalid_execution(
+    tmp_path, xml, exit_code, valid
+):
+    result = builder(tmp_path, xml, exit_code).verify(tmp_path, "evidence-trust")
+    assert result.evidence_valid is valid
+    assert not result.test_ok
+
+
+def test_timeout_cannot_turn_partial_failure_xml_into_valid_baseline_evidence(tmp_path):
+    xml = (
+        '<testsuite><testcase name="case"><failure>early assertion</failure></testcase></testsuite>'
+    )
+    worker = builder(tmp_path, xml)
+    worker.config.timeout_seconds = 1
+    worker.config.test = python(
+        "import pathlib,sys,time;pathlib.Path(sys.argv[1]).write_text(sys.argv[2]);time.sleep(30)",
+        "{junit}",
+        xml,
+    )
+    result = worker.verify(tmp_path, "partial-native-evidence")
+    assert result.report.failed == ["case"]
+    assert "timed out" in result.output
+    assert not result.evidence_valid and not result.test_ok
 
 
 def test_unique_reports_and_namespaced_junit(tmp_path):

@@ -137,12 +137,13 @@ def _build_config(project: dict, case: dict, googletest: Path | None) -> dict:
         "timeout_seconds": 600,
     }
     for suite in project.get("additional_test_suites", []):
-        if suite.get("probe") != "duration-min-unit":
+        probe = suite.get("probe")
+        if probe not in ("duration-min-unit", "duration-rounding-boundaries"):
             raise ValueError("Unknown trusted additional test suite")
         if set(suite.get("targets_any", [])) & set(case["build_targets"]):
             from auto_fix.semantic_probes import duration_min_unit_command
 
-            config.setdefault("additional_tests", []).append(duration_min_unit_command())
+            config.setdefault("additional_tests", []).append(duration_min_unit_command(probe=probe))
     return config
 
 
@@ -210,11 +211,14 @@ def run_evaluation(
     max_inspections: int = 0,
     inspections_per_attempt: int = 6,
     max_attempts: int = 2,
+    baseline_repetitions: int = 1,
     reasoning_effort: str = "medium",
     structured_diagnostics: bool = False,
     context_chars: int = 60000,
     definition_reads: bool = False,
 ) -> int:
+    if type(baseline_repetitions) is not int or not 1 <= baseline_repetitions <= 3:
+        raise ValueError("baseline_repetitions must be between one and three")
     if backend not in {"codex", "endpoint", "replay"}:
         raise ValueError("Unknown evaluation backend")
     if profile not in {"legacy", "focused"}:
@@ -270,6 +274,7 @@ def run_evaluation(
             "prompt_version": prompt_version,
             "prompt_sha256": hashlib.sha256(repair_prompt(prompt_version).encode()).hexdigest(),
             "max_attempts": max_attempts,
+            "baseline_repetitions": baseline_repetitions,
             "max_inspections": max_inspections,
             "inspections_per_attempt": inspections_per_attempt,
             "reasoning_effort": reasoning_effort,
@@ -319,6 +324,10 @@ def run_evaluation(
             preflight = Builder(BuildConfig.model_validate(config), current / "preflight").verify(
                 source, "injected"
             )
+            if not preflight.evidence_valid:
+                raise RuntimeError(
+                    f"Case {case['id']} preflight returned malformed native evidence"
+                )
             if not preflight.build_ok or not preflight.report.failed:
                 raise RuntimeError(f"Case {case['id']} failed to reproduce its injected regression")
             junit = next(Path(path) for path in preflight.logs if path.endswith("junit.xml"))
@@ -359,6 +368,7 @@ def run_evaluation(
                 "state_dir": current / "state",
                 "timezone": "Europe/Paris",
                 "max_attempts": max_attempts,
+                "baseline_repetitions": baseline_repetitions,
                 "max_inspections": max_inspections,
                 "inspections_per_attempt": inspections_per_attempt,
                 "structured_diagnostics": structured_diagnostics,
@@ -433,6 +443,8 @@ def run_evaluation(
                     "elapsed_seconds": round(time.monotonic() - started, 3),
                     "attempts": state.get("attempt", 0),
                     "inspections": state.get("inspections", 0),
+                    "baseline_repetitions": baseline_repetitions,
+                    "baseline_check_count": len(state.get("baseline_checks", [])),
                     "baseline_failed": preflight.report.failed,
                     "baseline_test_names": sorted(
                         {*preflight.report.passed, *preflight.report.failed}
@@ -494,6 +506,7 @@ def run_evaluation(
                     "prompt_version": prompt_version,
                     "max_inspections": max_inspections,
                     "inspections_per_attempt": inspections_per_attempt,
+                    "baseline_repetitions": baseline_repetitions,
                     "reasoning_effort": reasoning_effort,
                     "structured_diagnostics": structured_diagnostics,
                     "context_chars": context_chars,

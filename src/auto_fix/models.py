@@ -43,6 +43,7 @@ class TestReport(Model):
 class Verification(Model):
     build_ok: bool
     test_ok: bool
+    evidence_valid: bool = True
     report: TestReport = Field(default_factory=TestReport)
     output: str = ""
     logs: list[str] = Field(default_factory=list)

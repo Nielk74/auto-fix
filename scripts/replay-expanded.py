@@ -51,6 +51,7 @@ class ReplayCase(BaseModel):
     structured_diagnostics: bool = Field(strict=True)
     reasoning_effort: Literal["medium", "high"]
     max_attempts: int = Field(ge=1, le=5, strict=True)
+    baseline_repetitions: int = Field(default=1, ge=1, le=3, strict=True)
     expected_completion: Literal[True]
     expected_test_names: list[str] = Field(min_length=1)
     ci_tags: list[Literal["windows-representative"]] = Field(default_factory=list)
@@ -196,6 +197,8 @@ def replay_command(case: ReplayCase, root: Path, directory: Path) -> list[str]:
         str(case.inspections_per_attempt),
         "--max-attempts",
         str(case.max_attempts),
+        "--baseline-repetitions",
+        str(case.baseline_repetitions),
         "--reasoning-effort",
         case.reasoning_effort,
         "--upstream-cache",
@@ -238,6 +241,7 @@ def verify_result(case: ReplayCase, root: Path, directory: Path) -> dict:
         and manifest.get("context_chars", 60000) == case.context_chars
         and manifest.get("definition_reads", False) is case.definition_reads
         and manifest.get("max_attempts") == case.max_attempts
+        and manifest.get("baseline_repetitions", 1) == case.baseline_repetitions
         and manifest.get("structured_diagnostics") is case.structured_diagnostics
         and manifest.get("reasoning_effort") == case.reasoning_effort
         and manifest.get("project_sha256") == case.project_sha256
@@ -266,6 +270,24 @@ def verify_result(case: ReplayCase, root: Path, directory: Path) -> dict:
     )
     report = state.get("verification", {}).get("report", {})
     baseline = state.get("baseline", {}).get("report", {})
+    if case.baseline_repetitions > 1:
+        checks = state.get("baseline_checks", [])
+        _require(
+            isinstance(checks, list) and len(checks) == case.baseline_repetitions,
+            "Replay did not retain the requested repeated baseline checks",
+        )
+        for check in checks:
+            _require(
+                isinstance(check, dict)
+                and check.get("evidence_valid") is True
+                and check.get("build_ok") is True
+                and isinstance(check.get("report"), dict)
+                and all(
+                    sorted(check["report"].get(outcome, [])) == sorted(baseline.get(outcome, []))
+                    for outcome in ("passed", "failed", "skipped")
+                ),
+                "Replay repeated baseline evidence is invalid or changed outcomes",
+            )
     original = {item["name"] for item in state.get("failure", {}).get("tests", [])}
     expected = set(case.expected_test_names)
     _require(
