@@ -23,7 +23,7 @@ flowchart TD
     K -->|Explicit --publish| L[Push tested commit and verify Bitbucket PR receipt]
 ```
 
-The API, Git and compiler nodes are ordinary Python functions; the model performs diagnosis, requests bounded source evidence, and proposes exact text edits. You can extend the workflow by adding a named node and an edge in the graph. There is one worker and one model endpoint, keeping resource use and execution order easy to follow.
+The API, Git and compiler nodes are ordinary Python functions; the model performs diagnosis, requests bounded source evidence, and proposes exact text edits. You can extend the workflow by adding a named node and an edge in the graph. Read [the complete workflow and extension guide](docs/workflow.md) for each gate and its evidence. There is one worker and one model endpoint, keeping resource use and execution order easy to follow.
 
 ## Try the complete local demo
 
@@ -87,7 +87,7 @@ Use the server root URL for TeamCity, Bitbucket and Jira, including any deployme
 
 The workflow needs TeamCity read access, Bitbucket repository/PR read access, Jira issue read access when Jira is enabled, and access to your custom model. Publishing additionally needs Git push access and Bitbucket PR creation access. No credentials belong in repository URLs or committed YAML.
 
-Build commands are argument arrays executed in the isolated worktree. The CMake example uses `--clean-first` and the MSBuild example uses `/t:Rebuild /nr:false` so verification rebuilds the edited sources instead of accepting stale incremental binaries. Configure the complete suite you want verified, not only the previously failing test. The test command must write a fresh XML report at `{junit}`.
+Build commands are argument arrays executed in the isolated worktree. The CMake example uses `--clean-first` and the MSBuild example uses `/t:Rebuild /nr:false` so verification rebuilds the edited sources instead of accepting stale incremental binaries. Configure the complete suite you want verified, not only the previously failing test. The test command must write a fresh XML report at `{junit}`. The Windows examples set `baseline_repetitions: 2`: two unchanged-source native runs must reproduce the failures with identical passed, failed and skipped test identities before inference. Invalid, incomplete or varying baseline evidence stops the run. The compatibility default is one repetition.
 
 The validator requires the original failing test identities to appear as passing after repair. XML identity is `classname.name` when `classname` is nonempty and differs from `name`; otherwise it is `name`. This keeps GoogleTest fixtures distinct, such as `Arithmetic.AddsIntegers`, while CTest's identical class/name fields remain a single name. Duplicate identities are rejected. Use `build.test_name_map` when TeamCity uses a different label; confirm both sides against your runner's XML. An empty, missing or unrelated report cannot authorize publication.
 
