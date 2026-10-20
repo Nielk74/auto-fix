@@ -47,6 +47,16 @@ SECRET_TEXT = re.compile(
     r"[\"']?\s*[:=]\s*[\"']?[A-Za-z0-9_+/=-]{12,})",
     re.I,
 )
+# Full, independently audited historical demo snapshots. Only their fixed
+# synthetic authorization literal is masked for regex scanning; export bytes
+# and current environment-secret checks always use the original data.
+HISTORICAL_DEMO_SHA256 = frozenset(
+    {
+        "847729e49167f81950e783cd882240377a04b7f04b4ec85175a2cebdc85654d7",
+        "053d650cf66563a277528a0e52ff1893d12bb3bed949088c064d998ad3e28603",
+    }
+)
+SYNTHETIC_DEMO_AUTH = "Bearer local-demo-token"
 
 
 def digest(data: bytes) -> str:
@@ -85,17 +95,41 @@ class Bundle:
         self.directory = directory
         self.max_file_bytes = max_file_bytes
         self.hashes: dict[str, str] = {}
+        self.scanner_exemptions: dict[str, dict] = {}
         self.secrets = [
             value.encode()
             for key, value in os.environ.items()
             if re.search(r"TOKEN|SECRET|PASSWORD|API_KEY", key, re.I) and len(value) >= 8
         ]
 
-    def check(self, data: bytes, label: str) -> None:
+    def check(self, data: bytes, label: str) -> dict | None:
         if len(data) > self.max_file_bytes:
             raise ValueError(f"Evidence exceeds the per-file byte limit: {label}")
+        if any(secret in data for secret in self.secrets):
+            raise ValueError(f"Possible credential in evidence; export rejected: {label}")
         text = data.decode("utf-8", errors="surrogateescape")
-        if any(secret in data for secret in self.secrets) or SECRET_TEXT.search(text):
+        exemption = None
+        parts = label.split("/")
+        if (
+            len(parts) == 4
+            and parts[0] == "results"
+            and IDENTIFIER.fullmatch(parts[1])
+            and parts[2:] == ["implementation", "demo.py"]
+            and digest(data) in HISTORICAL_DEMO_SHA256
+            and SYNTHETIC_DEMO_AUTH in text
+        ):
+            text = text.replace(SYNTHETIC_DEMO_AUTH, "<audited synthetic demo authorization>")
+            exemption = {
+                "path": label,
+                "sha256": digest(data),
+                "scheme": "Bearer",
+                "synthetic_value": "local-demo-token",
+                "reason": (
+                    "Audited historical local demo uses a fixed synthetic authorization value; "
+                    "only this literal is masked for scanning, and exported bytes are unchanged."
+                ),
+            }
+        if SECRET_TEXT.search(text):
             raise ValueError(f"Possible credential in evidence; export rejected: {label}")
         if label.endswith(".json"):
 
@@ -116,13 +150,14 @@ class Bundle:
             except (ValueError, UnicodeDecodeError):
                 # Failed/truncated model responses are still auditable evidence.
                 # Their surrounding metadata/events remain strictly validated.
-                return
+                return exemption
             if walk(document):
                 raise ValueError(f"Possible credential field; export rejected: {label}")
+        return exemption
 
     def write(self, relative: str, data: bytes) -> str:
         path = contained(self.directory / relative, self.directory)
-        self.check(data, relative)
+        exemption = self.check(data, relative)
         sha = digest(data)
         previous = self.hashes.get(relative)
         if previous and previous != sha:
@@ -130,6 +165,8 @@ class Bundle:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
         self.hashes[relative] = sha
+        if exemption is not None:
+            self.scanner_exemptions[relative] = exemption
         return sha
 
     def copy(self, source: Path, relative: str, root: Path, expected: str | None = None) -> str:
@@ -528,6 +565,9 @@ def export(
             fixture = contained(workspace / fixture_proofs, workspace)
             proof = export_fixture_proofs(bundle, fixture, workspace)
             index["fixture_proofs"] = {key: proof[key] for key in ("file_count", "unique_blobs")}
+        index["credential_scan_exemptions"] = [
+            bundle.scanner_exemptions[path] for path in sorted(bundle.scanner_exemptions)
+        ]
         bundle.json("index.json", index)
         # The checksum manifests deliberately do not checksum themselves.
         hashes = dict(sorted(bundle.hashes.items()))

@@ -14,6 +14,8 @@ Every call must identify the exact model, CLI transport, explicit `repair` or `i
 
 The exporter rejects detected credentials rather than rewriting recorded responses. It checks current secret environment values, common token/header patterns, and credential fields. Input files have a 64 MiB limit each; `--max-file-bytes` changes that limit. Files are never silently truncated. These checks do not authenticate the model provider or replace review of evidence intended for public release.
 
+Two audited historical `demo.py` snapshots contain the fixed synthetic authorization value `local-demo-token` with the Bearer scheme. Only files at `results/NAME/implementation/demo.py` whose entire bytes match SHA-256 `847729e49167f81950e783cd882240377a04b7f04b4ec85175a2cebdc85654d7` or `053d650cf66563a277528a0e52ff1893d12bb3bed949088c064d998ad3e28603` receive a scan-only exception for that exact literal. The exporter preserves their original bytes and records each path, hash, synthetic value, and reason in `index.json` under `credential_scan_exemptions`. Current environment secrets are checked against the unmodified bytes first; every other token pattern and JSON credential check still applies. Different bytes, paths, and files receive no exception.
+
 To create replay recordings, supply a JSON configuration mapping run names to their frozen input manifests. Explicit case selection makes the intended replay set reviewable:
 
 ```json
