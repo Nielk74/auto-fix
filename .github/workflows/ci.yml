@@ -51,13 +51,55 @@ jobs:
       - name: Native C++ workflow demo
         run: uv run --no-sync auto-fix demo --directory .auto-fix/ci/demo
       - name: Replay recorded Luna repairs against real Abseil tests
-        if: matrix.python == '3.12'
+        if: matrix.python == '3.12' && runner.os == 'Linux'
         run: uv run --no-sync auto-fix evaluate --backend replay --directory .auto-fix/ci/abseil --recordings evaluation/recordings/accepted
       - name: Upload synthetic verification evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: verification-${{ matrix.os }}-py${{ matrix.python }}
+          path: |
+            .auto-fix/ci/
+            !.auto-fix/ci/abseil/**/.auto-fix-build/**
+            !.auto-fix/ci/abseil/**/source/**
+            !.auto-fix/ci/abseil/**/remote.git/**
+            !.auto-fix/ci/abseil/**/worktrees/**
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7
+
+  windows-replay:
+    name: Windows Abseil / ${{ matrix.case }}
+    runs-on: windows-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        case:
+          - ascii_lower_dispatch
+          - hex_digit_conversion
+          - split_ascii_carriage_return
+          - demangle_rvalue_function_qualifier
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          python-version: '3.12'
+          enable-cache: true
+      - name: Install locked dependencies
+        run: uv sync --locked --extra dev
+      - name: Replay recorded Luna repair against real Abseil tests
+        run: >-
+          uv run --no-sync auto-fix evaluate --backend replay
+          --directory .auto-fix/ci/abseil --recordings evaluation/recordings/accepted
+          --case ${{ matrix.case }}
+      - name: Upload synthetic verification evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: verification-windows-latest-py3.12-abseil-${{ matrix.case }}
           path: |
             .auto-fix/ci/
             !.auto-fix/ci/abseil/**/.auto-fix-build/**
