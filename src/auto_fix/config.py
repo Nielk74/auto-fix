@@ -48,6 +48,7 @@ class BitbucketConfig(ServiceConfig):
 
 class LLMConfig(ServiceConfig):
     model: str
+    prompt_version: Literal["repair-v1", "evidence-v2", "contract-v3"] = "repair-v1"
     max_tokens: int = Field(default=6000, ge=256, le=32000)
     context_chars: int = Field(default=60000, ge=4000, le=200000)
     temperature: float = Field(default=0.1, ge=0, le=2)
@@ -81,15 +82,18 @@ class BuildConfig(Model):
     configure: list[list[str]] = Field(default_factory=list)
     build: list[list[str]] = Field(min_length=1)
     test: list[str] = Field(min_length=1)
+    # Operator-owned validation suites; each must produce its own fresh evidence.
+    additional_tests: list[list[str]] = Field(default_factory=list)
     timeout_seconds: int = Field(default=1800, ge=1, le=14400)
     # Exact TC name -> JUnit name. Missing entries use the TC name verbatim.
     test_name_map: dict[str, str] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def junit_required(self) -> BuildConfig:
-        if not any("{junit}" in part for part in self.test):
-            raise ValueError("test command must write a fresh JUnit report using {junit}")
-        for command in [*self.configure, *self.build, self.test]:
+        for command in [self.test, *self.additional_tests]:
+            if not any("{junit}" in part for part in command):
+                raise ValueError("Each test command must write a fresh JUnit report using {junit}")
+        for command in [*self.configure, *self.build, self.test, *self.additional_tests]:
             if not command or any(not item for item in command):
                 raise ValueError("Commands must be nonempty argument arrays")
         return self
@@ -105,6 +109,8 @@ class Settings(Model):
     repository: RepositoryConfig
     build: BuildConfig
     max_attempts: int = Field(default=2, ge=1, le=5)
+    max_inspections: int = Field(default=0, ge=0, le=6)
+    structured_diagnostics: bool = False
 
     @field_validator("timezone")
     @classmethod

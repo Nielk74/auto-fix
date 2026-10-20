@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import fnmatch
 import hashlib
 import json
 import os
@@ -24,6 +25,7 @@ from auto_fix.integrations import Bitbucket, Jira, TeamCity
 from auto_fix.llm import RepairModel
 from auto_fix.mock_services import ScenarioServices
 from auto_fix.models import FailedTest, Failure
+from auto_fix.prompts import repair_prompt
 from auto_fix.recorded_model import RecordedRepairModel
 from auto_fix.workflow import Workflow, failure_key, write_json
 
@@ -87,13 +89,14 @@ def _details(junit: Path) -> dict[str, str]:
     return result
 
 
-def _build_config(project: dict, case: dict, googletest: Path) -> dict:
+def _build_config(project: dict, case: dict, googletest: Path | None) -> dict:
     generator = [] if os.name == "nt" else ["-G", "Ninja"]
+    google_option = project.get("google_test_option", "ABSL_LOCAL_GOOGLETEST_DIR")
     # VS maps CMake's global clean target to the whole solution. Rebuild only
     # the selected project and dependencies, while forcing edited sources to
     # compile even when Windows timestamps coincide within the same second.
     native_rebuild = ["--", "/t:Rebuild"] if os.name == "nt" else []
-    return {
+    config = {
         "configure": [
             [
                 "cmake",
@@ -103,7 +106,7 @@ def _build_config(project: dict, case: dict, googletest: Path) -> dict:
                 ".auto-fix-build",
                 *generator,
                 *project["cmake_options"],
-                f"-DABSL_LOCAL_GOOGLETEST_DIR={googletest}",
+                *([f"-D{google_option}={googletest}"] if googletest else []),
             ]
         ],
         "build": [
@@ -132,6 +135,14 @@ def _build_config(project: dict, case: dict, googletest: Path) -> dict:
         ],
         "timeout_seconds": 600,
     }
+    for suite in project.get("additional_test_suites", []):
+        if suite.get("probe") != "duration-min-unit":
+            raise ValueError("Unknown trusted additional test suite")
+        if set(suite.get("targets_any", [])) & set(case["build_targets"]):
+            from auto_fix.semantic_probes import duration_min_unit_command
+
+            config.setdefault("additional_tests", []).append(duration_min_unit_command())
+    return config
 
 
 def _source(directory: Path, upstream: Path, case: dict) -> tuple[Path, list[dict]]:
@@ -191,13 +202,23 @@ def run_evaluation(
     upstream_cache: Path | None = None,
     endpoint_config: Path | None = None,
     recordings: Path | None = None,
+    project_file: Path | None = None,
+    cases_file: Path | None = None,
+    split: str | None = None,
+    prompt_version: str = "repair-v1",
+    max_inspections: int = 0,
+    max_attempts: int = 2,
+    reasoning_effort: str = "medium",
+    structured_diagnostics: bool = False,
 ) -> int:
     if backend not in {"codex", "endpoint", "replay"}:
         raise ValueError("Unknown evaluation backend")
     if profile not in {"legacy", "focused"}:
         raise ValueError("Unknown context profile")
     root = evaluation_root()
-    project = json.loads((root / "project.json").read_text(encoding="utf-8"))
+    project_file = project_file or root / "project.json"
+    cases_file = cases_file or root / "cases.json"
+    project = json.loads(project_file.read_text(encoding="utf-8"))
     endpoint_settings = None
     if backend == "endpoint":
         from dotenv import load_dotenv
@@ -209,35 +230,61 @@ def run_evaluation(
         load_dotenv(endpoint_config.resolve().parent / ".env", override=False)
         endpoint_settings = load_settings(endpoint_config)
         model_name = endpoint_settings.llm.model
-    cases = json.loads((root / "cases.json").read_text(encoding="utf-8"))["cases"]
+    cases = json.loads(cases_file.read_text(encoding="utf-8"))["cases"]
+    if split:
+        if split not in {"development", "holdout"}:
+            raise ValueError("Unknown evaluation split")
+        cases = [case for case in cases if case.get("split", "development") == split]
     if selected:
         cases = [case for case in cases if case["id"] in selected]
         if {case["id"] for case in cases} != set(selected):
             raise ValueError("Unknown evaluation case ID")
+    if not cases:
+        raise ValueError("Evaluation selection contains no cases")
+    repair_prompt(prompt_version)
     directory = directory.resolve()
     if directory.exists() and any(directory.iterdir()):
         raise ValueError("Evaluation directory must be empty; prior evidence is preserved")
     directory.mkdir(parents=True, exist_ok=True)
-    source_files = ["workspace.py", "workflow.py", "context.py", "llm.py"]
+    source_files = sorted(path.name for path in Path(__file__).parent.glob("*.py"))
+    snapshot = directory / "implementation"
+    snapshot.mkdir()
+    for name in source_files:
+        (snapshot / name).write_bytes(Path(__file__).with_name(name).read_bytes())
     write_json(
         directory / "manifest.json",
         {
             "model": model_name,
             "backend": backend,
             "profile": profile,
+            "prompt_version": prompt_version,
+            "prompt_sha256": hashlib.sha256(repair_prompt(prompt_version).encode()).hexdigest(),
+            "max_attempts": max_attempts,
+            "max_inspections": max_inspections,
+            "reasoning_effort": reasoning_effort,
+            "structured_diagnostics": structured_diagnostics,
+            "split": split,
+            "case_ids": [case["id"] for case in cases],
             "source_sha256": {
                 name: hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
                 for name in source_files
             },
-            "cases_sha256": hashlib.sha256((root / "cases.json").read_bytes()).hexdigest(),
+            "cases_sha256": hashlib.sha256(cases_file.read_bytes()).hexdigest(),
+            "project_sha256": hashlib.sha256(project_file.read_bytes()).hexdigest(),
             "project_commit": project["commit"],
             "live_inference": backend != "replay",
             "oracle_manifest_sent_to_model": False,
         },
     )
     cache = (upstream_cache or Path(".auto-fix/upstream")).resolve()
-    upstream = _upstream(cache, project, "abseil")
-    googletest = _upstream(cache, project["google_test"], "googletest")
+    upstream = _upstream(cache, project, project.get("id", "abseil"))
+    googletest = (
+        _upstream(cache, project["google_test"], "googletest")
+        if project.get("google_test")
+        else None
+    )
+    allowed_paths = project.get("allowed_paths", ["absl/**"])
+    context_paths = project.get("context_paths", ["absl/**"])
     old_token = os.environ.get(mocks.TOKEN_ENV)
     os.environ[mocks.TOKEN_ENV] = mocks.TOKEN
     results = []
@@ -293,7 +340,9 @@ def run_evaluation(
             payload = {
                 "state_dir": current / "state",
                 "timezone": "Europe/Paris",
-                "max_attempts": 2,
+                "max_attempts": max_attempts,
+                "max_inspections": max_inspections,
+                "structured_diagnostics": structured_diagnostics,
                 "teamcity": {
                     **service,
                     "url": mocks.TC_URL,
@@ -308,11 +357,16 @@ def run_evaluation(
                     "repo": mocks.REPO,
                 },
                 "jira": {**service, "url": mocks.JIRA_URL},
-                "llm": {**service, "url": "https://model.meridian.invalid/v1", "model": model_name},
+                "llm": {
+                    **service,
+                    "url": "https://model.meridian.invalid/v1",
+                    "model": model_name,
+                    "prompt_version": prompt_version,
+                },
                 "repository": {
                     "path": source,
-                    "allowed_paths": ["absl/**"],
-                    "context_paths": ["absl/**"],
+                    "allowed_paths": allowed_paths,
+                    "context_paths": context_paths,
                 },
                 "build": config,
             }
@@ -321,7 +375,12 @@ def run_evaluation(
             settings = Settings.model_validate(payload)
             run_id = failure_key(failure)
             if backend == "codex":
-                model = CodexRepairModel(current / "model", model_name)
+                model = CodexRepairModel(
+                    current / "model",
+                    model_name,
+                    prompt_version=prompt_version,
+                    reasoning_effort=reasoning_effort,
+                )
             elif backend == "replay":
                 recorded_root = recordings or root / "recordings" / "accepted"
                 model = RecordedRepairModel(recorded_root / case["id"], model_name)
@@ -342,13 +401,21 @@ def run_evaluation(
                 entry = {
                     "case": case["id"],
                     "profile": profile,
+                    "prompt_version": prompt_version,
+                    "split": case.get("split"),
+                    "category": case.get("category"),
+                    "complexity": case.get("complexity"),
                     "model": model_name,
                     "status": state["status"],
                     "success": state["status"] == "published",
                     "reason": state.get("reason", ""),
                     "elapsed_seconds": round(time.monotonic() - started, 3),
                     "attempts": state.get("attempt", 0),
+                    "inspections": state.get("inspections", 0),
                     "baseline_failed": preflight.report.failed,
+                    "baseline_test_names": sorted(
+                        {*preflight.report.passed, *preflight.report.failed}
+                    ),
                     "passed_test_count": len(final_tests.get("passed", [])),
                     "remaining_failures": final_tests.get("failed", []),
                     "model_calls": getattr(model, "calls", []),
@@ -358,10 +425,20 @@ def run_evaluation(
                 # Independent checks: source tests stay byte-for-byte unchanged and PR branch is
                 # exactly the final tested SHA. This is separate from workflow routing decisions.
                 if entry["success"]:
+                    original_tests = {*preflight.report.passed, *preflight.report.failed}
+                    if not original_tests.issubset(set(final_tests.get("passed", []))):
+                        raise RuntimeError(
+                            "Evaluation invalid: an originally executed test "
+                            "is absent or not passing"
+                        )
                     changed = _git(
                         flow.workspace.path, "diff", "--name-only", failure.revision, "HEAD"
                     ).splitlines()
-                    if any("_test" in path or not path.startswith("absl/") for path in changed):
+                    if any(
+                        "_test" in path
+                        or not any(fnmatch.fnmatchcase(path, pattern) for pattern in allowed_paths)
+                        for path in changed
+                    ):
                         raise RuntimeError(
                             "Evaluation invalid: repaired candidate changed protected "
                             "tests/configuration"
@@ -393,6 +470,11 @@ def run_evaluation(
                 {
                     "project": project,
                     "profile": profile,
+                    "prompt_version": prompt_version,
+                    "max_inspections": max_inspections,
+                    "reasoning_effort": reasoning_effort,
+                    "structured_diagnostics": structured_diagnostics,
+                    "split": split,
                     "model": model_name,
                     "backend": backend,
                     "platform": platform.platform(),

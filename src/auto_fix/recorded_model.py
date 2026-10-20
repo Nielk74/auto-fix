@@ -6,9 +6,11 @@ import hashlib
 import json
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar
 
-from auto_fix.models import Proposal
+from auto_fix.models import Investigation, Model, Proposal
+
+Response = TypeVar("Response", bound=Model)
 
 
 class RecordedRepairModel:
@@ -29,6 +31,14 @@ class RecordedRepairModel:
         self.calls: list[dict[str, Any]] = []
 
     def propose(self, context: dict[str, Any]) -> Proposal:
+        return self._replay(context, Proposal, "repair")
+
+    def inspect(self, context: dict[str, Any]) -> Investigation:
+        return self._replay(context, Investigation, "investigation")
+
+    def _replay(
+        self, context: dict[str, Any], response_type: type[Response], kind: str
+    ) -> Response:
         # The recording contains the prior model's output, never an oracle patch
         # supplied by the caller. Context still goes through the normal workflow
         # and apply/build/test gates; replay does not inspect or change it.
@@ -38,6 +48,7 @@ class RecordedRepairModel:
         started = time.monotonic()
         call: dict[str, Any] = {
             "model": self.expected_model,
+            "kind": kind,
             "transport": "recorded-replay",
             "live_inference": False,
             "recording": str(directory),
@@ -64,12 +75,14 @@ class RecordedRepairModel:
                     f"Recorded replay call-{number} model differs from expected "
                     f"{self.expected_model}"
                 )
+            if metadata.get("kind", "repair") != kind:
+                raise RuntimeError(f"Recorded replay call-{number} has a different action kind")
             returncode = metadata.get("returncode")
             if type(returncode) is not int or returncode != 0:
                 raise RuntimeError(f"Recorded replay call-{number} did not complete successfully")
             try:
                 response = response_path.read_bytes()
-                proposal = Proposal.model_validate_json(response)
+                proposal = response_type.model_validate_json(response)
             except (OSError, ValueError) as exc:
                 raise RuntimeError(
                     f"Recorded replay call-{number} contains an invalid proposal"

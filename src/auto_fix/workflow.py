@@ -14,9 +14,12 @@ from langgraph.graph import END, START, StateGraph
 
 from auto_fix.build import Builder
 from auto_fix.config import Settings
+from auto_fix.diagnostics import failure_diagnostics
 from auto_fix.integrations import Bitbucket, Jira, TeamCity
+from auto_fix.investigation import gather_evidence
 from auto_fix.llm import RepairModel
 from auto_fix.models import Failure, Verification
+from auto_fix.publication import require_verified_pr
 from auto_fix.workspace import Workspace
 
 
@@ -35,6 +38,9 @@ class State(TypedDict, total=False):
     branch: str
     pr: dict[str, Any]
     resume_ready: bool
+    inspections: int
+    investigation: dict[str, Any]
+    last_repair: dict[str, Any]
 
 
 def failure_key(failure: Failure) -> str:
@@ -104,7 +110,7 @@ def pr_description(state: State) -> str:
 
 
 class Workflow:
-    """Small readable graph; only repair uses an LLM. Side effects have explicit gates."""
+    """Explicit investigation/repair graph with native verification and publication gates."""
 
     def __init__(
         self,
@@ -182,11 +188,10 @@ class Workflow:
             }
         return {"baseline": result.model_dump(), "feedback": result.output, "status": "working"}
 
-    def repair(self, state: State) -> State:
-        attempt = state.get("attempt", 0) + 1
-        self.event("repair", attempt=attempt)
+    def _model_context(self, state: State, attempt: int) -> dict[str, Any]:
         cfg = self.settings
         budget = cfg.llm.context_chars
+        structured = cfg.structured_diagnostics or cfg.max_inspections > 0
         failure = Failure.model_validate(state["failure"])
         signal_lines = "\n".join(
             [
@@ -205,10 +210,22 @@ class Workflow:
             )
             and not re.search(r"\bTest\s+#\d+.*\bPassed\b", line)
         )
+        if structured:
+            signals = signals[:45000] + signals[-15000:]
+        test_names = [test["name"] for test in state["failure"]["tests"]]
+        if structured:
+            test_names = list(
+                dict.fromkeys(
+                    [
+                        *state.get("verification", {}).get("report", {}).get("failed", []),
+                        *test_names,
+                    ]
+                )
+            )[:200]
         source = self.workspace.context(
             failure.changes,
             max_chars=budget // 2,
-            test_names=[test["name"] for test in state["failure"]["tests"]],
+            test_names=test_names,
             signals=signals,
         )
         context = {
@@ -219,28 +236,161 @@ class Workflow:
             "previous_validation": state.get("feedback", "")[-12000:],
             "attempt": attempt,
         }
+        if structured:
+            # The immutable full failure set stays in state for validation. Only
+            # model evidence is sampled so one broad regression cannot exhaust
+            # its context with hundreds of repeated assertion messages.
+            groups: dict[str, list] = {}
+            for test in failure.tests:
+                groups.setdefault(test.name.rsplit(".", 1)[0], []).append(test)
+            representatives = []
+            for offset in range(12):
+                for tests in groups.values():
+                    if offset < len(tests) and len(representatives) < 12:
+                        test = tests[offset].model_dump()
+                        test["details"] = test["details"][:700]
+                        representatives.append(test)
+            context["failure"] = {**state["failure"], "tests": representatives}
+            context["failure_groups"] = {
+                "total_failed_tests": len(failure.tests),
+                "suites": [{"name": name, "count": len(tests)} for name, tests in groups.items()][
+                    :50
+                ],
+                "representative_details_only": True,
+            }
+            context["previous_validation"] = failure_diagnostics(state.get("feedback", ""))
+            latest = state.get("verification", state.get("baseline", {}))
+            context["latest_validation"] = {
+                "build_ok": latest.get("build_ok"),
+                "test_ok": latest.get("test_ok"),
+                "failed": latest.get("report", {}).get("failed", [])[:100],
+            }
+            context["investigation"] = state.get("investigation", {})
+            previous = state.get("last_repair")
+            if previous:
+                context["previous_repair"] = previous
+                if len(json.dumps(previous)) > budget // 4:
+                    context["previous_repair"] = {
+                        **previous,
+                        "proposal": {
+                            "summary": previous.get("proposal", {}).get("summary", "")[:500],
+                            "edits": [
+                                {
+                                    "path": edit["path"],
+                                    "old": edit["old"][:1000],
+                                    "new": edit["new"][:1000],
+                                }
+                                for edit in previous.get("proposal", {}).get("edits", [])
+                            ],
+                        },
+                        "truncated": True,
+                    }
         # Preserve valid structured evidence when pruning the auxiliary text budget.
         while len(json.dumps(context)) > budget and context["context"]:
             context["context"].pop(next(iter(context["context"])))
+        if structured:
+            while len(json.dumps(context)) > budget and len(context["repository"]["files"]) > 1:
+                context["repository"]["files"].pop()
         if len(json.dumps(context)) > budget:
+            raise ValueError("Context exceeds configured model budget")
+        return context
+
+    def investigate(self, state: State) -> State:
+        count = state.get("inspections", 0)
+        if count >= self.settings.max_inspections:
+            return {"status": "working"}
+        count += 1
+        self.event("investigate", inspection=count)
+        try:
+            context = self._model_context(state, state.get("attempt", 0) + 1)
+            request = self.model.inspect(context)
+            write_json(self.directory / f"investigation-{count}.json", request.model_dump())
+            if request.ready and not request.queries and not request.reads:
+                return {
+                    "inspections": count,
+                    "investigation": {
+                        **state.get("investigation", {}),
+                        "hypotheses": request.hypotheses,
+                    },
+                    "status": "working",
+                }
+            if not request.queries and not request.reads:
+                return {"inspections": count, "status": "blocked", "reason": request.summary}
+            evidence = gather_evidence(self.workspace, request, max_chars=10000)
+            previous = state.get("investigation", {}).get("evidence", [])
+            combined = [*previous, evidence]
+            while len(json.dumps(combined)) > 12000 and len(combined) > 1:
+                combined.pop(0)
+            report = {"hypotheses": request.hypotheses, "evidence": combined}
+            write_json(self.directory / f"inspection-evidence-{count}.json", report)
             return {
-                "attempt": attempt,
-                "status": "blocked",
-                "reason": "Context exceeds configured model budget",
+                "inspections": count,
+                "investigation": report,
+                "status": "inspecting"
+                if count < self.settings.max_inspections and not request.ready
+                else "working",
             }
+        except (ValueError, RuntimeError, KeyError) as exc:
+            return {
+                "inspections": count,
+                "status": "blocked",
+                "reason": "Investigation failed: " + redact(str(exc)),
+            }
+
+    def _repair_entry(self, state: State) -> str:
+        return (
+            "investigate"
+            if state.get("inspections", 0) < self.settings.max_inspections
+            else "repair"
+        )
+
+    def repair(self, state: State) -> State:
+        attempt = state.get("attempt", 0) + 1
+        self.event("repair", attempt=attempt)
+        try:
+            context = self._model_context(state, attempt)
+        except ValueError as exc:
+            return {"attempt": attempt, "status": "blocked", "reason": str(exc)}
+        proposal = None
         try:
             proposal = self.model.propose(context)
-            self.workspace.apply_edits(proposal.edits)
             write_json(self.directory / f"proposal-{attempt}.json", proposal.model_dump())
-            return {"attempt": attempt, "proposal": proposal.model_dump(), "status": "working"}
+            self.workspace.apply_edits(proposal.edits)
+            return {
+                "attempt": attempt,
+                "proposal": proposal.model_dump(),
+                "last_repair": {
+                    "attempt": attempt,
+                    "proposal": proposal.model_dump(),
+                    "applied": True,
+                },
+                "status": "working",
+            }
         except (ValueError, RuntimeError, KeyError) as exc:
-            return {"attempt": attempt, "feedback": redact(str(exc)), "status": "invalid_proposal"}
+            return {
+                "attempt": attempt,
+                "feedback": redact(str(exc)),
+                "last_repair": {
+                    "attempt": attempt,
+                    "proposal": proposal.model_dump() if proposal is not None else {},
+                    "applied": False,
+                },
+                "status": "invalid_proposal",
+            }
+
+    def _required_tests(self, state: State) -> set[str]:
+        failure = Failure.model_validate(state["failure"])
+        baseline = state.get("baseline", {}).get("report", {})
+        return {
+            *matched_names(self.settings, failure),
+            *baseline.get("passed", []),
+            *baseline.get("failed", []),
+        }
 
     def verify(self, state: State) -> State:
         self.event("verify", attempt=state["attempt"])
         result = self.builder.verify(self.workspace.path, f"attempt-{state['attempt']}")
-        failure = Failure.model_validate(state["failure"])
-        okay = validates_fix(result, matched_names(self.settings, failure))
+        okay = validates_fix(result, self._required_tests(state))
         return {
             "verification": result.model_dump(),
             "feedback": result.output,
@@ -263,8 +413,7 @@ class Workflow:
                 "reason": "Candidate is identical to the latest base; no fix PR is needed",
             }
         result = self.builder.verify(self.workspace.path, "final-rebased")
-        failure = Failure.model_validate(state["failure"])
-        if not validates_fix(result, matched_names(self.settings, failure)):
+        if not validates_fix(result, self._required_tests(state)):
             return {
                 "verification": result.model_dump(),
                 "status": "blocked",
@@ -287,9 +436,19 @@ class Workflow:
             self.workspace.branch, self.settings.repository.base_branch
         )
         if existing:
-            remote_head = existing.get("fromRef", {}).get("latestCommit")
-            if remote_head and remote_head != state["head"]:
-                raise RuntimeError("Existing PR head differs from the verified candidate")
+            require_verified_pr(
+                existing, state["head"], self.workspace.branch, self.settings.repository.base_branch
+            )
+            write_json(
+                self.directory / "publication.json",
+                {
+                    "status": "published",
+                    "branch": self.workspace.branch,
+                    "head": state["head"],
+                    "pr": existing,
+                    "reconciled": True,
+                },
+            )
             return {"status": "published", "pr": existing}
         if (self.directory / "publication.json").exists():
             raise RuntimeError(
@@ -311,10 +470,18 @@ class Workflow:
             "[auto-fix] " + state["proposal"]["summary"][:240],
             pr_description(state),
         )
-        remote_head = pr.get("fromRef", {}).get("latestCommit")
-        if remote_head and remote_head != state["head"]:
-            raise RuntimeError("Created PR head differs from the verified candidate")
-        write_json(self.directory / "publication.json", {"status": "published", "pr": pr})
+        require_verified_pr(
+            pr, state["head"], self.workspace.branch, self.settings.repository.base_branch
+        )
+        write_json(
+            self.directory / "publication.json",
+            {
+                "status": "published",
+                "branch": self.workspace.branch,
+                "head": state["head"],
+                "pr": pr,
+            },
+        )
         return {"status": "published", "pr": pr}
 
     def blocked(self, state: State) -> State:
@@ -330,6 +497,7 @@ class Workflow:
             "collect_context",
             "prepare",
             "baseline",
+            "investigate",
             "repair",
             "verify",
             "finalize",
@@ -346,8 +514,19 @@ class Workflow:
         graph.add_edge("prepare", "baseline")
         graph.add_conditional_edges(
             "baseline",
-            lambda s: "repair" if s["status"] == "working" else "blocked",
-            ["repair", "blocked"],
+            lambda s: self._repair_entry(s) if s["status"] == "working" else "blocked",
+            ["investigate", "repair", "blocked"],
+        )
+        graph.add_conditional_edges(
+            "investigate",
+            lambda s: (
+                "blocked"
+                if s["status"] == "blocked"
+                else "investigate"
+                if s["status"] == "inspecting"
+                else "repair"
+            ),
+            ["investigate", "repair", "blocked"],
         )
         graph.add_conditional_edges(
             "repair",
@@ -356,22 +535,22 @@ class Workflow:
                 if s["status"] == "blocked"
                 else "verify"
                 if s["status"] == "working"
-                else "repair"
+                else self._repair_entry(s)
                 if s["attempt"] < self.settings.max_attempts
                 else "blocked"
             ),
-            ["verify", "repair", "blocked"],
+            ["verify", "investigate", "repair", "blocked"],
         )
         graph.add_conditional_edges(
             "verify",
             lambda s: (
                 "finalize"
                 if s["status"] == "validated"
-                else "repair"
+                else self._repair_entry(s)
                 if s["attempt"] < self.settings.max_attempts
                 else "blocked"
             ),
-            ["finalize", "repair", "blocked"],
+            ["finalize", "investigate", "repair", "blocked"],
         )
         graph.add_conditional_edges(
             "finalize",

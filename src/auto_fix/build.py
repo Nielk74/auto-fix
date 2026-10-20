@@ -6,7 +6,9 @@ import signal
 import subprocess
 import tempfile
 import uuid
+from copy import deepcopy
 from pathlib import Path
+from xml.etree import ElementTree as XML
 
 from defusedxml import ElementTree
 
@@ -146,35 +148,63 @@ class Builder:
                     output="\n".join(outputs)[-OUTPUT_LIMIT:],
                     logs=logs,
                 )
-        result = run_command(
-            [arg.replace("{junit}", str(junit)) for arg in self.config.test],
-            worktree,
-            self.config.timeout_seconds,
-            directory / "test.log",
-        )
-        logs.append(result.log_path)
-        outputs.append(result.output)
         report = TestReport()
-        error = ""
-        try:
-            if not junit.is_file() or junit.is_symlink():
-                raise ValueError("Test command did not produce a fresh JUnit report")
-            if junit.stat().st_size > 20_000_000:
-                raise ValueError("JUnit report exceeds the 20 MB size limit")
-            report = parse_junit(junit)
+        test_ok = True
+        seen: set[str] = set()
+        merged = XML.Element("testsuites")
+        evidence_ok = True
+        commands = [self.config.test, *self.config.additional_tests]
+        for index, command in enumerate(commands):
+            label = "primary" if index == 0 else f"additional-{index}"
+            # Preserve the original path/format when no extra suites are configured.
+            suite_junit = directory / f"junit-{label}.xml" if len(commands) > 1 else junit
+            logfile = directory / ("test.log" if index == 0 else f"test-{label}.log")
+            result = run_command(
+                [arg.replace("{junit}", str(suite_junit)) for arg in command],
+                worktree,
+                self.config.timeout_seconds,
+                logfile,
+            )
+            logs.append(result.log_path)
+            outputs.append(f"Validation suite: {label}\n{result.output}")
+            try:
+                if not suite_junit.is_file() or suite_junit.is_symlink():
+                    raise ValueError("Test command did not produce a fresh JUnit report")
+                if suite_junit.stat().st_size > 20_000_000:
+                    raise ValueError("JUnit report exceeds the 20 MB size limit")
+                suite_report = parse_junit(suite_junit)
+                logs.append(str(suite_junit))
+                identities = {*suite_report.passed, *suite_report.failed, *suite_report.skipped}
+                if duplicates := seen & identities:
+                    raise ValueError(
+                        "JUnit testcase names must be unique across validation suites; "
+                        f"duplicate name: {sorted(duplicates)[0]}"
+                    )
+                seen.update(identities)
+                for outcome in ("passed", "failed", "skipped"):
+                    getattr(report, outcome).extend(getattr(suite_report, outcome))
+                if not suite_report.passed and not suite_report.failed:
+                    raise ValueError(
+                        "JUnit report contains no executed tests (empty or all skipped)"
+                    )
+                if len(commands) > 1:
+                    suite = XML.SubElement(merged, "testsuite", name=label)
+                    for case in ElementTree.parse(suite_junit).getroot().iter():
+                        if case.tag.rsplit("}", 1)[-1] == "testcase":
+                            suite.append(deepcopy(case))
+            except Exception as exc:
+                # Malformed XML and blocked DTD/entity payloads invalidate verification.
+                outputs.append(f"Invalid test evidence ({label}): {exc}")
+                evidence_ok = False
+            if result.returncode:
+                outputs.append(f"Test command ({label}) failed with exit code {result.returncode}.")
+                test_ok = False
+        if len(commands) > 1 and evidence_ok:
+            XML.ElementTree(merged).write(junit, encoding="utf-8", xml_declaration=True)
             logs.append(str(junit))
-            if not report.passed and not report.failed:
-                raise ValueError("JUnit report contains no executed tests (empty or all skipped)")
-        except Exception as exc:
-            # Malformed XML and blocked DTD/entity payloads both invalidate verification.
-            error = f"Invalid test evidence: {exc}"
-        if result.returncode:
-            outputs.append(f"Test command failed with exit code {result.returncode}.")
-        if error:
-            outputs.append(error)
         return Verification(
             build_ok=True,
-            test_ok=not error and result.returncode == 0 and not report.failed,
+            test_ok=evidence_ok and test_ok and not report.failed,
             report=report,
             output="\n".join(outputs)[-OUTPUT_LIMIT:],
             logs=logs,

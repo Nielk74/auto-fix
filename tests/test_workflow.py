@@ -106,7 +106,11 @@ class BitbucketStub:
         self.created.append((branch, base, title, description))
         if self.error:
             raise self.error
-        return {"id": 42}
+        return {
+            "id": 42,
+            "fromRef": {"id": "refs/heads/" + branch, "latestCommit": "c" * 40},
+            "toRef": {"id": "refs/heads/" + base},
+        }
 
 
 class ModelStub:
@@ -256,10 +260,34 @@ def test_local_candidate_does_not_push_or_create_pr(make_flow):
     assert not flow.workspace.operations
 
 
+@pytest.mark.parametrize("missing_at", ["attempt", "final"])
+def test_previously_passing_test_cannot_disappear_after_repair(make_flow, missing_at):
+    complete = report(passed=["math.add", "math.multiply"])
+    incomplete = report(passed=["math.add"])
+    flow = make_flow(
+        [
+            report(passed=["math.multiply"], failed=["math.add"], test_ok=False),
+            incomplete if missing_at == "attempt" else complete,
+            incomplete,
+        ]
+    )
+    result = flow.run({"run_id": flow.run_id, "failure": failure().model_dump()})
+    assert result["status"] == "blocked"
+    assert not flow.bitbucket.created
+    assert not any(operation[0] == "push" for operation in flow.workspace.operations)
+
+
 def test_existing_pr_reconciles_without_pushing_or_resubmitting(make_flow):
     flow = make_flow()
-    flow.bitbucket.existing = {"id": 12}
-    assert flow.publish_pr(state_for(flow)) == {"status": "published", "pr": {"id": 12}}
+    flow.bitbucket.existing = {
+        "id": 12,
+        "fromRef": {"id": "refs/heads/" + flow.workspace.branch, "latestCommit": "b" * 40},
+        "toRef": {"id": "refs/heads/master"},
+    }
+    assert flow.publish_pr(state_for(flow)) == {
+        "status": "published",
+        "pr": flow.bitbucket.existing,
+    }
     assert not flow.workspace.operations
     assert not flow.bitbucket.created
 
@@ -384,3 +412,125 @@ def test_description_retains_jira_and_related_pr_links(make_flow):
     assert "https://jira.example/browse/CPP-12" in body
     assert "https://git.example/pr/9" in body
     assert "https://teamcity.example/build/101" in body
+
+
+def inspection(*, ready=True, queries=()):
+    from auto_fix.models import Investigation
+
+    return Investigation(
+        summary="Inspect arithmetic dispatch",
+        hypotheses=["The selected operation may not match the caller contract"],
+        queries=list(queries),
+        reads=[],
+        ready=ready,
+    )
+
+
+class InvestigatingModel(ModelStub):
+    def __init__(self, requests):
+        super().__init__()
+        self.requests = deque(requests)
+        self.inspection_contexts = []
+        self.order = []
+
+    def inspect(self, context):
+        self.order.append("inspect")
+        self.inspection_contexts.append(copy.deepcopy(context))
+        return self.requests.popleft()
+
+    def propose(self, context):
+        self.order.append("repair")
+        return super().propose(context)
+
+
+def test_investigation_runs_before_repairs_and_carries_observed_evidence(make_flow, monkeypatch):
+    flow = make_flow(
+        [
+            report(failed=["math.add"], test_ok=False),
+            report(failed=["math.add"], test_ok=False),
+            report(passed=["math.add"]),
+            report(passed=["math.add"]),
+        ]
+    )
+    flow.settings.max_inspections = 2
+    flow.model = InvestigatingModel([inspection(queries=["add"]), inspection()])
+    observed = []
+
+    def gather(workspace, request, max_chars):
+        observed.append((workspace, request.queries, max_chars))
+        return {"queries": [], "excerpts": [{"content": "int add(int a, int b);"}], "errors": []}
+
+    monkeypatch.setattr("auto_fix.workflow.gather_evidence", gather)
+    result = flow.run({"run_id": flow.run_id, "failure": failure().model_dump()})
+    assert result["status"] == "published"
+    assert flow.model.order == ["inspect", "repair", "inspect", "repair"]
+    assert result["inspections"] == 2
+    assert result["attempt"] == 2
+    assert observed == [(flow.workspace, ["add"], 10000)]
+    evidence = flow.model.contexts[0]["investigation"]["evidence"]
+    assert evidence[0]["excerpts"][0]["content"] == "int add(int a, int b);"
+    assert (flow.directory / "inspection-evidence-1.json").exists()
+    assert flow.builder.labels == ["baseline", "attempt-1", "attempt-2", "final-rebased"]
+
+
+def test_investigation_budget_is_global_across_repair_attempts(make_flow, monkeypatch):
+    flow = make_flow(
+        [
+            report(failed=["math.add"], test_ok=False),
+            report(failed=["math.add"], test_ok=False),
+            report(passed=["math.add"]),
+            report(passed=["math.add"]),
+        ]
+    )
+    flow.settings.max_inspections = 3
+    flow.model = InvestigatingModel([inspection(ready=False, queries=["add"])] * 3)
+    monkeypatch.setattr(
+        "auto_fix.workflow.gather_evidence",
+        lambda *_args, **_kwargs: {"queries": [], "excerpts": [], "errors": []},
+    )
+    result = flow.run({"run_id": flow.run_id, "failure": failure().model_dump()})
+    assert result["status"] == "published"
+    assert flow.model.order == ["inspect", "inspect", "inspect", "repair", "repair"]
+    assert result["inspections"] == 3
+    assert not flow.model.requests
+    assert not (flow.directory / "investigation-4.json").exists()
+
+
+def test_no_investigation_or_repair_when_baseline_cannot_reproduce_original_failure(make_flow):
+    flow = make_flow([report(failed=["unrelated"], test_ok=False)])
+    flow.settings.max_inspections = 3
+    flow.model = InvestigatingModel([inspection()])
+    result = flow.run({"run_id": flow.run_id, "failure": failure().model_dump()})
+    assert result["status"] == "blocked"
+    assert not flow.model.order
+    assert not flow.bitbucket.created
+
+
+def test_sampling_model_evidence_never_weakens_complete_original_failure_validator(make_flow):
+    original = failure()
+    original.tests = [
+        FailedTest(
+            id=str(number), name=f"Suite{number % 4}.Test{number}", details="native assertion"
+        )
+        for number in range(40)
+    ]
+    all_names = [test.name for test in original.tests]
+    flow = make_flow(
+        [
+            report(failed=all_names, test_ok=False),
+            report(passed=all_names[:12]),
+            report(passed=all_names[:12]),
+        ]
+    )
+    flow.settings.max_inspections = 1
+    flow.model = InvestigatingModel([inspection()])
+    result = flow.run({"run_id": flow.run_id, "failure": original.model_dump()})
+    assert result["status"] == "blocked"
+    assert len(result["failure"]["tests"]) == 40
+    assert {test["name"] for test in result["failure"]["tests"]} == set(all_names)
+    for context in [*flow.model.inspection_contexts, *flow.model.contexts]:
+        assert len(context["failure"]["tests"]) == 12
+        assert context["failure_groups"]["total_failed_tests"] == 40
+    assert flow.model.order == ["inspect", "repair", "repair"]
+    assert not flow.bitbucket.created
+    assert not any(operation[0] == "push" for operation in flow.workspace.operations)

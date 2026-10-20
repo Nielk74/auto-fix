@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "name": "Abseil C++ Common Libraries",
+  "repository": "https://github.com/abseil/abseil-cpp.git",
+  "tag": "20260107.1",
+  "commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+  "license": "Apache-2.0",
+  "license_url": "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/LICENSE",
+  "google_test": {
+    "repository": "https://github.com/google/googletest.git",
+    "tag": "v1.17.0",
+    "commit": "52eb8108c5bdec04579160ae17225d66034bd723",
+    "license": "BSD-3-Clause"
+  },
+  "cmake_options": [
+    "-DCMAKE_BUILD_TYPE=Release",
+    "-DCMAKE_CXX_STANDARD=17",
+    "-DABSL_BUILD_TESTING=ON",
+    "-DABSL_USE_GOOGLETEST_HEAD=OFF",
+    "-DABSL_ENABLE_INSTALL=OFF"
+  ],
+  "build_targets": [
+    "absl_ascii_test",
+    "absl_escaping_test",
+    "absl_str_split_test",
+    "absl_demangle_test"
+  ],
+  "ctest_regex": "^absl_(ascii|escaping|str_split|demangle)_test$",
+  "metrics": {
+    "measured_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+    "tree_bytes_excluding_git": 10862971,
+    "cpp_source_header_files": 840,
+    "cpp_source_header_lines": 265865,
+    "production_cpp_source_header_files": 517,
+    "production_cpp_source_header_lines": 142256,
+    "test_cpp_source_header_files": 274,
+    "test_cpp_source_header_lines": 112753,
+    "method": "Count .cc/.h under absl; line count uses bytes.splitlines(); production excludes filenames containing _test or _benchmark and path components testdata, test, tests. Test count includes filenames containing _test. Generated upstream source is included; third_party outside absl is excluded."
+  },
+  "sources": [
+    "https://github.com/abseil/abseil-cpp/releases/tag/20260107.1",
+    "https://abseil.io/docs/cpp/quickstart-cmake.html",
+    "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/CMakeLists.txt",
+    "https://github.com/google/googletest/releases/tag/v1.17.0"
+  ],
+  "id": "abseil",
+  "additional_test_suites": [
+    {
+      "targets_any": [
+        "absl_time_test"
+      ],
+      "probe": "duration-min-unit"
+    }
+  ],
+  "validation_revision": {
+    "id": "posthoc-development-v3",
+    "base_project": "evaluation/project.json",
+    "base_sha256": "d18ac42a32ca5b2e9672094ce68a01d6ed7f453b27c1d674ff551ceefe3f3b9a",
+    "reason": "Independent native development audit found finite-minimum rounding regressions in otherwise passing model candidates. This adds a trusted supplemental suite; it changes no upstream tests or frozen defect cases."
+  }
+}

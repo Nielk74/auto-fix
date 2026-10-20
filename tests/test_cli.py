@@ -49,7 +49,11 @@ def test_unknown_publication_reconciles_without_creating_new_pr(config_file, mon
     state_dir = config_file.parent / ".auto-fix"
     receipt = state_dir / "receipts" / f"{failure_key(f)}.json"
     receipt.parent.mkdir(parents=True)
-    receipt.write_text(json.dumps({"status": "publication_unknown", "branch": "auto-fix/previous"}))
+    receipt.write_text(
+        json.dumps(
+            {"status": "publication_unknown", "branch": "auto-fix/previous", "head": "b" * 40}
+        )
+    )
 
     class TC:
         def __init__(self, *_):
@@ -67,7 +71,11 @@ def test_unknown_publication_reconciles_without_creating_new_pr(config_file, mon
 
         def find_pr(self, branch, base):
             assert branch == "auto-fix/previous"
-            return {"id": 123}
+            return {
+                "id": 123,
+                "fromRef": {"id": "refs/heads/" + branch, "latestCommit": "b" * 40},
+                "toRef": {"id": "refs/heads/" + base},
+            }
 
         def close(self):
             pass

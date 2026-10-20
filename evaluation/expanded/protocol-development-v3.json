@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "development-validation-v3",
+  "parent_protocol": "evaluation/expanded/protocol.json",
+  "frozen_cases_unchanged": true,
+  "holdout_model_outcomes_seen": false,
+  "reason": "Development evidence found stateless retries lacked rejected edits; independent native auditing confirmed an INT64_MIN duration regression in all three prompt arms despite passing selected upstream tests.",
+  "confirmed_semantic_probe": {
+    "case": "duration_negative_unit_rounding",
+    "input": "d = unit = absl::Seconds(INT64_MIN)",
+    "clean_upstream": "Trunc, Floor, Ceil equal the finite input",
+    "baseline_evidence_contract_candidates": "Independent native binaries fail this preserved contract",
+    "proof_file": ".auto-fix/development-semantic-audit/duration-negative-unit/proof.json",
+    "proof_sha256": "6569a9420de53fd38be4f70582807a91ba9c4fe836bfe73cee68481d6d7ad6c6",
+    "not_a_new_unique_defect": true
+  },
+  "changes_before_enriched_arms": [
+    "Structured diagnostic packets include the exact preceding proposal, its attempt and whether edits were applied; rejected proposals are durably saved before validation.",
+    "All originally executed passing and failing tests must remain present and passing after repair and final rebase.",
+    "PR receipts require a complete verified commit ID and matching source and destination refs, including production recovery.",
+    "Real HTTP model transport failures enter the bounded repair retry path.",
+    "An optional trusted additional native suite checks the independently confirmed finite-minimum duration contract for all Abseil time-target cases. Upstream source/tests and the 45 frozen mutations/splits remain unchanged."
+  ],
+  "arms_declared_before_calls": [
+    {
+      "id": "structured-v3",
+      "prompt": "best pure prompt on all 24 development cases, then fewer calls, then total trial latency",
+      "max_inspections": 0,
+      "structured_diagnostics": true
+    },
+    {
+      "id": "investigation-baseline-v3",
+      "prompt": "repair-v1",
+      "max_inspections": 3,
+      "structured_diagnostics": true
+    },
+    {
+      "id": "investigation-evidence-v3",
+      "prompt": "evidence-v2",
+      "max_inspections": 3,
+      "structured_diagnostics": true
+    },
+    {
+      "id": "investigation-contract-v3",
+      "prompt": "contract-v3",
+      "max_inspections": 3,
+      "structured_diagnostics": true
+    }
+  ],
+  "cross_check": "All three prompts are measured with investigation to check prompt/mechanism interaction; prompt choice is not assumed to transfer from the unstructured workflow.",
+  "fixed_model": "gpt-6-luna",
+  "reasoning_effort": "medium",
+  "max_repair_attempts": 2,
+  "cases_per_arm": 24,
+  "grading": "Report original upstream-native phase separately, semantic audit false greens explicitly, and new fully guarded completion. Never erase prior published scores or count native probes as new defects.",
+  "next_decision": "Select the strongest guarded development arm by verified completion, then calls and latency; register further development changes before execution if failures warrant. Freeze before any holdout inference."
+}

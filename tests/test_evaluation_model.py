@@ -115,3 +115,68 @@ def test_missing_codex_executable_does_not_silently_change_model(monkeypatch, tm
     monkeypatch.setattr("auto_fix.codex_model.shutil.which", lambda name: None)
     with pytest.raises(RuntimeError, match="Install and authenticate"):
         CodexRepairModel(tmp_path).propose({})
+
+
+def test_inspection_uses_read_only_schema_and_separate_prompt_provenance(monkeypatch, tmp_path):
+    import hashlib
+
+    from auto_fix.models import Investigation
+    from auto_fix.prompts import INVESTIGATE
+
+    response = {
+        "summary": "Locate the dispatch contract",
+        "hypotheses": ["An edge condition may exclude a single pending item"],
+        "queries": ["can_dispatch"],
+        "reads": [{"path": "src/dispatch.cc", "line": 32, "symbol": "can_dispatch"}],
+        "ready": False,
+    }
+    calls = install_runner(monkeypatch, response=response)
+    model = CodexRepairModel(tmp_path, prompt_version="contract-v3")
+    context = {"failure": "DispatchTest.OnePendingItem"}
+    investigation = model.inspect(context)
+    assert isinstance(investigation, Investigation)
+    assert investigation.model_dump() == response
+    directory = tmp_path / "call-1"
+    schema = json.loads((directory / "schema.json").read_text())
+    assert schema["title"] == "Investigation"
+    assert "edits" not in schema["properties"]
+    assert schema["properties"]["reads"]["maxItems"] == 4
+    assert json.loads((directory / "request.json").read_text())["kind"] == "investigation"
+    metadata = json.loads((directory / "metadata.json").read_text())
+    assert metadata["kind"] == "investigation"
+    assert metadata["prompt_version"] == "contract-v3"
+    assert metadata["prompt_sha256"] == hashlib.sha256(INVESTIGATE.encode()).hexdigest()
+    assert metadata["reasoning_effort"] == "medium"
+    assert INVESTIGATE in calls[0][1]["input"]
+    assert 'model_reasoning_effort="medium"' in calls[0][0]
+
+
+def test_timed_out_inspection_consumes_call_number_before_repair_retry(monkeypatch, tmp_path):
+    monkeypatch.setattr("auto_fix.codex_model.shutil.which", lambda _name: "/fake/codex")
+
+    def timeout(argv, **kwargs):
+        raise subprocess.TimeoutExpired(argv, kwargs["timeout"])
+
+    monkeypatch.setattr("auto_fix.codex_model.subprocess.run", timeout)
+    model = CodexRepairModel(tmp_path, timeout=1)
+    with pytest.raises(RuntimeError, match="timed out"):
+        model.inspect({"failure": "DispatchTest.OnePendingItem"})
+    assert len(model.calls) == 1
+    assert model.calls[0]["returncode"] == 124
+    assert model.calls[0]["kind"] == "investigation"
+    first = json.loads((tmp_path / "call-1" / "metadata.json").read_text())
+    calls = install_runner(monkeypatch)
+    assert model.propose({"attempt": 2}).model_dump() == PROPOSAL
+    assert len(model.calls) == 2
+    assert calls[0][1]["cwd"] == tmp_path / "call-2"
+    assert model.calls[1]["kind"] == "repair"
+    assert json.loads((tmp_path / "call-1" / "metadata.json").read_text()) == first
+
+
+def test_invalid_inspection_response_cannot_be_treated_as_repair_edits(monkeypatch, tmp_path):
+    install_runner(monkeypatch)
+    model = CodexRepairModel(tmp_path)
+    with pytest.raises(ValidationError):
+        model.inspect({})
+    assert len(model.calls) == 1
+    assert model.calls[0]["kind"] == "investigation"

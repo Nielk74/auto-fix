@@ -58,3 +58,17 @@ class Proposal(Model):
     summary: str = Field(min_length=1, max_length=300)
     explanation: str = Field(min_length=1, max_length=12000)
     edits: list[Edit] = Field(min_length=1, max_length=8)
+
+
+class SourceRead(Model):
+    path: str = Field(min_length=1, max_length=500)
+    line: int = Field(ge=0, le=1000000)
+    symbol: str = Field(max_length=160)
+
+
+class Investigation(Model):
+    summary: str = Field(min_length=1, max_length=1200)
+    hypotheses: list[str] = Field(max_length=6)
+    queries: list[str] = Field(max_length=4)
+    reads: list[SourceRead] = Field(max_length=4)
+    ready: bool

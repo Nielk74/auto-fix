@@ -34,7 +34,16 @@ def run_native(build_dir: Path, targets: list[str], junit: Path) -> int:
         failed |= result.returncode != 0
         if not report.is_file():
             raise ValueError(f"{target} did not produce test evidence")
-        root = SafeET.parse(report).getroot()
+        raw = report.read_bytes()
+        try:
+            text = raw.decode("utf-8")
+        except UnicodeDecodeError:
+            # GoogleTest sometimes emits raw signed-char values in assertion
+            # text. Keep original bytes; normalize only their text encoding.
+            # XML structure/outcomes are still parsed strictly and never removed.
+            report.with_suffix(report.suffix + ".raw").write_bytes(raw)
+            text = raw.decode("utf-8", errors="replace")
+        root = SafeET.fromstring(text)
         suites = list(root) if root.tag == "testsuites" else [root]
         for suite in suites:
             merged.append(suite)

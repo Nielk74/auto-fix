@@ -13,20 +13,22 @@ from filelock import FileLock, Timeout
 from auto_fix.config import load_settings
 from auto_fix.integrations import Bitbucket, Jira, TeamCity
 from auto_fix.llm import RepairModel
+from auto_fix.publication import require_verified_pr
 from auto_fix.workflow import Workflow, failure_key, redact, write_json
 
 MERMAID = """flowchart TD
   A[TeamCity: today's failed tests] --> B[Git / Bitbucket / Jira context]
   B --> C[Isolated checkout: rebase onto master]
   C --> D[Build + reproduce original test failures]
-  D -->|reproduced| E[Qwen: propose bounded source edits]
+  D -->|reproduced| R[Optional bounded source investigation]
+  R --> E[Configured model such as Qwen: bounded source edits]
   D -->|not reproduced| X[Stop with evidence]
-  E --> F[Native build + full tests / fresh JUnit]
-  F -->|failed; attempts remain| E
+  E --> F[Native build + full tests + configured additional suites]
+  F -->|failed; attempts remain| R
   F -->|passed| G[Commit + rebase onto latest master]
   F -->|budget exhausted| X
-  G --> H[Rebuild + full tests + original tests passing]
-  H -->|passed| I[Local candidate / Bitbucket PR with --publish]
+  G --> H[Rebuild + full verification / all baseline tests retained]
+  H -->|passed| I[Local candidate / verified Bitbucket PR with --publish]
   H -->|failed| X
 """
 
@@ -53,18 +55,25 @@ def recover_publication(state_dir: Path, key: str, bitbucket: Bitbucket, base: s
         saved = json.loads(result.read_text(encoding="utf-8")) if result.exists() else {}
         branch = journal.get("branch", saved.get("branch", f"auto-fix/{path.name}"))
         saved.update(run_id=path.name, branch=branch)
-        if journal["status"] == "published":
-            saved.update(status="published", pr=journal["pr"])
+        # The journal is written immediately before side effects and takes
+        # precedence over an older checkpoint or receipt.
+        head = journal.get("head", saved.get("head"))
+        existing = (
+            journal.get("pr")
+            if journal["status"] == "published"
+            else bitbucket.find_pr(branch, base)
+        )
+        try:
+            require_verified_pr(existing, head, branch, base)
+        except RuntimeError as exc:
+            saved.update(status="publication_unknown", reason=str(exc))
         else:
-            existing = bitbucket.find_pr(branch, base)
-            if existing:
-                saved.update(status="published", pr=existing)
-                write_json(publication, {"status": "published", "branch": branch, "pr": existing})
-            else:
-                saved.update(
-                    status="publication_unknown",
-                    reason="Interrupted publication; inspect remote branch/PR before retrying",
-                )
+            saved.update(status="published", head=head, pr=existing)
+            saved.pop("reason", None)
+            write_json(
+                publication,
+                {"status": "published", "branch": branch, "head": head, "pr": existing},
+            )
         return saved
     return None
 
@@ -100,6 +109,27 @@ def main(argv: list[str] | None = None) -> int:
     evaluation.add_argument("--upstream-cache", type=Path, default=Path(".auto-fix/upstream"))
     evaluation.add_argument("--config", type=Path)
     evaluation.add_argument("--recordings", type=Path)
+    evaluation.add_argument("--project-file", type=Path)
+    evaluation.add_argument("--cases-file", type=Path)
+    evaluation.add_argument("--split", choices=["development", "holdout"])
+    evaluation.add_argument(
+        "--prompt", choices=["repair-v1", "evidence-v2", "contract-v3"], default="repair-v1"
+    )
+    evaluation.add_argument("--max-inspections", type=int, default=0)
+    evaluation.add_argument("--max-attempts", type=int, default=2)
+    evaluation.add_argument("--structured-diagnostics", action="store_true")
+    evaluation.add_argument("--reasoning-effort", choices=["medium", "high"], default="medium")
+    operations = commands.add_parser(
+        "evaluate-operations", help="Exercise real Git/native workflow fault scenarios with Luna"
+    )
+    operations.add_argument("--directory", type=Path, required=True)
+    operations.add_argument(
+        "--prompt", choices=["repair-v1", "evidence-v2", "contract-v3"], default="contract-v3"
+    )
+    operations.add_argument("--max-inspections", type=int, default=1)
+    operations.add_argument("--reasoning-effort", choices=["medium", "high"], default="medium")
+    operations.add_argument("--upstream-cache", type=Path)
+    operations.add_argument("--case", action="append", dest="cases")
     commands.add_parser("graph")
     args = parser.parse_args(argv)
     if args.command == "graph":
@@ -109,6 +139,17 @@ def main(argv: list[str] | None = None) -> int:
         from auto_fix.demo import run_demo
 
         return run_demo(args.directory)
+    if args.command == "evaluate-operations":
+        from auto_fix.operational_evaluation import run_operational_evaluation
+
+        return run_operational_evaluation(
+            args.directory,
+            prompt_version=args.prompt,
+            max_inspections=args.max_inspections,
+            reasoning_effort=args.reasoning_effort,
+            upstream_cache=args.upstream_cache,
+            selected=args.cases,
+        )
     if args.command == "evaluate":
         from auto_fix.evaluation import run_evaluation
 
@@ -121,6 +162,14 @@ def main(argv: list[str] | None = None) -> int:
             upstream_cache=args.upstream_cache,
             endpoint_config=args.config,
             recordings=args.recordings,
+            project_file=args.project_file,
+            cases_file=args.cases_file,
+            split=args.split,
+            prompt_version=args.prompt,
+            max_inspections=args.max_inspections,
+            max_attempts=args.max_attempts,
+            reasoning_effort=args.reasoning_effort,
+            structured_diagnostics=args.structured_diagnostics,
         )
     # Configuration-adjacent secrets work independently of Task Scheduler's working directory.
     load_dotenv(args.config.resolve().parent / ".env", override=False)
@@ -159,18 +208,37 @@ def main(argv: list[str] | None = None) -> int:
                     continue
                 if previous and previous["status"] == "publication_unknown":
                     existing = bb.find_pr(previous["branch"], settings.repository.base_branch)
-                    if existing:
-                        previous.update(status="published", pr=existing)
-                        write_json(receipt, previous)
-                    else:
-                        print(
-                            f"{key}: publication outcome unknown; "
-                            "inspect remote branch/PR before retrying"
+                    try:
+                        require_verified_pr(
+                            existing,
+                            previous.get("head"),
+                            previous["branch"],
+                            settings.repository.base_branch,
                         )
+                    except RuntimeError as exc:
+                        previous.update(reason=str(exc))
+                        write_json(receipt, previous)
+                        print(f"{key}: publication outcome unknown; {exc}")
+                    else:
+                        previous.update(status="published", pr=existing)
+                        previous.pop("reason", None)
+                        write_json(receipt, previous)
                     statuses.append(previous)
                     continue
                 if previous and previous["status"] == "published":
-                    print(f"{key}: already published")
+                    try:
+                        require_verified_pr(
+                            previous.get("pr"),
+                            previous.get("head"),
+                            previous.get("branch", ""),
+                            settings.repository.base_branch,
+                        )
+                    except RuntimeError as exc:
+                        previous.update(status="publication_unknown", reason=str(exc))
+                        write_json(receipt, previous)
+                        print(f"{key}: publication receipt needs reconciliation; {exc}")
+                    else:
+                        print(f"{key}: already published")
                     statuses.append(previous)
                     continue
                 ready = previous and previous["status"] == "ready"
