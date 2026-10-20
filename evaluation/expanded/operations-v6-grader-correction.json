@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "id": "operations-v6-baseline-evidence-grader-correction",
+  "declared_at": "2026-10-20T23:33:41.099321+00:00",
+  "status": "verified_zero_inference_native_recheck",
+  "scope": "MAIN operational scenario grader and its mechanical tests only. Frozen V6 source, all original13 scenario scores, and source-regression evidence remain unchanged.",
+  "cause": "V6 Builder correctly marks a nonzero native test command with no remaining failed assertion identities as invalid evidence after the report transport fault removes the sole original failure. The controller stops before inference; the old grader recognizes only the older not-reproduced reason string.",
+  "correction": "Grade stale TeamCity from actual valid baseline XML showing original identities passing. Grade omitted baseline assertion from invalid Verification evidence, original identity absence in the actual filtered XML, and the same identity failing in preserved unfiltered native XML. Claimed status/reason alone cannot pass.",
+  "controller_worktree_unchanged": "be66ec49e1fe93e71a0b24161831773d2dc639e9",
+  "source_module_changed": "src/auto_fix/operational_evaluation.py",
+  "source_before_sha256": "44184543b2fcf371eea77ef0a3d4ac94cd1daf32d652451762e2628920c868d1",
+  "source_after_sha256": "ce603b284ed1fcc23491b01ef77523beaac0e7a9a3951f5141412d354e5b998b",
+  "original_raw_score": {
+    "path": ".auto-fix/expanded-formal/operations-v6/missing_original_baseline/score.json",
+    "sha256": "5b071853c859d07cebd479df40d9082759a50eac03fa9feac04c4e33f24dcdb5",
+    "operational_pass": false,
+    "repair_completed": false
+  },
+  "original_raw_v6_grade": {
+    "operational_passes": 12,
+    "scenarios": 13,
+    "completed_repairs": 6,
+    "actual_live_luna_calls": 24,
+    "unchanged": true,
+    "all_original_score_sha256_rechecked_unchanged": true
+  },
+  "independent_v6_behavior_audit": {
+    "path": ".auto-fix/operations-v6-independent-audit-final.json",
+    "sha256": "d88ecbd0912dd385be685eb031dac9234bfab44002baa62deb13b6a891bf8c6e",
+    "behavior_passes": 13,
+    "scenarios": 13
+  },
+  "fresh_recheck": {
+    "directory": ".auto-fix/expanded-formal/operations-v6-baseline-grader-correction",
+    "scenario": "missing_original_baseline",
+    "baseline_repetitions": 2,
+    "native_execution_authorized": true,
+    "model_calls_expected": 0,
+    "additional_unique_source_defects": 0,
+    "operational_pass": true,
+    "repair_completed": false,
+    "status": "blocked",
+    "reason": "Baseline test evidence is invalid or incomplete",
+    "model_calls": 0,
+    "pr_posts": 0,
+    "pushed_branch": false,
+    "baseline_checks_observed": 1,
+    "baseline_evidence_valid": false,
+    "manifest": {
+      "path": ".auto-fix/expanded-formal/operations-v6-baseline-grader-correction/manifest.json",
+      "sha256": "9ccbdba1f624afceadfa7037b7b641259db25bcd5ef56be806a7cf55040fab9c"
+    },
+    "summary": {
+      "path": ".auto-fix/expanded-formal/operations-v6-baseline-grader-correction/summary.json",
+      "sha256": "f1bdcbd91d0f494fe36daecf56b6ae8e2e28fa006ce20eb947b903afbcbc51e6"
+    },
+    "score": {
+      "path": ".auto-fix/expanded-formal/operations-v6-baseline-grader-correction/missing_original_baseline/score.json",
+      "sha256": "6487ee43c077c3df17d00e4904856dfc1fcfe6e87850015195ed4ae9816cc335"
+    },
+    "native_unfiltered": {
+      "path": ".auto-fix/expanded-formal/operations-v6-baseline-grader-correction/missing_original_baseline/state/runs/tc-384761-88a3fb4ea065/evidence/baseline-6ab328fcf245/junit.unfiltered.xml",
+      "sha256": "9ecf05c5ad61c6336338e4245c7560a6d30d2ee20d223208b255f71a1bb74488",
+      "failed": [
+        "AsciiStrTo.Lower"
+      ]
+    },
+    "filtered": {
+      "path": ".auto-fix/expanded-formal/operations-v6-baseline-grader-correction/missing_original_baseline/state/runs/tc-384761-88a3fb4ea065/evidence/baseline-6ab328fcf245/junit.xml",
+      "sha256": "70073c698bff2082a739e150520ed144eac47462dc70e37de367f02cceae1e53",
+      "executed": 11
+    },
+    "stdout": {
+      "path": ".auto-fix/operations-v6-audit/grader-correction.stdout.log",
+      "sha256": "911c27f8298512899fb003184b7df20989bb4227e10ba4b42e9945fec9a12a3b"
+    },
+    "stderr": {
+      "path": ".auto-fix/operations-v6-audit/grader-correction.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "holdout_outcomes_read": false,
+  "mechanical_tests": {
+    "test_file": "tests/test_operational_evaluation.py",
+    "passed": 51,
+    "live_inference": false
+  },
+  "verified_at": "2026-10-20T23:34:41.185429+00:00",
+  "preregistration": {
+    "path": ".auto-fix/operations-v6-audit/grader-correction-predeclared.json",
+    "sha256": "855d3df313cc910156d1ef4cdbd394e0f0a63d4f0bb13183456623df26f4c792"
+  },
+  "source_scope": "Only operational_evaluation.py grading changed in this commit; the production repair graph and frozenbe66 worktree are unchanged."
+}

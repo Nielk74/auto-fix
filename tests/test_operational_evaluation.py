@@ -13,6 +13,7 @@ import httpx
 import pytest
 
 from auto_fix import mock_services as mocks
+from auto_fix.build import parse_junit
 from auto_fix.config import BitbucketConfig
 from auto_fix.evaluation import _git, _source
 from auto_fix.integrations import Bitbucket, IntegrationError
@@ -340,10 +341,23 @@ def test_published_label_cannot_mask_bad_receipts_or_native_validation(corruptio
     assert all(judge_outcome(scenario("master_advanced"), **judge_inputs()).values())
 
 
-def test_expected_safe_stop_passes_without_claiming_a_repair_or_calling_model():
+def test_expected_safe_stop_passes_without_claiming_a_repair_or_calling_model(tmp_path):
+    junit = tmp_path / "junit.xml"
+    junit.write_bytes(REPORT.replace(b"<failure>real failure</failure>", b""))
     arguments = {
         **judge_inputs(),
-        "state": {"status": "blocked", "reason": "TC failures were not reproduced"},
+        "state": {
+            "status": "blocked",
+            "reason": "TC failures were not reproduced",
+            "failure": {"tests": [{"name": "Suite.Original"}]},
+            "baseline": Verification(
+                build_ok=True,
+                test_ok=True,
+                evidence_valid=True,
+                report=parse_junit(junit),
+                logs=[str(junit)],
+            ).model_dump(),
+        },
         "native_validated": False,
         "remote_head": None,
         "created_prs": [],
@@ -354,6 +368,88 @@ def test_expected_safe_stop_passes_without_claiming_a_repair_or_calling_model():
     assert all(judge_outcome(scenario("stale_teamcity"), **arguments).values())
     arguments["calls"] = [{"model": MODEL, "kind": "repair"}]
     assert not judge_outcome(scenario("stale_teamcity"), **arguments)["no_model_calls"]
+
+
+def omitted_baseline_arguments(tmp_path):
+    junit = tmp_path / "junit.xml"
+    junit.write_bytes(REPORT)
+    omit_report_identity(junit, "Suite.Original")
+    return {
+        **judge_inputs(),
+        "state": {
+            "status": "blocked",
+            "reason": "Baseline test evidence is invalid or incomplete",
+            "failure": {"tests": [{"name": "Suite.Original"}]},
+            "baseline": Verification(
+                build_ok=True,
+                test_ok=False,
+                evidence_valid=False,
+                report=parse_junit(junit),
+                logs=[str(junit)],
+            ).model_dump(),
+        },
+        "native_validated": False,
+        "remote_head": None,
+        "created_prs": [],
+        "post_count": 0,
+        "calls": [],
+        "faults": [{"action": "omit_original_identity", "name": "Suite.Original"}],
+    }
+
+
+def test_missing_baseline_assertion_is_a_safe_stop_before_model_inference(tmp_path):
+    arguments = omitted_baseline_arguments(tmp_path)
+    assert all(judge_outcome(scenario("missing_original_baseline"), **arguments).values())
+    assert not judge_outcome(scenario("stale_teamcity"), **arguments)["reproduction_gate_stopped"]
+
+
+@pytest.mark.parametrize(
+    "corruption",
+    [
+        "missing_xml",
+        "malformed_xml",
+        "no_native_original",
+        "valid_flag",
+        "unrelated_build_failure",
+        "claimed_identity_differs",
+    ],
+)
+def test_missing_baseline_grader_requires_actual_omitted_native_assertion(tmp_path, corruption):
+    arguments = omitted_baseline_arguments(tmp_path)
+    baseline = arguments["state"]["baseline"]
+    junit = tmp_path / "junit.xml"
+    if corruption == "missing_xml":
+        junit.unlink()
+    elif corruption == "malformed_xml":
+        junit.write_bytes(b"<testsuite>")
+    elif corruption == "no_native_original":
+        junit.with_suffix(".unfiltered.xml").write_bytes(junit.read_bytes())
+    elif corruption == "valid_flag":
+        baseline["evidence_valid"] = True
+    elif corruption == "unrelated_build_failure":
+        baseline["build_ok"] = False
+    else:
+        baseline["report"]["passed"] = ["Suite.Invented"]
+    assert not judge_outcome(scenario("missing_original_baseline"), **arguments)[
+        "reproduction_gate_stopped"
+    ]
+
+
+@pytest.mark.parametrize("name", ["stale_teamcity", "missing_original_baseline"])
+def test_baseline_stop_reason_without_native_evidence_does_not_pass_grader(name):
+    arguments = {
+        **judge_inputs(),
+        "state": {
+            "status": "blocked",
+            "reason": "Baseline test evidence is invalid or incomplete; not reproduced",
+        },
+        "calls": [],
+        "remote_head": None,
+        "created_prs": [],
+        "post_count": 0,
+        "faults": [{"action": "stale_teamcity"}, {"action": "omit_original_identity"}],
+    }
+    assert not judge_outcome(scenario(name), **arguments)["reproduction_gate_stopped"]
 
 
 def test_native_gate_reads_actual_report_instead_of_claimed_counts(tmp_path):

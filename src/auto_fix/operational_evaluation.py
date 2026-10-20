@@ -32,7 +32,7 @@ from auto_fix.codex_model import CodexRepairModel
 from auto_fix.config import BuildConfig, Settings
 from auto_fix.evaluation import _build_config, _details, _git, _source, _upstream, evaluation_root
 from auto_fix.integrations import Bitbucket, Jira, TeamCity
-from auto_fix.models import FailedTest, Failure, Investigation, Proposal
+from auto_fix.models import FailedTest, Failure, Investigation, Proposal, Verification
 from auto_fix.prompts import repair_prompt
 from auto_fix.publication import require_verified_pr
 from auto_fix.workflow import Workflow, failure_key, write_json
@@ -296,6 +296,42 @@ def _native_validated(state: dict, expected: set[str]) -> bool:
         return False
 
 
+def _baseline_rejection_observed(state: dict, *, omitted: bool) -> bool:
+    """Distinguish a human fix from omitted assertion evidence using actual XML."""
+    if state.get("status") != "blocked":
+        return False
+    try:
+        baseline = state.get("baseline", {})
+        expected = {test["name"] for test in state.get("failure", {}).get("tests", [])}
+        verification = Verification.model_validate(baseline)
+        reports = [Path(path) for path in verification.logs if path.endswith("junit.xml")]
+        if not expected or not verification.build_ok or len(reports) != 1:
+            return False
+        report = parse_junit(reports[0])
+        if any(
+            set(getattr(report, field)) != set(getattr(verification.report, field))
+            for field in ("passed", "failed", "skipped")
+        ):
+            return False
+        if omitted:
+            missing = expected - (set(report.passed) | set(report.failed) | set(report.skipped))
+            original = parse_junit(reports[0].with_suffix(".unfiltered.xml"))
+            return (
+                baseline.get("evidence_valid") is False
+                and not verification.test_ok
+                and bool(missing)
+                and missing <= set(original.failed)
+            )
+        return (
+            baseline.get("evidence_valid") is True
+            and verification.test_ok
+            and not report.failed
+            and expected <= set(report.passed)
+        )
+    except (OSError, ValueError, KeyError, TypeError, AttributeError, SafeET.ParseError):
+        return False
+
+
 def judge_outcome(
     scenario: OperationalScenario,
     *,
@@ -364,8 +400,9 @@ def judge_outcome(
         )
     elif scenario.id in {"stale_teamcity", "missing_original_baseline"}:
         checks.update(
-            reproduction_gate_stopped=state.get("status") == "blocked"
-            and "not reproduced" in state.get("reason", ""),
+            reproduction_gate_stopped=_baseline_rejection_observed(
+                state, omitted=scenario.id == "missing_original_baseline"
+            ),
             no_model_calls=not calls,
             no_publication=not created_prs and post_count == 0 and remote_head is None,
             fixture_fault_observed=(
