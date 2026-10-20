@@ -103,6 +103,9 @@ add_executable(af_fmt_probe probe.cc)
 target_compile_features(af_fmt_probe PRIVATE cxx_std_17)
 target_compile_definitions(af_fmt_probe PRIVATE FMT_HEADER_ONLY=1)
 target_include_directories(af_fmt_probe PRIVATE "${AUTO_FIX_FMT_SOURCE}/include")
+if(MSVC)
+  target_compile_options(af_fmt_probe PRIVATE /utf-8)
+endif()
 set_target_properties(af_fmt_probe PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
   RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin")
