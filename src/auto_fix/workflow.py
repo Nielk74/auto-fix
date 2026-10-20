@@ -87,7 +87,7 @@ def pr_description(state: State) -> str:
         if urls:
             links.append(f"- [Related PR {pr.get('id', '')}]({urls[0]['href']})")
     evidence = "\n".join(
-        f"[Screenshot artifact]({url})\n\n![TeamCity screenshot]({url})"
+        f"[TeamCity artifact]({url})\n\n![TeamCity evidence]({url})"
         for url in failure.evidence_urls
     )
     links_text = "\n".join(links)
@@ -187,10 +187,29 @@ class Workflow:
         self.event("repair", attempt=attempt)
         cfg = self.settings
         budget = cfg.llm.context_chars
+        failure = Failure.model_validate(state["failure"])
+        signal_lines = "\n".join(
+            [
+                *(test.details for test in failure.tests),
+                state.get("feedback", ""),
+                state.get("context", {}).get("ci_log", ""),
+            ]
+        ).splitlines()
+        signals = "\n".join(
+            line
+            for line in signal_lines
+            if not re.match(r"^\s*\[\s*(?:RUN|OK|PASSED|={2,}|-{2,})\s*\]", line)
+            and not re.match(r"^\s*\[\s*\d+%\]\s*(?:Built|Building|Linking)", line)
+            and not re.match(
+                r"^\s*\[\s*\d+/\d+\]\s+(?:Building|Linking|Creating|Completed|No\b)", line
+            )
+            and not re.search(r"\bTest\s+#\d+.*\bPassed\b", line)
+        )
         source = self.workspace.context(
-            Failure.model_validate(state["failure"]).changes,
+            failure.changes,
             max_chars=budget // 2,
             test_names=[test["name"] for test in state["failure"]["tests"]],
+            signals=signals,
         )
         context = {
             "failure": state["failure"],

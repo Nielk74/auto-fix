@@ -1,0 +1,67 @@
+Running main() from gmock_main.cc
+[==========] Running 12 tests from 7 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from AsciiIsFoo
+[ RUN      ] AsciiIsFoo.All
+[       OK ] AsciiIsFoo.All (0 ms)
+[ RUN      ] AsciiIsFoo.SameAsIsFoo
+[       OK ] AsciiIsFoo.SameAsIsFoo (0 ms)
+[----------] 2 tests from AsciiIsFoo (0 ms total)
+
+[----------] 1 test from AsciiToFoo
+[ RUN      ] AsciiToFoo.All
+[       OK ] AsciiToFoo.All (0 ms)
+[----------] 1 test from AsciiToFoo (0 ms total)
+
+[----------] 2 tests from AsciiStrTo
+[ RUN      ] AsciiStrTo.Lower
+/Users/antoine/projects/auto-fix/.auto-fix/evaluations/baseline-v1/ascii_lower_dispatch/state/worktrees/tc-284761-a9471a3aef70/absl/strings/ascii_test.cc:201: Failure
+Expected equality of these values:
+  "pqrstu"
+  absl::AsciiStrToLower(fun())
+    Which is: "PQRSTU"
+
+/Users/antoine/projects/auto-fix/.auto-fix/evaluations/baseline-v1/ascii_lower_dispatch/state/worktrees/tc-284761-a9471a3aef70/absl/strings/ascii_test.cc:208: Failure
+Expected equality of these values:
+  "_`?@[{amnopqrstuvwxyz"
+  mutable_str
+    Which is: "_`?@[{AMNOPQRSTUVWXYZ"
+
+[  FAILED  ] AsciiStrTo.Lower (0 ms)
+[ RUN      ] AsciiStrTo.Upper
+[       OK ] AsciiStrTo.Upper (0 ms)
+[----------] 2 tests from AsciiStrTo (0 ms total)
+
+[----------] 2 tests from StripLeadingAsciiWhitespace
+[ RUN      ] StripLeadingAsciiWhitespace.FromStringView
+[       OK ] StripLeadingAsciiWhitespace.FromStringView (0 ms)
+[ RUN      ] StripLeadingAsciiWhitespace.InPlace
+[       OK ] StripLeadingAsciiWhitespace.InPlace (0 ms)
+[----------] 2 tests from StripLeadingAsciiWhitespace (0 ms total)
+
+[----------] 2 tests from StripTrailingAsciiWhitespace
+[ RUN      ] StripTrailingAsciiWhitespace.FromStringView
+[       OK ] StripTrailingAsciiWhitespace.FromStringView (0 ms)
+[ RUN      ] StripTrailingAsciiWhitespace.InPlace
+[       OK ] StripTrailingAsciiWhitespace.InPlace (0 ms)
+[----------] 2 tests from StripTrailingAsciiWhitespace (0 ms total)
+
+[----------] 2 tests from StripAsciiWhitespace
+[ RUN      ] StripAsciiWhitespace.FromStringView
+[       OK ] StripAsciiWhitespace.FromStringView (0 ms)
+[ RUN      ] StripAsciiWhitespace.InPlace
+[       OK ] StripAsciiWhitespace.InPlace (0 ms)
+[----------] 2 tests from StripAsciiWhitespace (0 ms total)
+
+[----------] 1 test from RemoveExtraAsciiWhitespace
+[ RUN      ] RemoveExtraAsciiWhitespace.InPlace
+[       OK ] RemoveExtraAsciiWhitespace.InPlace (0 ms)
+[----------] 1 test from RemoveExtraAsciiWhitespace (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 12 tests from 7 test suites ran. (1 ms total)
+[  PASSED  ] 11 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] AsciiStrTo.Lower
+
+ 1 FAILED TEST

@@ -138,6 +138,28 @@ def test_context_is_bounded_and_includes_sources(repository, tmp_path):
     assert any(file["path"] == "src/math.cpp" for file in context["files"])
 
 
+def test_legacy_context_remains_available_for_comparable_evaluations(repository, tmp_path):
+    _, _, config, failing = repository
+    config.context_strategy = "legacy"
+    workspace = Workspace(config, tmp_path / "state", "legacy-context")
+    workspace.prepare(failing)
+    context = workspace.context([{"version": failing}], 2000, ["test_math"])
+    assert len(json.dumps(context)) <= 2000
+    assert all("content" in item and "excerpts" not in item for item in context["files"])
+
+
+def test_cpp_include_fragments_follow_same_edit_policy_as_other_source(repository, tmp_path):
+    source, _, config, _ = repository
+    (source / "src" / "dispatch.inc").write_bytes(b"return pending > 1;\r\n")
+    git(source, "add", "src/dispatch.inc")
+    git(source, "commit", "-m", "Add inline dispatch implementation")
+    git(source, "push", "origin", "master")
+    workspace = Workspace(config, tmp_path / "state", "include-fragment")
+    workspace.prepare(git(source, "rev-parse", "HEAD"))
+    workspace.apply_edits([Edit(path="src/dispatch.inc", old="pending > 1", new="pending > 0")])
+    assert (workspace.path / "src" / "dispatch.inc").read_bytes() == b"return pending > 0;\r\n"
+
+
 def test_submodules_are_rejected_before_worktree_creation(repository, tmp_path):
     source, _, config, _ = repository
     (source / ".gitmodules").write_text('[submodule "vendor"]\npath=vendor\nurl=../vendor\n')

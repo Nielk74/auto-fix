@@ -44,7 +44,8 @@ class WorkspaceStub:
     def prepare(self, revision):
         self.operations.append(("prepare", revision))
 
-    def context(self, changes, max_chars, test_names=None):
+    def context(self, changes, max_chars, test_names=None, signals=""):
+        self.context_signals = signals
         return {"files": [{"path": "src/add.cpp", "content": "return a - b;"}]}
 
     def apply_edits(self, edits):
@@ -347,6 +348,29 @@ def test_context_budget_pruning_preserves_durable_pr_and_jira_evidence(make_flow
     assert flow.repair(initial)["status"] == "working"
     assert initial["context"] == original
     assert "pull_requests" not in flow.model.contexts[0]["context"]
+
+
+def test_retrieval_signals_exclude_successful_ninja_and_native_test_progress(make_flow):
+    flow = make_flow()
+    state = {
+        **state_for(flow),
+        "feedback": (
+            "[1/147] Building CXX object unrelated/noisy_backend.cc.o\n"
+            "[2/147] Linking CXX executable another_passing_test\n"
+            "[ RUN      ] UnrelatedTest.Works\n"
+            "[       OK ] UnrelatedTest.Works (0 ms)\n"
+            "[100%] Built target unrelated_generated_code\n"
+            "[  FAILED  ] math.add\n"
+            "src/math.cpp:71: error: no matching AddNumbers overload\n"
+        ),
+    }
+    assert flow.repair(state)["status"] == "working"
+    assert "noisy_backend" not in flow.workspace.context_signals
+    assert "another_passing" not in flow.workspace.context_signals
+    assert "UnrelatedTest" not in flow.workspace.context_signals
+    assert "unrelated_generated" not in flow.workspace.context_signals
+    assert "math.add" in flow.workspace.context_signals
+    assert "AddNumbers" in flow.workspace.context_signals
 
 
 def test_description_retains_jira_and_related_pr_links(make_flow):

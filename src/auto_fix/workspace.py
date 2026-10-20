@@ -12,10 +12,24 @@ from typing import Any
 
 from auto_fix.build import run_command
 from auto_fix.config import RepositoryConfig
+from auto_fix.context import retrieve_sources
 from auto_fix.models import Edit
 
 SHA = re.compile(r"(?:[a-fA-F0-9]{40}|[a-fA-F0-9]{64})\Z")
-SOURCE_SUFFIXES = {".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".hxx", ".inl", ".ipp", ".tpp"}
+SOURCE_SUFFIXES = {
+    ".c",
+    ".cc",
+    ".cpp",
+    ".cxx",
+    ".h",
+    ".hh",
+    ".hpp",
+    ".hxx",
+    ".inl",
+    ".ipp",
+    ".tpp",
+    ".inc",
+}
 TEST_DIRECTORIES = {"test", "tests", "testing", "unittest", "unittests", "googletest", "gtest"}
 
 
@@ -164,6 +178,70 @@ class Workspace:
         return [p for p in self._git(["ls-files", "-z"]).split("\0") if p]
 
     def context(
+        self,
+        changes: list[dict],
+        max_chars: int,
+        test_names: list[str] | None = None,
+        signals: str = "",
+    ) -> dict[str, Any]:
+        if self.config.context_strategy == "legacy":
+            return self._legacy_context(changes, max_chars, test_names)
+        if max_chars < 100:
+            raise ValueError("Context budget must be at least 100 characters")
+        head = self.head()
+        result: dict[str, Any] = {"head": head, "commits": [], "files": []}
+        revisions = list(
+            dict.fromkeys(
+                str(change.get("version", change.get("revision", "")))
+                for change in changes
+                if SHA.fullmatch(str(change.get("version", change.get("revision", ""))))
+            )
+        )[:12]
+        if head not in revisions:
+            revisions.append(head)
+        changed_paths: set[str] = set()
+        commit_budget = max_chars // 5
+        for revision in revisions:
+            names = self._git(
+                ["show", "--pretty=format:", "--name-only", revision, "--"], check=False
+            )
+            changed_paths.update(names.splitlines())
+            remaining = commit_budget - len(json.dumps(result["commits"]))
+            if remaining < 200:
+                continue
+            details = self._git(
+                ["show", "--format=fuller", "--no-ext-diff", "--no-textconv", revision, "--"],
+                check=False,
+            )
+            content = details[: min(remaining - 150, max(300, commit_budget // len(revisions)))]
+            item = {"revision": revision, "diff": content}
+            while content and len(json.dumps([*result["commits"], item])) > commit_budget:
+                content = content[: len(content) // 2]
+                item["diff"] = content
+            if content:
+                result["commits"].append(item)
+        candidates = [
+            path
+            for path in self._tracked_paths()
+            if any(fnmatch.fnmatchcase(path, pattern) for pattern in self.config.context_paths)
+        ]
+
+        def read_source(relative: str) -> str:
+            path = self._safe_existing_path(relative)
+            if path.stat().st_size > 2_000_000:
+                raise WorkspaceError("Source exceeds the bounded context file size")
+            return path.read_bytes().decode("utf-8")
+
+        result["files"] = retrieve_sources(
+            candidates,
+            read_source,
+            changed_paths=changed_paths,
+            signals=[*(test_names or []), signals],
+            max_chars=max_chars - len(json.dumps(result)) - 100,
+        )
+        return result
+
+    def _legacy_context(
         self, changes: list[dict], max_chars: int, test_names: list[str] | None = None
     ) -> dict[str, Any]:
         if max_chars < 100:

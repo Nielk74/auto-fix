@@ -1,0 +1,50 @@
+[
+  {
+    "title": "[auto-fix] Restore correct hexadecimal digit conversion",
+    "description": "The regression changes the offset for alphabetic hex digits from 9 to 8. That maps A-F and a-f one lower than their hexadecimal values, causing the reported escape decoding failures. Restoring the offset fixes the conversion while preserving the existing CUnescape behavior.\n\nReproduced failing tests:\n- `CEscape.EscapeAndUnescape`\n- `Unescape.BasicFunction`\n- `CUnescapeTest.UnescapesMultipleHexNulls`\n\nOriginal TeamCity revision: `261d30fdee20321406c08958fc479fd229482f7e`\n\nVerified commit after rebasing onto the configured base: `d97966cab753b0fcf80d0b168a8ea4c89aa556ae`\n\nValidation: configured native build and full test command passed; originally failing tests are present and passing in the fresh JUnit report.\n\nContext:\n- [TeamCity build 284762](https://ci.meridian.invalid/teamcity/viewLog.html?buildId=284762)\n- [CORE-1857](https://issues.meridian.invalid/jira/browse/CORE-1857)\n- [OPS-218](https://issues.meridian.invalid/jira/browse/OPS-218)\n- [PLAT-1731](https://issues.meridian.invalid/jira/browse/PLAT-1731)\n- [Related PR 418](https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/418)\n- [Related PR 402](https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/402)\n- [Related PR 425](https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/425)\n\n[TeamCity artifact](https://ci.meridian.invalid/teamcity/app/rest/builds/id:284762/artifacts/content/reports/unit-test-failure.svg)\n\n![TeamCity evidence](https://ci.meridian.invalid/teamcity/app/rest/builds/id:284762/artifacts/content/reports/unit-test-failure.svg)\n\nAutomation run: `tc-284762-f78756555cf9`. AI-generated candidate; review before merging.",
+    "fromRef": {
+      "id": "refs/heads/auto-fix/tc-284762-f78756555cf9",
+      "repository": {
+        "slug": "cpp-runtime",
+        "project": {
+          "key": "PLAT"
+        }
+      },
+      "latestCommit": "d97966cab753b0fcf80d0b168a8ea4c89aa556ae"
+    },
+    "toRef": {
+      "id": "refs/heads/master",
+      "repository": {
+        "slug": "cpp-runtime",
+        "project": {
+          "key": "PLAT"
+        }
+      }
+    },
+    "id": 901,
+    "version": 0,
+    "state": "OPEN",
+    "open": true,
+    "closed": false,
+    "author": {
+      "user": {
+        "name": "svc.auto-fix",
+        "emailAddress": "auto-fix@meridian.invalid",
+        "displayName": "Auto Fix Evaluation Bot",
+        "active": true,
+        "slug": "svc.auto-fix",
+        "type": "NORMAL"
+      },
+      "role": "AUTHOR"
+    },
+    "reviewers": [],
+    "synthetic": true,
+    "links": {
+      "self": [
+        {
+          "href": "https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/901"
+        }
+      ]
+    }
+  }
+]

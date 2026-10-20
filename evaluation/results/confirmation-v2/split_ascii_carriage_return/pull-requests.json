@@ -1,0 +1,50 @@
+[
+  {
+    "title": "[auto-fix] Treat carriage return as ASCII whitespace when splitting.",
+    "description": "ByAsciiWhitespace currently searches for space, tab, vertical tab, form feed, and line feed, but omits carriage return despite the documented contract and regression failure. Adding '\\r' to its delimiter set fixes the behavior while retaining the existing split logic.\n\nReproduced failing tests:\n- `Split.ByAsciiWhitespace`\n\nOriginal TeamCity revision: `46eb0aae0376a0080ebc2e288a606cbda31d54af`\n\nVerified commit after rebasing onto the configured base: `e3c6ad81a634563058b76055ce0f4f2b87b87fc1`\n\nValidation: configured native build and full test command passed; originally failing tests are present and passing in the fresh JUnit report.\n\nContext:\n- [TeamCity build 284763](https://ci.meridian.invalid/teamcity/viewLog.html?buildId=284763)\n- [CORE-1873](https://issues.meridian.invalid/jira/browse/CORE-1873)\n- [OPS-218](https://issues.meridian.invalid/jira/browse/OPS-218)\n- [PLAT-1731](https://issues.meridian.invalid/jira/browse/PLAT-1731)\n- [Related PR 418](https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/418)\n- [Related PR 402](https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/402)\n- [Related PR 425](https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/425)\n\n[TeamCity artifact](https://ci.meridian.invalid/teamcity/app/rest/builds/id:284763/artifacts/content/reports/unit-test-failure.svg)\n\n![TeamCity evidence](https://ci.meridian.invalid/teamcity/app/rest/builds/id:284763/artifacts/content/reports/unit-test-failure.svg)\n\nAutomation run: `tc-284763-98667d976865`. AI-generated candidate; review before merging.",
+    "fromRef": {
+      "id": "refs/heads/auto-fix/tc-284763-98667d976865",
+      "repository": {
+        "slug": "cpp-runtime",
+        "project": {
+          "key": "PLAT"
+        }
+      },
+      "latestCommit": "e3c6ad81a634563058b76055ce0f4f2b87b87fc1"
+    },
+    "toRef": {
+      "id": "refs/heads/master",
+      "repository": {
+        "slug": "cpp-runtime",
+        "project": {
+          "key": "PLAT"
+        }
+      }
+    },
+    "id": 901,
+    "version": 0,
+    "state": "OPEN",
+    "open": true,
+    "closed": false,
+    "author": {
+      "user": {
+        "name": "svc.auto-fix",
+        "emailAddress": "auto-fix@meridian.invalid",
+        "displayName": "Auto Fix Evaluation Bot",
+        "active": true,
+        "slug": "svc.auto-fix",
+        "type": "NORMAL"
+      },
+      "role": "AUTHOR"
+    },
+    "reviewers": [],
+    "synthetic": true,
+    "links": {
+      "self": [
+        {
+          "href": "https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/901"
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,13 @@
+diff --git a/absl/strings/ascii.cc b/absl/strings/ascii.cc
+index 3103b17..142ca9e 100644
+--- a/absl/strings/ascii.cc
++++ b/absl/strings/ascii.cc
+@@ -255,7 +255,7 @@ static_assert(ValidateAsciiCasefold() == 0, "error in case conversion");
+ 
+ void AsciiStrToLower(std::string* absl_nonnull s) {
+   char* p = &(*s)[0];
+-  return ascii_internal::AsciiStrCaseFold<true>(p, p, s->size());
++  return ascii_internal::AsciiStrCaseFold<false>(p, p, s->size());
+ }
+ 
+ void AsciiStrToUpper(std::string* absl_nonnull s) {

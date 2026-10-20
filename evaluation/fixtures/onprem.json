@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "synthetic": true,
+  "notice": "All company names, people, tickets, PR discussions and CI metadata are fictional evaluation fixtures. Test names, Git revisions and assertion output are supplied from the actual local C++ evaluation run. These fixtures contain no model answers or repair edits.",
+  "company": {
+    "name": "Meridian Instruments",
+    "team": "Platform Runtime",
+    "project": "PLAT",
+    "repository": "cpp-runtime",
+    "vcs_root": "Platform_CppRuntime",
+    "agent": {
+      "id": 17,
+      "name": "win-build-17",
+      "typeId": 17,
+      "platform": "Windows Server 2022 / Visual Studio 2022 x64",
+      "work_directory": "D:\\BuildAgent\\work\\platform-cpp"
+    }
+  },
+  "people": {
+    "author": {
+      "name": "maya.chen",
+      "emailAddress": "maya.chen@meridian.invalid",
+      "displayName": "Maya Chen",
+      "active": true,
+      "slug": "maya.chen",
+      "type": "NORMAL"
+    },
+    "reviewer": {
+      "name": "oliver.martin",
+      "emailAddress": "oliver.martin@meridian.invalid",
+      "displayName": "Oliver Martin",
+      "active": true,
+      "slug": "oliver.martin",
+      "type": "NORMAL"
+    },
+    "bot": {
+      "name": "svc.auto-fix",
+      "emailAddress": "auto-fix@meridian.invalid",
+      "displayName": "Auto Fix Evaluation Bot",
+      "active": true,
+      "slug": "svc.auto-fix",
+      "type": "NORMAL"
+    }
+  },
+  "pull_requests": {
+    "primary": {
+      "id": 418,
+      "version": 5,
+      "state": "MERGED",
+      "open": false,
+      "closed": true,
+      "locked": false,
+      "description": "Runtime maintenance for the next desktop release. Preserve the public string utility contract and run the existing regression suite before merge. The overnight Windows job is the release gate. Changes should remain compatible with signed and unsigned char builds.",
+      "review_comment": "The targeted tests looked clean on the previous revision. Please check the complete strings target on Windows as well; downstream diagnostic parsers depend on stable behavior."
+    },
+    "related": {
+      "id": 402,
+      "version": 3,
+      "title": "PLAT-1731 Keep diagnostic text stable across compiler updates",
+      "description": "Use the existing string utilities in the telemetry adapter. Consumers compare generated diagnostics as bytes. This earlier merged change explains the caller expectations; it does not change the runtime implementation.",
+      "state": "MERGED",
+      "open": false,
+      "closed": true,
+      "locked": false
+    },
+    "distractor": {
+      "id": 425,
+      "version": 1,
+      "title": "OPS-218 Refresh Windows build-agent certificate rotation notes",
+      "description": "Documentation-only update for the build-agent maintenance runbook. No source or test changes are included. The infrastructure pipeline shares the same VCS checkout.",
+      "state": "OPEN",
+      "open": true,
+      "closed": false,
+      "locked": false
+    }
+  },
+  "issues": {
+    "primary": {
+      "summary": "String utility behavior changed after runtime maintenance",
+      "description": "The overnight native test run reports a regression in a runtime utility used by desktop diagnostics. Reproduce the exact assertion using the built-in tests.\n\nAcceptance criteria:\n* Existing public API behavior remains compatible for documented inputs.\n* Originally failing tests pass without changing, deleting, skipping or weakening tests.\n* The complete configured regression suite passes on the repair branch.\n* Keep the repair focused on runtime implementation; build scripts and public API signatures do not need redesign.",
+      "status": {"name": "In Progress", "statusCategory": {"key": "indeterminate", "name": "In Progress"}},
+      "issuetype": {"name": "Bug", "subtask": false},
+      "priority": {"name": "High"},
+      "labels": ["native", "regression", "release-gate"],
+      "components": [{"name": "Runtime Libraries"}],
+      "fixVersions": [{"name": "Desktop 2026.11"}],
+      "comment": {
+        "comments": [
+          {
+            "id": "128401",
+            "author": {"displayName": "Oliver Martin", "name": "oliver.martin"},
+            "body": "The failure occurs before the application layer is involved. Please preserve existing behavior for edge inputs and use the checked-in assertions as the regression evidence.",
+            "created": "2026-10-20T08:54:12.000+0200"
+          }
+        ],
+        "maxResults": 20,
+        "startAt": 0,
+        "total": 1
+      },
+      "issuelinks": [
+        {"id": "32017", "type": {"name": "Relates", "outward": "relates to", "inward": "relates to"}, "outwardIssue": {"key": "PLAT-1731", "fields": {"summary": "Keep diagnostic text stable across compiler updates", "status": {"name": "Done"}}}}
+      ]
+    },
+    "PLAT-1731": {
+      "summary": "Keep diagnostic text stable across compiler updates",
+      "description": "Telemetry stores escaped, normalized diagnostic strings for customer support. The byte representation must remain stable after compiler upgrades. This completed work records the downstream consumer requirements; no new formatting behavior is requested.",
+      "status": {"name": "Done"},
+      "issuetype": {"name": "Story"},
+      "labels": ["telemetry", "compatibility"],
+      "comment": {"comments": [], "total": 0},
+      "issuelinks": []
+    },
+    "OPS-218": {
+      "summary": "Refresh Windows build-agent certificate rotation notes",
+      "description": "Document the annual internal CA renewal procedure. This affects build-agent administration only. No product or unit-test behavior should change.",
+      "status": {"name": "In Review"},
+      "issuetype": {"name": "Task"},
+      "labels": ["infrastructure", "documentation"],
+      "comment": {"comments": [], "total": 0},
+      "issuelinks": []
+    }
+  }
+}

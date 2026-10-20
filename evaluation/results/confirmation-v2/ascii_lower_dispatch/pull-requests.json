@@ -1,0 +1,50 @@
+[
+  {
+    "title": "[auto-fix] Restore lowercase dispatch for in-place string conversion.",
+    "description": "The in-place AsciiStrToLower overload incorrectly dispatches to the uppercase conversion template, which matches the reported failures. Restore the lowercase template argument.\n\nReproduced failing tests:\n- `AsciiStrTo.Lower`\n\nOriginal TeamCity revision: `5954385d6cf009d8eca337d6f2ad7b6a5f23eb27`\n\nVerified commit after rebasing onto the configured base: `0436ff3f982db054368e896b0df86c4bb119f046`\n\nValidation: configured native build and full test command passed; originally failing tests are present and passing in the fresh JUnit report.\n\nContext:\n- [TeamCity build 284761](https://ci.meridian.invalid/teamcity/viewLog.html?buildId=284761)\n- [CORE-1842](https://issues.meridian.invalid/jira/browse/CORE-1842)\n- [OPS-218](https://issues.meridian.invalid/jira/browse/OPS-218)\n- [PLAT-1731](https://issues.meridian.invalid/jira/browse/PLAT-1731)\n- [Related PR 418](https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/418)\n- [Related PR 402](https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/402)\n- [Related PR 425](https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/425)\n\n[TeamCity artifact](https://ci.meridian.invalid/teamcity/app/rest/builds/id:284761/artifacts/content/reports/unit-test-failure.svg)\n\n![TeamCity evidence](https://ci.meridian.invalid/teamcity/app/rest/builds/id:284761/artifacts/content/reports/unit-test-failure.svg)\n\nAutomation run: `tc-284761-e4c0263c5308`. AI-generated candidate; review before merging.",
+    "fromRef": {
+      "id": "refs/heads/auto-fix/tc-284761-e4c0263c5308",
+      "repository": {
+        "slug": "cpp-runtime",
+        "project": {
+          "key": "PLAT"
+        }
+      },
+      "latestCommit": "0436ff3f982db054368e896b0df86c4bb119f046"
+    },
+    "toRef": {
+      "id": "refs/heads/master",
+      "repository": {
+        "slug": "cpp-runtime",
+        "project": {
+          "key": "PLAT"
+        }
+      }
+    },
+    "id": 901,
+    "version": 0,
+    "state": "OPEN",
+    "open": true,
+    "closed": false,
+    "author": {
+      "user": {
+        "name": "svc.auto-fix",
+        "emailAddress": "auto-fix@meridian.invalid",
+        "displayName": "Auto Fix Evaluation Bot",
+        "active": true,
+        "slug": "svc.auto-fix",
+        "type": "NORMAL"
+      },
+      "role": "AUTHOR"
+    },
+    "reviewers": [],
+    "synthetic": true,
+    "links": {
+      "self": [
+        {
+          "href": "https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/901"
+        }
+      ]
+    }
+  }
+]

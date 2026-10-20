@@ -1,0 +1,245 @@
+{
+  "project": {
+    "schema_version": 1,
+    "name": "Abseil C++ Common Libraries",
+    "repository": "https://github.com/abseil/abseil-cpp.git",
+    "tag": "20260107.1",
+    "commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+    "license": "Apache-2.0",
+    "license_url": "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/LICENSE",
+    "google_test": {
+      "repository": "https://github.com/google/googletest.git",
+      "tag": "v1.17.0",
+      "commit": "52eb8108c5bdec04579160ae17225d66034bd723",
+      "license": "BSD-3-Clause"
+    },
+    "cmake_options": [
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DCMAKE_CXX_STANDARD=17",
+      "-DABSL_BUILD_TESTING=ON",
+      "-DABSL_USE_GOOGLETEST_HEAD=OFF",
+      "-DABSL_ENABLE_INSTALL=OFF"
+    ],
+    "build_targets": [
+      "absl_ascii_test",
+      "absl_escaping_test",
+      "absl_str_split_test",
+      "absl_demangle_test"
+    ],
+    "ctest_regex": "^absl_(ascii|escaping|str_split|demangle)_test$",
+    "metrics": {
+      "measured_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+      "tree_bytes_excluding_git": 10862971,
+      "cpp_source_header_files": 840,
+      "cpp_source_header_lines": 265865,
+      "production_cpp_source_header_files": 517,
+      "production_cpp_source_header_lines": 142256,
+      "test_cpp_source_header_files": 274,
+      "test_cpp_source_header_lines": 112753,
+      "method": "Count .cc/.h under absl; line count uses bytes.splitlines(); production excludes filenames containing _test or _benchmark and path components testdata, test, tests. Test count includes filenames containing _test. Generated upstream source is included; third_party outside absl is excluded."
+    },
+    "sources": [
+      "https://github.com/abseil/abseil-cpp/releases/tag/20260107.1",
+      "https://abseil.io/docs/cpp/quickstart-cmake.html",
+      "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/CMakeLists.txt",
+      "https://github.com/google/googletest/releases/tag/v1.17.0"
+    ]
+  },
+  "profile": "focused",
+  "model": "gpt-6-luna",
+  "backend": "codex",
+  "platform": "macOS-26.4.1-arm64-arm-64bit",
+  "cases": [
+    {
+      "case": "ascii_lower_dispatch",
+      "profile": "focused",
+      "model": "gpt-6-luna",
+      "status": "published",
+      "success": true,
+      "reason": "",
+      "elapsed_seconds": 25.399,
+      "attempts": 2,
+      "baseline_failed": [
+        "AsciiStrTo.Lower"
+      ],
+      "passed_test_count": 12,
+      "remaining_failures": [],
+      "model_calls": [
+        {
+          "model": "gpt-6-luna",
+          "transport": "codex-cli",
+          "reasoning_effort": "medium",
+          "elapsed_seconds": 3.946,
+          "returncode": 0,
+          "usage": {
+            "input_tokens": 28658,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 110,
+            "reasoning_output_tokens": 0
+          },
+          "directory": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/focused-v1/ascii_lower_dispatch/model/call-1"
+        },
+        {
+          "model": "gpt-6-luna",
+          "transport": "codex-cli",
+          "reasoning_effort": "medium",
+          "elapsed_seconds": 5.412,
+          "returncode": 0,
+          "usage": {
+            "input_tokens": 27440,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 193,
+            "reasoning_output_tokens": 0
+          },
+          "directory": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/focused-v1/ascii_lower_dispatch/model/call-2"
+        }
+      ],
+      "pull_requests_created": 1,
+      "result": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/focused-v1/ascii_lower_dispatch/state/runs/tc-284761-33051356303a/result.json",
+      "verified_head": "18d5308897b06d033bc01652f1ffbd18761c98e8",
+      "exported_evidence": "ascii_lower_dispatch"
+    },
+    {
+      "case": "hex_digit_conversion",
+      "profile": "focused",
+      "model": "gpt-6-luna",
+      "status": "published",
+      "success": true,
+      "reason": "",
+      "elapsed_seconds": 28.345,
+      "attempts": 1,
+      "baseline_failed": [
+        "CEscape.EscapeAndUnescape",
+        "Unescape.BasicFunction",
+        "CUnescapeTest.UnescapesMultipleHexNulls"
+      ],
+      "passed_test_count": 18,
+      "remaining_failures": [],
+      "model_calls": [
+        {
+          "model": "gpt-6-luna",
+          "transport": "codex-cli",
+          "reasoning_effort": "medium",
+          "elapsed_seconds": 4.475,
+          "returncode": 0,
+          "usage": {
+            "input_tokens": 32022,
+            "cached_input_tokens": 13952,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 94,
+            "reasoning_output_tokens": 0
+          },
+          "directory": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/focused-v1/hex_digit_conversion/model/call-1"
+        }
+      ],
+      "pull_requests_created": 1,
+      "result": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/focused-v1/hex_digit_conversion/state/runs/tc-284762-826378a860d9/result.json",
+      "verified_head": "2134b10a27ee683de53bb5710c9076124b13b6f5",
+      "exported_evidence": "hex_digit_conversion"
+    },
+    {
+      "case": "split_ascii_carriage_return",
+      "profile": "focused",
+      "model": "gpt-6-luna",
+      "status": "blocked",
+      "success": false,
+      "reason": "Repair budget exhausted: Expected old text exactly once in absl/strings/str_split.h; found 0",
+      "elapsed_seconds": 42.991,
+      "attempts": 2,
+      "baseline_failed": [
+        "Split.ByAsciiWhitespace"
+      ],
+      "passed_test_count": 0,
+      "remaining_failures": [],
+      "model_calls": [
+        {
+          "model": "gpt-6-luna",
+          "transport": "codex-cli",
+          "reasoning_effort": "medium",
+          "elapsed_seconds": 4.159,
+          "returncode": 0,
+          "usage": {
+            "input_tokens": 29434,
+            "cached_input_tokens": 13952,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 106,
+            "reasoning_output_tokens": 0
+          },
+          "directory": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/focused-v1/split_ascii_carriage_return/model/call-1"
+        },
+        {
+          "model": "gpt-6-luna",
+          "transport": "codex-cli",
+          "reasoning_effort": "medium",
+          "elapsed_seconds": 5.066,
+          "returncode": 0,
+          "usage": {
+            "input_tokens": 26175,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 122,
+            "reasoning_output_tokens": 0
+          },
+          "directory": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/focused-v1/split_ascii_carriage_return/model/call-2"
+        }
+      ],
+      "pull_requests_created": 0,
+      "result": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/focused-v1/split_ascii_carriage_return/state/runs/tc-284763-16554a7ec0e4/result.json",
+      "exported_evidence": "split_ascii_carriage_return"
+    },
+    {
+      "case": "demangle_rvalue_function_qualifier",
+      "profile": "focused",
+      "model": "gpt-6-luna",
+      "status": "blocked",
+      "success": false,
+      "reason": "Repair budget exhausted: Edit makes no change: absl/debugging/internal/demangle.cc",
+      "elapsed_seconds": 35.683,
+      "attempts": 2,
+      "baseline_failed": [
+        "Demangle.ReferenceQualifiedFunctionTypes"
+      ],
+      "passed_test_count": 0,
+      "remaining_failures": [],
+      "model_calls": [
+        {
+          "model": "gpt-6-luna",
+          "transport": "codex-cli",
+          "reasoning_effort": "medium",
+          "elapsed_seconds": 7.45,
+          "returncode": 0,
+          "usage": {
+            "input_tokens": 29837,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 537,
+            "reasoning_output_tokens": 401
+          },
+          "directory": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/focused-v1/demangle_rvalue_function_qualifier/model/call-1"
+        },
+        {
+          "model": "gpt-6-luna",
+          "transport": "codex-cli",
+          "reasoning_effort": "medium",
+          "elapsed_seconds": 4.142,
+          "returncode": 0,
+          "usage": {
+            "input_tokens": 26658,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 107,
+            "reasoning_output_tokens": 0
+          },
+          "directory": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/focused-v1/demangle_rvalue_function_qualifier/model/call-2"
+        }
+      ],
+      "pull_requests_created": 0,
+      "result": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/focused-v1/demangle_rvalue_function_qualifier/state/runs/tc-284764-85d8746c9e89/result.json",
+      "exported_evidence": "demangle_rvalue_function_qualifier"
+    }
+  ],
+  "successes": 2,
+  "total": 4
+}

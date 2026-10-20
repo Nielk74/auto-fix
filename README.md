@@ -42,7 +42,29 @@ uv run --no-sync auto-fix graph
 uv run --no-sync pytest
 ```
 
-CI runs the checks and native C++ demo on both Windows and Linux with Python 3.11 and 3.12. CI uses only synthetic services and source code. A passing demo establishes the sample workflow; your real server versions, model and C++ solution still need configuration and a local trial.
+CI runs the checks and native C++ demo on both Windows and Linux with Python 3.11 and 3.12. The small demo uses synthetic services and source code; the larger evaluation uses synthetic services with real public Abseil source. A passing demo establishes the sample workflow; your real server versions, model and C++ solution still need configuration and a local trial.
+
+## Evaluate against a substantial C++ repository
+
+The evaluation uses pinned **Abseil C++**, with 840 source/header files and 265,865 lines, and realistic synthetic TeamCity, Bitbucket and Jira data. Four independently injected source defects are checked by unchanged upstream tests. Git, native builds, rebases, and local branch publication run for real; enterprise services are mocked.
+
+Live GPT-6 Luna evaluation on macOS improved from **2 of 4 cases repaired to 4 of 4** after source-context changes. The final round and a fresh confirmation each repaired all four cases with one model call per case and passed 188 unchanged upstream tests per round. The initial unsuccessful retrieval revision is retained in the [results and evidence](docs/evaluation.md#verified-live-results). These four synthetic regressions are a smoke benchmark, not a general repair-rate estimate.
+
+Run an actual GPT-6 Luna evaluation through an authenticated Codex CLI:
+
+```powershell
+uv run --no-sync auto-fix evaluate --directory .auto-fix/evaluation/luna --profile focused --backend codex --model gpt-6-luna
+```
+
+Or rerun saved Luna responses with fresh native builds and no live inference:
+
+```powershell
+uv run --no-sync auto-fix evaluate --directory .auto-fix/evaluation/replay --backend replay --recordings evaluation/recordings/accepted
+```
+
+Use a new output directory for each run. Windows uses Visual Studio C++ build tools; Linux/macOS also require Ninja. To evaluate your Qwen server while keeping enterprise systems mocked, use `--backend endpoint --config config.local.yaml`.
+
+[The evaluation guide](docs/evaluation.md) covers case selection, comparing workflow changes, model recordings, evidence, and limitations. [Fixture provenance](evaluation/README.md) records exact upstream revisions and the four scenarios.
 
 ## Connect your systems
 
@@ -66,7 +88,7 @@ Build commands are argument arrays executed in the isolated worktree. The CMake 
 
 The validator requires the original failing test identities to appear as passing after repair. XML identity is `classname.name` when `classname` is nonempty and differs from `name`; otherwise it is `name`. This keeps GoogleTest fixtures distinct, such as `Arithmetic.AddsIntegers`, while CTest's identical class/name fields remain a single name. Duplicate identities are rejected. Use `build.test_name_map` when TeamCity uses a different label; confirm both sides against your runner's XML. An empty, missing or unrelated report cannot authorize publication.
 
-`repository.allowed_paths` controls which source files the model can edit; keep test, build and workflow files outside that list. `context_paths` controls the source files available for diagnosis. Context, model output, edit size, retries and command duration are bounded. Change `max_attempts` to adjust the default two repair attempts.
+`repository.allowed_paths` controls which source files the model can edit; keep test, build and workflow files outside that list. `context_paths` controls the source files available for diagnosis. The default `context_strategy: focused` retrieves bounded excerpts around failure locations, symbols, and local includes, including relevant code deep inside large files. `legacy` retains the original file-prefix strategy for comparison. Context, model output, edit size, retries and command duration are bounded. Change `max_attempts` to adjust the default two repair attempts.
 
 “Today” uses the configured IANA timezone, defaulting to `Europe/Paris`. To investigate a specific date:
 

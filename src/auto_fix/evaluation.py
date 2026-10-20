@@ -1,0 +1,406 @@
+"""Reproducible large-repository evaluations with real native tests and isolated services."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import platform
+import subprocess
+import sys
+import time
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+from zoneinfo import ZoneInfo
+
+from defusedxml import ElementTree
+
+from auto_fix import mock_services as mocks
+from auto_fix.build import Builder
+from auto_fix.codex_model import CodexRepairModel
+from auto_fix.config import Settings
+from auto_fix.integrations import Bitbucket, Jira, TeamCity
+from auto_fix.llm import RepairModel
+from auto_fix.mock_services import ScenarioServices
+from auto_fix.models import FailedTest, Failure
+from auto_fix.recorded_model import RecordedRepairModel
+from auto_fix.workflow import Workflow, failure_key, write_json
+
+
+def _git(path: Path, *args: str) -> str:
+    result = subprocess.run(
+        ["git", "-C", str(path), *args],
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=180,
+        env=dict(os.environ, GIT_TERMINAL_PROMPT="0"),
+    )
+    return result.stdout.strip()
+
+
+def evaluation_root() -> Path:
+    root = Path(__file__).resolve().parents[2] / "evaluation"
+    if not root.is_dir():
+        raise ValueError("Run the benchmark from a source checkout containing evaluation/")
+    return root
+
+
+def _upstream(cache: Path, spec: dict[str, Any], name: str) -> Path:
+    path = cache / name
+    if not path.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run(
+            [
+                "git",
+                "-c",
+                "core.autocrlf=false",
+                "clone",
+                "--depth",
+                "1",
+                "--branch",
+                spec["tag"],
+                spec["repository"],
+                str(path),
+            ],
+            check=True,
+            timeout=240,
+        )
+    if _git(path, "rev-parse", "HEAD") != spec["commit"] or _git(path, "status", "--porcelain"):
+        raise ValueError(f"Cached {name} checkout must be clean at pinned commit {spec['commit']}")
+    return path
+
+
+def _details(junit: Path) -> dict[str, str]:
+    result = {}
+    for case in ElementTree.parse(junit).getroot().iter("testcase"):
+        name = case.get("name", "")
+        cls = case.get("classname", "")
+        identity = f"{cls}.{name}" if cls and cls != name else name
+        failures = list(case.iter("failure")) + list(case.iter("error"))
+        if failures:
+            result[identity] = "\n".join(
+                (item.text or item.get("message", "")) for item in failures
+            )
+    return result
+
+
+def _build_config(project: dict, case: dict, googletest: Path) -> dict:
+    generator = [] if os.name == "nt" else ["-G", "Ninja"]
+    rebuild = ["--clean-first"] if os.name == "nt" else []
+    return {
+        "configure": [
+            [
+                "cmake",
+                "-S",
+                ".",
+                "-B",
+                ".auto-fix-build",
+                *generator,
+                *project["cmake_options"],
+                f"-DABSL_LOCAL_GOOGLETEST_DIR={googletest}",
+            ]
+        ],
+        "build": [
+            [
+                "cmake",
+                "--build",
+                ".auto-fix-build",
+                "--config",
+                "Release",
+                *rebuild,
+                "--parallel",
+                "4",
+                "--target",
+                *case["build_targets"],
+            ]
+        ],
+        "test": [
+            sys.executable,
+            str(Path(__file__).with_name("native_tests.py")),
+            "--build-dir",
+            ".auto-fix-build",
+            "--targets",
+            *case["build_targets"],
+            "--junit",
+            "{junit}",
+        ],
+        "timeout_seconds": 600,
+    }
+
+
+def _source(directory: Path, upstream: Path, case: dict) -> tuple[Path, list[dict]]:
+    source = directory / "source"
+    subprocess.run(
+        ["git", "-c", "core.autocrlf=false", "clone", "--no-hardlinks", str(upstream), str(source)],
+        check=True,
+        capture_output=True,
+        timeout=180,
+    )
+    _git(source, "checkout", "-B", "master")
+    _git(source, "config", "core.autocrlf", "false")
+    _git(source, "config", "user.name", "Synthetic Meridian CI")
+    _git(source, "config", "user.email", "ci@meridian.invalid")
+    with (source / ".gitignore").open("a", encoding="utf-8") as handle:
+        handle.write("\n.auto-fix-build/\n")
+    _git(source, "add", ".gitignore")
+    _git(source, "commit", "-m", "Configure isolated native build output")
+    for mutation in case["mutations"]:
+        path = source / mutation["path"]
+        original = path.read_bytes().decode("utf-8")
+        if original.count(mutation["before"]) != 1:
+            raise ValueError(f"Pinned mutation anchor changed: {mutation['path']}")
+        path.write_bytes(original.replace(mutation["before"], mutation["after"], 1).encode("utf-8"))
+    _git(source, "commit", "-am", case["context"]["commit_message"])
+    mutation_sha = _git(source, "rev-parse", "HEAD")
+    changes = []
+    if case["exposure"] == "direct":
+        changes.append({"version": mutation_sha, "comment": case["context"]["commit_message"]})
+    # Indirect cases model an older regression discovered by a newer CI run. Its current
+    # changes deliberately contain no inverse patch; the model must locate the implementation.
+    path = source / case["changed_files"][0]
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write("\n// Keep runtime diagnostic labels consistent across ingestion workers.\n")
+    _git(source, "commit", "-am", case["context"]["pr_title"])
+    changes.append(
+        {"version": _git(source, "rev-parse", "HEAD"), "comment": case["context"]["pr_title"]}
+    )
+    remote = directory / "remote.git"
+    subprocess.run(
+        ["git", "clone", "--bare", str(source), str(remote)],
+        check=True,
+        capture_output=True,
+        timeout=180,
+    )
+    _git(source, "remote", "set-url", "origin", str(remote))
+    return source, changes
+
+
+def run_evaluation(
+    directory: Path,
+    *,
+    profile: str = "legacy",
+    backend: str = "codex",
+    model_name: str = "gpt-6-luna",
+    selected: list[str] | None = None,
+    upstream_cache: Path | None = None,
+    endpoint_config: Path | None = None,
+    recordings: Path | None = None,
+) -> int:
+    if backend not in {"codex", "endpoint", "replay"}:
+        raise ValueError("Unknown evaluation backend")
+    if profile not in {"legacy", "focused"}:
+        raise ValueError("Unknown context profile")
+    root = evaluation_root()
+    project = json.loads((root / "project.json").read_text(encoding="utf-8"))
+    endpoint_settings = None
+    if backend == "endpoint":
+        from dotenv import load_dotenv
+
+        from auto_fix.config import load_settings
+
+        if not endpoint_config:
+            raise ValueError("Endpoint evaluation requires --config with your model settings")
+        load_dotenv(endpoint_config.resolve().parent / ".env", override=False)
+        endpoint_settings = load_settings(endpoint_config)
+        model_name = endpoint_settings.llm.model
+    cases = json.loads((root / "cases.json").read_text(encoding="utf-8"))["cases"]
+    if selected:
+        cases = [case for case in cases if case["id"] in selected]
+        if {case["id"] for case in cases} != set(selected):
+            raise ValueError("Unknown evaluation case ID")
+    directory = directory.resolve()
+    if directory.exists() and any(directory.iterdir()):
+        raise ValueError("Evaluation directory must be empty; prior evidence is preserved")
+    directory.mkdir(parents=True, exist_ok=True)
+    source_files = ["workspace.py", "workflow.py", "context.py", "llm.py"]
+    write_json(
+        directory / "manifest.json",
+        {
+            "model": model_name,
+            "backend": backend,
+            "profile": profile,
+            "source_sha256": {
+                name: hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
+                for name in source_files
+            },
+            "cases_sha256": hashlib.sha256((root / "cases.json").read_bytes()).hexdigest(),
+            "project_commit": project["commit"],
+            "live_inference": backend != "replay",
+            "oracle_manifest_sent_to_model": False,
+        },
+    )
+    cache = (upstream_cache or Path(".auto-fix/upstream")).resolve()
+    upstream = _upstream(cache, project, "abseil")
+    googletest = _upstream(cache, project["google_test"], "googletest")
+    old_token = os.environ.get(mocks.TOKEN_ENV)
+    os.environ[mocks.TOKEN_ENV] = mocks.TOKEN
+    results = []
+    try:
+        for index, case in enumerate(cases):
+            started = time.monotonic()
+            current = directory / case["id"]
+            current.mkdir()
+            source, changes = _source(current, upstream, case)
+            config = _build_config(project, case, googletest)
+            # Obtain failure names/details from actual upstream tests, never hand-written logs.
+            from auto_fix.config import BuildConfig
+
+            preflight = Builder(BuildConfig.model_validate(config), current / "preflight").verify(
+                source, "injected"
+            )
+            if not preflight.build_ok or not preflight.report.failed:
+                raise RuntimeError(f"Case {case['id']} failed to reproduce its injected regression")
+            junit = next(Path(path) for path in preflight.logs if path.endswith("junit.xml"))
+            details = _details(junit)
+            failure = Failure(
+                build_id=str(284761 + index),
+                build_type="Platform_CppRuntime_Win64_UnitTests",
+                build_url=f"{mocks.TC_URL}/viewLog.html?buildId={284761 + index}",
+                revision=_git(source, "rev-parse", "HEAD"),
+                branch="refs/heads/master",
+                tests=[
+                    FailedTest(
+                        id=hashlib.sha256(name.encode()).hexdigest()[:16],
+                        name=name,
+                        details=details.get(name, ""),
+                    )
+                    for name in preflight.report.failed
+                ],
+                changes=changes,
+            )
+            now = datetime.now(ZoneInfo("Europe/Paris"))
+            services = ScenarioServices(
+                failure,
+                now=now,
+                issue_key=case["context"]["jira_key"],
+                issue_summary=case["context"]["jira_summary"],
+                issue_description=case["description"],
+                latest_commit=lambda branch, current=current: _git(
+                    current,
+                    "--git-dir",
+                    str(current / "remote.git"),
+                    "rev-parse",
+                    branch,
+                ),
+            )
+            service = {"token_env": mocks.TOKEN_ENV}
+            payload = {
+                "state_dir": current / "state",
+                "timezone": "Europe/Paris",
+                "max_attempts": 2,
+                "teamcity": {
+                    **service,
+                    "url": mocks.TC_URL,
+                    "build_types": [failure.build_type],
+                    "vcs_root_id": mocks.VCS_ROOT,
+                    "evidence_artifact_paths": [mocks.EVIDENCE_PATH],
+                },
+                "bitbucket": {
+                    **service,
+                    "url": mocks.BB_URL,
+                    "project": mocks.PROJECT,
+                    "repo": mocks.REPO,
+                },
+                "jira": {**service, "url": mocks.JIRA_URL},
+                "llm": {**service, "url": "https://model.meridian.invalid/v1", "model": model_name},
+                "repository": {
+                    "path": source,
+                    "allowed_paths": ["absl/**"],
+                    "context_paths": ["absl/**"],
+                },
+                "build": config,
+            }
+            # Legacy is the pre-improvement workflow; focused is enabled after baseline capture.
+            payload["repository"]["context_strategy"] = profile
+            settings = Settings.model_validate(payload)
+            run_id = failure_key(failure)
+            if backend == "codex":
+                model = CodexRepairModel(current / "model", model_name)
+            elif backend == "replay":
+                recorded_root = recordings or root / "recordings" / "accepted"
+                model = RecordedRepairModel(recorded_root / case["id"], model_name)
+            else:
+                model = RepairModel(endpoint_settings.llm)
+            with services.client() as client:
+                tc, bb, jira = (
+                    TeamCity(settings.teamcity, client),
+                    Bitbucket(settings.bitbucket, client),
+                    Jira(settings.jira, client),
+                )
+                discovered = tc.failures(now.date(), settings.timezone)
+                if len(discovered) != 1:
+                    raise RuntimeError("Synthetic discovery must find one applicable failed build")
+                flow = Workflow(settings, run_id, tc, bb, jira, model, publish=True)
+                state = flow.run({"run_id": run_id, "failure": discovered[0].model_dump()})
+                final_tests = state.get("verification", {}).get("report", {})
+                entry = {
+                    "case": case["id"],
+                    "profile": profile,
+                    "model": model_name,
+                    "status": state["status"],
+                    "success": state["status"] == "published",
+                    "reason": state.get("reason", ""),
+                    "elapsed_seconds": round(time.monotonic() - started, 3),
+                    "attempts": state.get("attempt", 0),
+                    "baseline_failed": preflight.report.failed,
+                    "passed_test_count": len(final_tests.get("passed", [])),
+                    "remaining_failures": final_tests.get("failed", []),
+                    "model_calls": getattr(model, "calls", []),
+                    "pull_requests_created": len(services.created_prs),
+                    "result": str(flow.directory / "result.json"),
+                }
+                # Independent checks: source tests stay byte-for-byte unchanged and PR branch is
+                # exactly the final tested SHA. This is separate from workflow routing decisions.
+                if entry["success"]:
+                    changed = _git(
+                        flow.workspace.path, "diff", "--name-only", failure.revision, "HEAD"
+                    ).splitlines()
+                    if any("_test" in path or not path.startswith("absl/") for path in changed):
+                        raise RuntimeError(
+                            "Evaluation invalid: repaired candidate changed protected "
+                            "tests/configuration"
+                        )
+                    remote_sha = _git(
+                        current,
+                        "--git-dir",
+                        str(current / "remote.git"),
+                        "rev-parse",
+                        "refs/heads/" + state["branch"],
+                    )
+                    if remote_sha != state["head"] or len(services.created_prs) != 1:
+                        raise RuntimeError(
+                            "Evaluation publication evidence disagrees with verified candidate"
+                        )
+                    entry["verified_head"] = remote_sha
+                write_json(current / "requests.json", services.requests)
+                write_json(current / "pull-requests.json", services.created_prs)
+                write_json(current / "score.json", entry)
+                results.append(entry)
+                model.close()
+                print(
+                    f"EVALUATION {case['id']}: {state['status']} "
+                    f"({entry['attempts']} model attempts)",
+                    flush=True,
+                )
+            write_json(
+                directory / "summary.json",
+                {
+                    "project": project,
+                    "profile": profile,
+                    "model": model_name,
+                    "backend": backend,
+                    "platform": platform.platform(),
+                    "cases": results,
+                    "successes": sum(item["success"] for item in results),
+                    "total": len(results),
+                },
+            )
+        return int(any(not item["success"] for item in results))
+    finally:
+        if old_token is None:
+            os.environ.pop(mocks.TOKEN_ENV, None)
+        else:
+            os.environ[mocks.TOKEN_ENV] = old_token

@@ -1,0 +1,741 @@
+{
+  "run_id": "tc-284764-76f4c5b522bd",
+  "failure": {
+    "build_id": "284764",
+    "build_type": "Platform_CppRuntime_Win64_UnitTests",
+    "build_url": "https://ci.meridian.invalid/teamcity/viewLog.html?buildId=284764",
+    "revision": "ae1b93c4dcaf0a71a38fc4c953dbdcb59b2fce28",
+    "branch": "refs/heads/master",
+    "tests": [
+      {
+        "id": "f46692dabde2b699",
+        "name": "Demangle.ReferenceQualifiedFunctionTypes",
+        "details": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/source/absl/debugging/internal/demangle_test.cc:1671\nValue of: Demangle(\"_Z1fPFvvOEi\", tmp, sizeof(tmp))\n  Actual: false\nExpected: true\n\n/Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/source/absl/debugging/internal/demangle_test.cc:1672\nExpected equality of these values:\n  \"f()\"\n  tmp\n    Which is: \"f\"\n\n/Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/source/absl/debugging/internal/demangle_test.cc:1679\nValue of: Demangle(\"_Z1fPFvO1SOEi\", tmp, sizeof(tmp))\n  Actual: false\nExpected: true\n\n/Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/source/absl/debugging/internal/demangle_test.cc:1680\nExpected equality of these values:\n  \"f()\"\n  tmp\n    Which is: \"f\"\n",
+        "url": "https://ci.meridian.invalid/teamcity/viewLog.html?buildId=284764&buildTab=testsInfo"
+      }
+    ],
+    "changes": [
+      {
+        "version": "ae1b93c4dcaf0a71a38fc4c953dbdcb59b2fce28",
+        "comment": "CORE-1889: Refresh crash symbol diagnostics for callback plugins",
+        "id": "93517",
+        "username": "maya.chen",
+        "date": "20261020T193259+0200",
+        "webUrl": "https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/commits/ae1b93c4dcaf0a71a38fc4c953dbdcb59b2fce28",
+        "vcsRootInstance": {
+          "vcs-root-id": "Platform_CppRuntime"
+        }
+      }
+    ],
+    "evidence_urls": [
+      "https://ci.meridian.invalid/teamcity/app/rest/builds/id:284764/artifacts/content/reports/unit-test-failure.svg"
+    ]
+  },
+  "context": {
+    "pull_requests": [
+      {
+        "id": 418,
+        "version": 5,
+        "state": "MERGED",
+        "open": false,
+        "closed": true,
+        "locked": false,
+        "description": "Tracks CORE-1889. Runtime maintenance for the next desktop release. Preserve the public string utility contract and run the existing regression suite before merge. The overnight Windows job is the release gate. Changes should remain compatible with signed and unsigned char builds.",
+        "review_comment": "The targeted tests looked clean on the previous revision. Please check the complete strings target on Windows as well; downstream diagnostic parsers depend on stable behavior.",
+        "title": "CORE-1889 Native crash symbols from a plugin with reference-qualified callback signatures remain mangled; other symbols resolve normally.",
+        "createdDate": 1792351979876,
+        "updatedDate": 1792521179876,
+        "fromRef": {
+          "id": "refs/heads/feature/runtime-418",
+          "displayId": "feature/runtime-418",
+          "latestCommit": "ae1b93c4dcaf0a71a38fc4c953dbdcb59b2fce28",
+          "repository": {
+            "slug": "cpp-runtime",
+            "id": 61,
+            "name": "C++ Runtime",
+            "project": {
+              "key": "PLAT",
+              "id": 8,
+              "name": "Platform"
+            }
+          }
+        },
+        "toRef": {
+          "id": "refs/heads/master",
+          "displayId": "master",
+          "latestCommit": "ae1b93c4dcaf0a71a38fc4c953dbdcb59b2fce28",
+          "repository": {
+            "slug": "cpp-runtime",
+            "id": 61,
+            "name": "C++ Runtime",
+            "project": {
+              "key": "PLAT",
+              "id": 8,
+              "name": "Platform"
+            }
+          }
+        },
+        "author": {
+          "user": {
+            "name": "maya.chen",
+            "emailAddress": "maya.chen@meridian.invalid",
+            "displayName": "Maya Chen",
+            "active": true,
+            "slug": "maya.chen",
+            "type": "NORMAL"
+          },
+          "role": "AUTHOR"
+        },
+        "reviewers": [
+          {
+            "user": {
+              "name": "oliver.martin",
+              "emailAddress": "oliver.martin@meridian.invalid",
+              "displayName": "Oliver Martin",
+              "active": true,
+              "slug": "oliver.martin",
+              "type": "NORMAL"
+            },
+            "role": "REVIEWER",
+            "approved": true,
+            "status": "APPROVED"
+          }
+        ],
+        "participants": [],
+        "links": {
+          "self": [
+            {
+              "href": "https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/418"
+            }
+          ]
+        }
+      },
+      {
+        "id": 402,
+        "version": 3,
+        "title": "PLAT-1731 Keep diagnostic text stable across compiler updates",
+        "description": "Use the existing string utilities in the telemetry adapter. Consumers compare generated diagnostics as bytes. This earlier merged change explains the caller expectations; it does not change the runtime implementation.",
+        "state": "MERGED",
+        "open": false,
+        "closed": true,
+        "locked": false,
+        "createdDate": 1792351979876,
+        "updatedDate": 1792521179876,
+        "fromRef": {
+          "id": "refs/heads/feature/runtime-402",
+          "displayId": "feature/runtime-402",
+          "latestCommit": "ae1b93c4dcaf0a71a38fc4c953dbdcb59b2fce28",
+          "repository": {
+            "slug": "cpp-runtime",
+            "id": 61,
+            "name": "C++ Runtime",
+            "project": {
+              "key": "PLAT",
+              "id": 8,
+              "name": "Platform"
+            }
+          }
+        },
+        "toRef": {
+          "id": "refs/heads/master",
+          "displayId": "master",
+          "latestCommit": "ae1b93c4dcaf0a71a38fc4c953dbdcb59b2fce28",
+          "repository": {
+            "slug": "cpp-runtime",
+            "id": 61,
+            "name": "C++ Runtime",
+            "project": {
+              "key": "PLAT",
+              "id": 8,
+              "name": "Platform"
+            }
+          }
+        },
+        "author": {
+          "user": {
+            "name": "maya.chen",
+            "emailAddress": "maya.chen@meridian.invalid",
+            "displayName": "Maya Chen",
+            "active": true,
+            "slug": "maya.chen",
+            "type": "NORMAL"
+          },
+          "role": "AUTHOR"
+        },
+        "reviewers": [
+          {
+            "user": {
+              "name": "oliver.martin",
+              "emailAddress": "oliver.martin@meridian.invalid",
+              "displayName": "Oliver Martin",
+              "active": true,
+              "slug": "oliver.martin",
+              "type": "NORMAL"
+            },
+            "role": "REVIEWER",
+            "approved": true,
+            "status": "APPROVED"
+          }
+        ],
+        "participants": [],
+        "links": {
+          "self": [
+            {
+              "href": "https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/402"
+            }
+          ]
+        }
+      },
+      {
+        "id": 425,
+        "version": 1,
+        "title": "OPS-218 Refresh Windows build-agent certificate rotation notes",
+        "description": "Documentation-only update for the build-agent maintenance runbook. No source or test changes are included. The infrastructure pipeline shares the same VCS checkout.",
+        "state": "OPEN",
+        "open": true,
+        "closed": false,
+        "locked": false,
+        "createdDate": 1792351979876,
+        "updatedDate": 1792521179876,
+        "fromRef": {
+          "id": "refs/heads/feature/runtime-425",
+          "displayId": "feature/runtime-425",
+          "latestCommit": "ae1b93c4dcaf0a71a38fc4c953dbdcb59b2fce28",
+          "repository": {
+            "slug": "cpp-runtime",
+            "id": 61,
+            "name": "C++ Runtime",
+            "project": {
+              "key": "PLAT",
+              "id": 8,
+              "name": "Platform"
+            }
+          }
+        },
+        "toRef": {
+          "id": "refs/heads/master",
+          "displayId": "master",
+          "latestCommit": "ae1b93c4dcaf0a71a38fc4c953dbdcb59b2fce28",
+          "repository": {
+            "slug": "cpp-runtime",
+            "id": 61,
+            "name": "C++ Runtime",
+            "project": {
+              "key": "PLAT",
+              "id": 8,
+              "name": "Platform"
+            }
+          }
+        },
+        "author": {
+          "user": {
+            "name": "maya.chen",
+            "emailAddress": "maya.chen@meridian.invalid",
+            "displayName": "Maya Chen",
+            "active": true,
+            "slug": "maya.chen",
+            "type": "NORMAL"
+          },
+          "role": "AUTHOR"
+        },
+        "reviewers": [
+          {
+            "user": {
+              "name": "oliver.martin",
+              "emailAddress": "oliver.martin@meridian.invalid",
+              "displayName": "Oliver Martin",
+              "active": true,
+              "slug": "oliver.martin",
+              "type": "NORMAL"
+            },
+            "role": "REVIEWER",
+            "approved": false,
+            "status": "UNAPPROVED"
+          }
+        ],
+        "participants": [],
+        "links": {
+          "self": [
+            {
+              "href": "https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/425"
+            }
+          ]
+        }
+      }
+    ],
+    "issues": [
+      {
+        "key": "CORE-1889",
+        "fields": {
+          "summary": "Native crash symbols from a plugin with reference-qualified callback signatures remain mangled; other symbols resolve normally.",
+          "description": "Native crash symbols from a plugin with reference-qualified callback signatures remain mangled; other symbols resolve normally.",
+          "status": {
+            "name": "In Progress",
+            "statusCategory": {
+              "key": "indeterminate",
+              "name": "In Progress"
+            }
+          },
+          "issuetype": {
+            "name": "Bug",
+            "subtask": false
+          },
+          "priority": {
+            "name": "High"
+          },
+          "labels": [
+            "native",
+            "regression",
+            "release-gate"
+          ],
+          "components": [
+            {
+              "name": "Runtime Libraries"
+            }
+          ],
+          "fixVersions": [
+            {
+              "name": "Desktop 2026.11"
+            }
+          ],
+          "comment": {
+            "comments": [
+              {
+                "id": "128401",
+                "author": {
+                  "displayName": "Oliver Martin",
+                  "name": "oliver.martin"
+                },
+                "body": "The failure occurs before the application layer is involved. Please preserve existing behavior for edge inputs and use the checked-in assertions as the regression evidence.",
+                "created": "2026-10-20T08:54:12.000+0200"
+              }
+            ],
+            "maxResults": 20,
+            "startAt": 0,
+            "total": 1
+          },
+          "issuelinks": [
+            {
+              "id": "32017",
+              "type": {
+                "name": "Relates",
+                "outward": "relates to",
+                "inward": "relates to"
+              },
+              "outwardIssue": {
+                "key": "PLAT-1731",
+                "fields": {
+                  "summary": "Keep diagnostic text stable across compiler updates",
+                  "status": {
+                    "name": "Done"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "url": "https://issues.meridian.invalid/jira/browse/CORE-1889"
+      },
+      {
+        "key": "OPS-218",
+        "fields": {
+          "summary": "Refresh Windows build-agent certificate rotation notes",
+          "description": "Document the annual internal CA renewal procedure. This affects build-agent administration only. No product or unit-test behavior should change.",
+          "status": {
+            "name": "In Review"
+          },
+          "issuetype": {
+            "name": "Task"
+          },
+          "labels": [
+            "infrastructure",
+            "documentation"
+          ],
+          "comment": {
+            "comments": [],
+            "total": 0
+          },
+          "issuelinks": []
+        },
+        "url": "https://issues.meridian.invalid/jira/browse/OPS-218"
+      },
+      {
+        "key": "PLAT-1731",
+        "fields": {
+          "summary": "Keep diagnostic text stable across compiler updates",
+          "description": "Telemetry stores escaped, normalized diagnostic strings for customer support. The byte representation must remain stable after compiler upgrades. This completed work records the downstream consumer requirements; no new formatting behavior is requested.",
+          "status": {
+            "name": "Done"
+          },
+          "issuetype": {
+            "name": "Story"
+          },
+          "labels": [
+            "telemetry",
+            "compatibility"
+          ],
+          "comment": {
+            "comments": [],
+            "total": 0
+          },
+          "issuelinks": []
+        },
+        "url": "https://issues.meridian.invalid/jira/browse/PLAT-1731"
+      }
+    ],
+    "ci_log": "SYNTHETIC ON-PREM CI RECORD: assertion output below comes from the actual evaluator.\nBuild #284764 (Platform_CppRuntime_Win64_UnitTests); branch master\nAgent: win-build-17 (fictional Windows CI metadata)\nCheckout directory: D:\\BuildAgent\\work\\platform-cpp\nVCS revision: ae1b93c4dcaf0a71a38fc4c953dbdcb59b2fce28\nStep 1/3: Checkout completed\nStep 2/3: Native compile completed\nStep 3/3: CTest regression suite\n[ FAILED ] Demangle.ReferenceQualifiedFunctionTypes\n/Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/source/absl/debugging/internal/demangle_test.cc:1671\nValue of: Demangle(\"_Z1fPFvvOEi\", tmp, sizeof(tmp))\n  Actual: false\nExpected: true\n\n/Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/source/absl/debugging/internal/demangle_test.cc:1672\nExpected equality of these values:\n  \"f()\"\n  tmp\n    Which is: \"f\"\n\n/Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/source/absl/debugging/internal/demangle_test.cc:1679\nValue of: Demangle(\"_Z1fPFvO1SOEi\", tmp, sizeof(tmp))\n  Actual: false\nExpected: true\n\n/Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/source/absl/debugging/internal/demangle_test.cc:1680\nExpected equality of these values:\n  \"f()\"\n  tmp\n    Which is: \"f\"\n\n1 unmuted failed test(s); see individual assertions above.\nBuild status: FAILURE (unit-test failures)"
+  },
+  "attempt": 1,
+  "status": "published",
+  "branch": "auto-fix/tc-284764-76f4c5b522bd",
+  "baseline": {
+    "build_ok": true,
+    "test_ok": false,
+    "report": {
+      "passed": [
+        "Demangle.FunctionTemplate",
+        "Demangle.FunctionTemplateWithNesting",
+        "Demangle.FunctionTemplateWithNonTypeParamConstraint",
+        "Demangle.FunctionTemplateWithFunctionRequiresClause",
+        "Demangle.FunctionWithTemplateParamRequiresClause",
+        "Demangle.FunctionWithTemplateParamAndFunctionRequiresClauses",
+        "Demangle.FunctionTemplateBacktracksOnMalformedRequiresClause",
+        "Demangle.FunctionTemplateWithAutoParam",
+        "Demangle.FunctionTemplateWithNonTypeParamPack",
+        "Demangle.FunctionTemplateTemplateParamWithConstrainedArg",
+        "Demangle.ConstrainedAutoInFunctionTemplate",
+        "Demangle.ConstrainedFriendFunctionTemplate",
+        "Demangle.ConstrainedFriendOperatorTemplate",
+        "Demangle.NonTemplateBuiltinType",
+        "Demangle.SingleArgTemplateBuiltinType",
+        "Demangle.TwoArgTemplateBuiltinType",
+        "Demangle.TypeNestedUnderTemplatedBuiltinType",
+        "Demangle.TemplateTemplateParamSubstitution",
+        "Demangle.TemplateParamSubstitutionWithGenericLambda",
+        "Demangle.LambdaRequiresTrue",
+        "Demangle.LambdaRequiresSimpleExpression",
+        "Demangle.LambdaRequiresRequiresExpressionContainingTrue",
+        "Demangle.LambdaRequiresRequiresExpressionContainingConcept",
+        "Demangle.LambdaRequiresRequiresExpressionContainingNoexceptExpression",
+        "Demangle.LambdaRequiresRequiresExpressionContainingReturnTypeConstraint",
+        "Demangle.LambdaRequiresRequiresExpressionWithBothNoexceptAndReturnType",
+        "Demangle.LambdaRequiresRequiresExpressionContainingType",
+        "Demangle.LambdaRequiresRequiresExpressionNestingAnotherRequires",
+        "Demangle.LambdaRequiresRequiresExpressionContainingTwoRequirements",
+        "Demangle.RequiresExpressionWithItsOwnParameter",
+        "Demangle.LambdaWithExplicitTypeArgument",
+        "Demangle.LambdaWithExplicitPackArgument",
+        "Demangle.LambdaInClassMemberDefaultArgument",
+        "Demangle.AvoidSignedOverflowForUnfortunateParameterNumbers",
+        "Demangle.SubstpackNotationForTroublesomeTemplatePack",
+        "Demangle.TemplateTemplateParamAppearingAsBackrefFollowedByTemplateArgs",
+        "Demangle.CornerCases",
+        "Demangle.Clones",
+        "Demangle.Discriminators",
+        "Demangle.SingleDigitDiscriminatorFollowedByADigit",
+        "Demangle.LiteralOfGlobalNamespaceEnumType",
+        "Demangle.NullptrLiterals",
+        "Demangle.StringLiterals",
+        "Demangle.ComplexFloatingPointLiterals",
+        "Demangle.Float128",
+        "Demangle.Float128x",
+        "Demangle.Bfloat16",
+        "Demangle.SimpleSignedBitInt",
+        "Demangle.SimpleUnsignedBitInt",
+        "Demangle.DependentBitInt",
+        "Demangle.ConversionToPointerType",
+        "Demangle.ConversionToLvalueReferenceType",
+        "Demangle.ConversionToRvalueReferenceType",
+        "Demangle.ConversionToComplexFloatingPointType",
+        "Demangle.ConversionToImaginaryFloatingPointType",
+        "Demangle.ConversionToPointerToCvQualifiedType",
+        "Demangle.ConversionToLayeredPointerType",
+        "Demangle.ConversionToTypeWithExtendedQualifier",
+        "Demangle.GlobalInitializers",
+        "Demangle.StructuredBindings",
+        "Demangle.AbiTags",
+        "Demangle.SimpleGnuVectorSize",
+        "Demangle.GnuVectorSizeIsATemplateParameter",
+        "Demangle.GnuVectorSizeIsADependentOperatorExpression",
+        "Demangle.SimpleAddressSpace",
+        "Demangle.DependentAddressSpace",
+        "Demangle.TransactionSafeEntryPoint",
+        "Demangle.TransactionSafeFunctionType",
+        "Demangle.TemplateParameterObject",
+        "Demangle.EnableIfAttributeOnGlobalFunction",
+        "Demangle.EnableIfAttributeOnNamespaceScopeFunction",
+        "Demangle.EnableIfAttributeOnFunctionTemplate",
+        "Demangle.ThisPointerInDependentSignature",
+        "Demangle.DependentMemberOperatorCall",
+        "Demangle.TypeNestedUnderDecltype",
+        "Demangle.ElaboratedTypes",
+        "Demangle.SubobjectAddresses",
+        "Demangle.Preincrement",
+        "Demangle.Postincrement",
+        "Demangle.Predecrement",
+        "Demangle.Postdecrement",
+        "Demangle.UnaryFoldExpressions",
+        "Demangle.BinaryFoldExpressions",
+        "Demangle.SizeofPacks",
+        "Demangle.SizeofPackInvolvingAnAliasTemplate",
+        "Demangle.UserDefinedLiteral",
+        "Demangle.Spaceship",
+        "Demangle.CoAwait",
+        "Demangle.VendorExtendedExpressions",
+        "Demangle.DirectListInitialization",
+        "Demangle.SimpleInitializerLists",
+        "Demangle.BracedListImplicitlyConstructingAClassObject",
+        "Demangle.SimpleNewExpression",
+        "Demangle.NewExpressionWithEmptyParentheses",
+        "Demangle.NewExpressionWithNonemptyParentheses",
+        "Demangle.PlacementNewExpression",
+        "Demangle.GlobalScopeNewExpression",
+        "Demangle.NewExpressionWithEmptyBraces",
+        "Demangle.NewExpressionWithNonemptyBraces",
+        "Demangle.SimpleArrayNewExpression",
+        "Demangle.ArrayNewExpressionWithEmptyParentheses",
+        "Demangle.ArrayPlacementNewExpression",
+        "Demangle.GlobalScopeArrayNewExpression",
+        "Demangle.ArrayNewExpressionWithTwoElementsInBraces",
+        "Demangle.SimpleDeleteExpression",
+        "Demangle.GlobalScopeDeleteExpression",
+        "Demangle.SimpleArrayDeleteExpression",
+        "Demangle.GlobalScopeArrayDeleteExpression",
+        "Demangle.DynamicCast",
+        "Demangle.StaticCast",
+        "Demangle.ConstCast",
+        "Demangle.ReinterpretCast",
+        "Demangle.TypeidType",
+        "Demangle.TypeidExpression",
+        "Demangle.AlignofType",
+        "Demangle.AlignofExpression",
+        "Demangle.NoexceptExpression",
+        "Demangle.UnaryThrow",
+        "Demangle.NullaryThrow",
+        "Demangle.ThreadLocalWrappers",
+        "Demangle.DubiousSrStSymbols",
+        "Demangle.DelegatesToDemangleRustSymbolEncoding",
+        "DemangleRegression.NegativeLength",
+        "DemangleRegression.DeeplyNestedArrayType",
+        "DemangleRegression.ShortOutputBuffer",
+        "DemangleStringTest.SupportsSymbolNameReturnedByTypeId"
+      ],
+      "failed": [
+        "Demangle.ReferenceQualifiedFunctionTypes"
+      ],
+      "skipped": []
+    },
+    "output": "ibrary absl/base/libabsl_malloc_internal.a\n[55/144] Building CXX object absl/debugging/CMakeFiles/absl_debugging_internal.dir/internal/address_is_readable.cc.o\n[56/144] Building CXX object absl/debugging/CMakeFiles/absl_debugging_internal.dir/internal/elf_mem_image.cc.o\n[57/144] Building CXX object absl/time/CMakeFiles/absl_time_zone.dir/internal/cctz/src/time_zone_info.cc.o\n[58/144] Building CXX object absl/debugging/CMakeFiles/absl_debugging_internal.dir/internal/vdso_support.cc.o\n[59/144] Linking CXX static library absl/debugging/libabsl_demangle_rust.a\n[60/144] Building CXX object absl/time/CMakeFiles/absl_time_zone.dir/internal/cctz/src/zone_info_source.cc.o\n[61/144] Linking CXX static library absl/hash/libabsl_hash.a\n[62/144] Building CXX object absl/debugging/CMakeFiles/absl_borrowed_fixup_buffer.dir/internal/borrowed_fixup_buffer.cc.o\n[63/144] Building CXX object absl/time/CMakeFiles/absl_time.dir/clock.cc.o\n[64/144] Building CXX object absl/debugging/CMakeFiles/absl_demangle_internal.dir/internal/demangle.cc.o\n[65/144] Building CXX object absl/time/CMakeFiles/absl_time.dir/civil_time.cc.o\n[66/144] Linking CXX static library absl/time/libabsl_civil_time.a\n[67/144] Linking CXX static library absl/time/libabsl_time_zone.a\n[68/144] Building CXX object absl/base/CMakeFiles/absl_tracing_internal.dir/internal/tracing.cc.o\n[69/144] Linking CXX static library absl/debugging/libabsl_borrowed_fixup_buffer.a\n[70/144] Building CXX object absl/time/CMakeFiles/absl_time.dir/duration.cc.o\n[71/144] Building CXX object absl/time/CMakeFiles/absl_time.dir/format.cc.o\n[72/144] Linking CXX static library absl/debugging/libabsl_debugging_internal.a\n[73/144] Linking CXX static library absl/debugging/libabsl_demangle_internal.a\n[74/144] Building CXX object absl/time/CMakeFiles/absl_time.dir/time.cc.o\n[75/144] Building CXX object absl/debugging/CMakeFiles/absl_stacktrace.dir/stacktrace.cc.o\n[76/144] Linking CXX static library absl/time/libabsl_time.a\n[77/144] Linking CXX static library absl/base/libabsl_tracing_internal.a\n[78/144] Building CXX object absl/debugging/CMakeFiles/absl_symbolize.dir/symbolize.cc.o\n[79/144] Linking CXX static library absl/debugging/libabsl_stacktrace.a\n[80/144] Linking CXX static library absl/debugging/libabsl_symbolize.a\n[81/144] Building CXX object absl/synchronization/CMakeFiles/absl_kernel_timeout_internal.dir/internal/kernel_timeout.cc.o\n[82/144] Building CXX object absl/log/CMakeFiles/absl_log_internal_fnmatch.dir/internal/fnmatch.cc.o\n[83/144] Linking CXX static library absl/synchronization/libabsl_kernel_timeout_internal.a\n[84/144] Building CXX object absl/synchronization/CMakeFiles/absl_graphcycles_internal.dir/internal/graphcycles.cc.o\n[85/144] Building CXX object absl/log/CMakeFiles/absl_log_internal_proto.dir/internal/proto.cc.o\n[86/144] Linking CXX static library absl/synchronization/libabsl_graphcycles_internal.a\n[87/144] Building CXX object absl/synchronization/CMakeFiles/absl_synchronization.dir/barrier.cc.o\n[88/144] Building CXX object absl/synchronization/CMakeFiles/absl_synchronization.dir/blocking_counter.cc.o\n[89/144] Building CXX object absl/synchronization/CMakeFiles/absl_synchronization.dir/internal/create_thread_identity.cc.o\n[90/144] Building CXX object absl/synchronization/CMakeFiles/absl_synchronization.dir/internal/futex_waiter.cc.o\n[91/144] Building CXX object absl/synchronization/CMakeFiles/absl_synchronization.dir/internal/sem_waiter.cc.o\n[92/144] Building CXX object absl/synchronization/CMakeFiles/absl_synchronization.dir/internal/per_thread_sem.cc.o\n[93/144] Building CXX object absl/synchronization/CMakeFiles/absl_synchronization.dir/internal/win32_waiter.cc.o\n[94/144] Building CXX object absl/synchronization/CMakeFiles/absl_synchronization.dir/internal/pthread_waiter.cc.o\n[95/144] Building CXX object absl/synchronization/CMakeFiles/absl_synchronization.dir/internal/stdcpp_waiter.cc.o\n[96/144] Building CXX object absl/synchronization/CMakeFiles/absl_synchronization.dir/internal/waiter_base.cc.o\n[97/144] Linking CXX static library absl/log/libabsl_log_internal_proto.a\n[98/144] Building CXX object absl/synchronization/CMakeFiles/absl_synchronization.dir/notification.cc.o\n[99/144] Linking CXX static library absl/log/libabsl_log_internal_fnmatch.a\n[100/144] Building CXX object absl/synchronization/CMakeFiles/absl_synchronization.dir/mutex.cc.o\n[101/144] Building CXX object absl/log/CMakeFiles/absl_log_entry.dir/log_entry.cc.o\n[102/144] Linking CXX static library absl/synchronization/libabsl_synchronization.a\n[103/144] Building CXX object absl/log/CMakeFiles/absl_vlog_config_internal.dir/internal/vlog_config.cc.o\n[104/144] Linking CXX static library absl/log/libabsl_log_entry.a\n[105/144] Building CXX object absl/log/CMakeFiles/absl_log_internal_globals.dir/internal/globals.cc.o\n[106/144] Linking CXX static library absl/log/libabsl_vlog_config_internal.a\n[107/144] Building CXX object absl/log/CMakeFiles/absl_log_globals.dir/globals.cc.o\n[108/144] Building CXX object absl/log/CMakeFiles/absl_log_sink.dir/log_sink.cc.o\n[109/144] Building CXX object absl/strings/CMakeFiles/absl_str_format_internal.dir/internal/str_format/arg.cc.o\n[110/144] Building CXX object absl/strings/CMakeFiles/absl_str_format_internal.dir/internal/str_format/extension.cc.o\n[111/144] Building CXX object absl/strings/CMakeFiles/absl_str_format_internal.dir/internal/str_format/bind.cc.o\n[112/144] Building CXX object absl/strings/CMakeFiles/absl_str_format_internal.dir/internal/str_format/output.cc.o\n[113/144] Building CXX object absl/strings/CMakeFiles/absl_str_format_internal.dir/internal/str_format/parser.cc.o\n[114/144] Building CXX object absl/base/CMakeFiles/absl_strerror.dir/internal/strerror.cc.o\n[115/144] Building CXX object absl/strings/CMakeFiles/absl_str_format_internal.dir/internal/str_format/float_conversion.cc.o\n[116/144] Building CXX object absl/debugging/CMakeFiles/absl_examine_stack.dir/internal/examine_stack.cc.o\n[117/144] Linking CXX static library absl/log/libabsl_log_internal_globals.a\n[118/144] Building CXX object absl/log/CMakeFiles/absl_log_internal_format.dir/internal/log_format.cc.o\n[119/144] Building CXX object googletest-build/googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o\n[120/144] Linking CXX static library absl/log/libabsl_log_globals.a\n[121/144] Building CXX object absl/log/CMakeFiles/absl_log_internal_nullguard.dir/internal/nullguard.cc.o\n[122/144] Linking CXX static library absl/log/libabsl_log_sink.a\n[123/144] Building CXX object absl/log/CMakeFiles/absl_log_internal_log_sink_set.dir/internal/log_sink_set.cc.o\n[124/144] Linking CXX static library absl/strings/libabsl_str_format_internal.a\n[125/144] Linking CXX static library absl/base/libabsl_strerror.a\n[126/144] Linking CXX static library absl/debugging/libabsl_examine_stack.a\n[127/144] Building CXX object absl/debugging/CMakeFiles/absl_stack_consumption.dir/internal/stack_consumption.cc.o\n[128/144] Building CXX object absl/log/CMakeFiles/absl_log_internal_conditions.dir/internal/conditions.cc.o\n[129/144] Linking CXX static library absl/log/libabsl_log_internal_format.a\n[130/144] Building CXX object absl/log/CMakeFiles/absl_log_internal_structured_proto.dir/internal/structured_proto.cc.o\n[131/144] Linking CXX static library absl/log/libabsl_log_internal_log_sink_set.a\n[132/144] Linking CXX static library absl/log/libabsl_log_internal_nullguard.a\n[133/144] Linking CXX static library absl/log/libabsl_log_internal_structured_proto.a\n[134/144] Building CXX object googletest-build/googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o\n[135/144] Building CXX object googletest-build/googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o\n[136/144] Linking CXX static library absl/debugging/libabsl_stack_consumption.a\n[137/144] Linking CXX static library lib/libgtest.a\n[138/144] Linking CXX static library absl/log/libabsl_log_internal_conditions.a\n[139/144] Linking CXX static library lib/libgmock.a\n[140/144] Linking CXX static library lib/libgmock_main.a\n[141/144] Building CXX object absl/log/CMakeFiles/absl_log_internal_message.dir/internal/log_message.cc.o\n[142/144] Linking CXX static library absl/log/libabsl_log_internal_message.a\n[143/144] Building CXX object absl/debugging/CMakeFiles/absl_demangle_test.dir/internal/demangle_test.cc.o\n[144/144] Linking CXX executable bin/absl_demangle_test\nld: warning: ignoring duplicate libraries: 'absl/debugging/libabsl_demangle_internal.a'\n\nRunning main() from gmock_main.cc\n[==========] Running 127 tests from 3 test suites.\n[----------] Global test environment set-up.\n[----------] 123 tests from Demangle\n[ RUN      ] Demangle.FunctionTemplate\n[       OK ] Demangle.FunctionTemplate (0 ms)\n[ RUN      ] Demangle.FunctionTemplateWithNesting\n[       OK ] Demangle.FunctionTemplateWithNesting (0 ms)\n[ RUN      ] Demangle.FunctionTemplateWithNonTypeParamConstraint\n[       OK ] Demangle.FunctionTemplateWithNonTypeParamConstraint (0 ms)\n[ RUN      ] Demangle.FunctionTemplateWithFunctionRequiresClause\n[       OK ] Demangle.FunctionTemplateWithFunctionRequiresClause (0 ms)\n[ RUN      ] Demangle.FunctionWithTemplateParamRequiresClause\n[       OK ] Demangle.FunctionWithTemplateParamRequiresClause (0 ms)\n[ RUN      ] Demangle.FunctionWithTemplateParamAndFunctionRequiresClauses\n[       OK ] Demangle.FunctionWithTemplateParamAndFunctionRequiresClauses (0 ms)\n[ RUN      ] Demangle.FunctionTemplateBacktracksOnMalformedRequiresClause\n[       OK ] Demangle.FunctionTemplateBacktracksOnMalformedRequiresClause (0 ms)\n[ RUN      ] Demangle.FunctionTemplateWithAutoParam\n[       OK ] Demangle.FunctionTemplateWithAutoParam (0 ms)\n[ RUN      ] Demangle.FunctionTemplateWithNonTypeParamPack\n[       OK ] Demangle.FunctionTemplateWithNonTypeParamPack (0 ms)\n[ RUN      ] Demangle.FunctionTemplateTemplateParamWithConstrainedArg\n[       OK ] Demangle.FunctionTemplateTemplateParamWithConstrainedArg (0 ms)\n[ RUN      ] Demangle.ConstrainedAutoInFunctionTemplate\n[       OK ] Demangle.ConstrainedAutoInFunctionTemplate (0 ms)\n[ RUN      ] Demangle.ConstrainedFriendFunctionTemplate\n[       OK ] Demangle.ConstrainedFriendFunctionTemplate (0 ms)\n[ RUN      ] Demangle.ConstrainedFriendOperatorTemplate\n[       OK ] Demangle.ConstrainedFriendOperatorTemplate (0 ms)\n[ RUN      ] Demangle.NonTemplateBuiltinType\n[       OK ] Demangle.NonTemplateBuiltinType (0 ms)\n[ RUN      ] Demangle.SingleArgTemplateBuiltinType\n[       OK ] Demangle.SingleArgTemplateBuiltinType (0 ms)\n[ RUN      ] Demangle.TwoArgTemplateBuiltinType\n[       OK ] Demangle.TwoArgTemplateBuiltinType (0 ms)\n[ RUN      ] Demangle.TypeNestedUnderTemplatedBuiltinType\n[       OK ] Demangle.TypeNestedUnderTemplatedBuiltinType (0 ms)\n[ RUN      ] Demangle.TemplateTemplateParamSubstitution\n[       OK ] Demangle.TemplateTemplateParamSubstitution (0 ms)\n[ RUN      ] Demangle.TemplateParamSubstitutionWithGenericLambda\n[       OK ] Demangle.TemplateParamSubstitutionWithGenericLambda (0 ms)\n[ RUN      ] Demangle.LambdaRequiresTrue\n[       OK ] Demangle.LambdaRequiresTrue (0 ms)\n[ RUN      ] Demangle.LambdaRequiresSimpleExpression\n[       OK ] Demangle.LambdaRequiresSimpleExpression (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionContainingTrue\n[       OK ] Demangle.LambdaRequiresRequiresExpressionContainingTrue (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionContainingConcept\n[       OK ] Demangle.LambdaRequiresRequiresExpressionContainingConcept (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionContainingNoexceptExpression\n[       OK ] Demangle.LambdaRequiresRequiresExpressionContainingNoexceptExpression (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionContainingReturnTypeConstraint\n[       OK ] Demangle.LambdaRequiresRequiresExpressionContainingReturnTypeConstraint (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionWithBothNoexceptAndReturnType\n[       OK ] Demangle.LambdaRequiresRequiresExpressionWithBothNoexceptAndReturnType (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionContainingType\n[       OK ] Demangle.LambdaRequiresRequiresExpressionContainingType (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionNestingAnotherRequires\n[       OK ] Demangle.LambdaRequiresRequiresExpressionNestingAnotherRequires (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionContainingTwoRequirements\n[       OK ] Demangle.LambdaRequiresRequiresExpressionContainingTwoRequirements (0 ms)\n[ RUN      ] Demangle.RequiresExpressionWithItsOwnParameter\n[       OK ] Demangle.RequiresExpressionWithItsOwnParameter (0 ms)\n[ RUN      ] Demangle.LambdaWithExplicitTypeArgument\n[       OK ] Demangle.LambdaWithExplicitTypeArgument (0 ms)\n[ RUN      ] Demangle.LambdaWithExplicitPackArgument\n[       OK ] Demangle.LambdaWithExplicitPackArgument (0 ms)\n[ RUN      ] Demangle.LambdaInClassMemberDefaultArgument\n[       OK ] Demangle.LambdaInClassMemberDefaultArgument (0 ms)\n[ RUN      ] Demangle.AvoidSignedOverflowForUnfortunateParameterNumbers\n[       OK ] Demangle.AvoidSignedOverflowForUnfortunateParameterNumbers (0 ms)\n[ RUN      ] Demangle.SubstpackNotationForTroublesomeTemplatePack\n[       OK ] Demangle.SubstpackNotationForTroublesomeTemplatePack (0 ms)\n[ RUN      ] Demangle.TemplateTemplateParamAppearingAsBackrefFollowedByTemplateArgs\n[       OK ] Demangle.TemplateTemplateParamAppearingAsBackrefFollowedByTemplateArgs (0 ms)\n[ RUN      ] Demangle.CornerCases\n[       OK ] Demangle.CornerCases (0 ms)\n[ RUN      ] Demangle.Clones\n[       OK ] Demangle.Clones (0 ms)\n[ RUN      ] Demangle.Discriminators\n[       OK ] Demangle.Discriminators (0 ms)\n[ RUN      ] Demangle.SingleDigitDiscriminatorFollowedByADigit\n[       OK ] Demangle.SingleDigitDiscriminatorFollowedByADigit (0 ms)\n[ RUN      ] Demangle.LiteralOfGlobalNamespaceEnumType\n[       OK ] Demangle.LiteralOfGlobalNamespaceEnumType (0 ms)\n[ RUN      ] Demangle.NullptrLiterals\n[       OK ] Demangle.NullptrLiterals (0 ms)\n[ RUN      ] Demangle.StringLiterals\n[       OK ] Demangle.StringLiterals (0 ms)\n[ RUN      ] Demangle.ComplexFloatingPointLiterals\n[       OK ] Demangle.ComplexFloatingPointLiterals (0 ms)\n[ RUN      ] Demangle.Float128\n[       OK ] Demangle.Float128 (0 ms)\n[ RUN      ] Demangle.Float128x\n[       OK ] Demangle.Float128x (0 ms)\n[ RUN      ] Demangle.Bfloat16\n[       OK ] Demangle.Bfloat16 (0 ms)\n[ RUN      ] Demangle.SimpleSignedBitInt\n[       OK ] Demangle.SimpleSignedBitInt (0 ms)\n[ RUN      ] Demangle.SimpleUnsignedBitInt\n[       OK ] Demangle.SimpleUnsignedBitInt (0 ms)\n[ RUN      ] Demangle.DependentBitInt\n[       OK ] Demangle.DependentBitInt (0 ms)\n[ RUN      ] Demangle.ConversionToPointerType\n[       OK ] Demangle.ConversionToPointerType (0 ms)\n[ RUN      ] Demangle.ConversionToLvalueReferenceType\n[       OK ] Demangle.ConversionToLvalueReferenceType (0 ms)\n[ RUN      ] Demangle.ConversionToRvalueReferenceType\n[       OK ] Demangle.ConversionToRvalueReferenceType (0 ms)\n[ RUN      ] Demangle.ConversionToComplexFloatingPointType\n[       OK ] Demangle.ConversionToComplexFloatingPointType (0 ms)\n[ RUN      ] Demangle.ConversionToImaginaryFloatingPointType\n[       OK ] Demangle.ConversionToImaginaryFloatingPointType (0 ms)\n[ RUN      ] Demangle.ConversionToPointerToCvQualifiedType\n[       OK ] Demangle.ConversionToPointerToCvQualifiedType (0 ms)\n[ RUN      ] Demangle.ConversionToLayeredPointerType\n[       OK ] Demangle.ConversionToLayeredPointerType (0 ms)\n[ RUN      ] Demangle.ConversionToTypeWithExtendedQualifier\n[       OK ] Demangle.ConversionToTypeWithExtendedQualifier (0 ms)\n[ RUN      ] Demangle.GlobalInitializers\n[       OK ] Demangle.GlobalInitializers (0 ms)\n[ RUN      ] Demangle.StructuredBindings\n[       OK ] Demangle.StructuredBindings (0 ms)\n[ RUN      ] Demangle.AbiTags\n[       OK ] Demangle.AbiTags (0 ms)\n[ RUN      ] Demangle.SimpleGnuVectorSize\n[       OK ] Demangle.SimpleGnuVectorSize (0 ms)\n[ RUN      ] Demangle.GnuVectorSizeIsATemplateParameter\n[       OK ] Demangle.GnuVectorSizeIsATemplateParameter (0 ms)\n[ RUN      ] Demangle.GnuVectorSizeIsADependentOperatorExpression\n[       OK ] Demangle.GnuVectorSizeIsADependentOperatorExpression (0 ms)\n[ RUN      ] Demangle.SimpleAddressSpace\n[       OK ] Demangle.SimpleAddressSpace (0 ms)\n[ RUN      ] Demangle.DependentAddressSpace\n[       OK ] Demangle.DependentAddressSpace (0 ms)\n[ RUN      ] Demangle.TransactionSafeEntryPoint\n[       OK ] Demangle.TransactionSafeEntryPoint (0 ms)\n[ RUN      ] Demangle.TransactionSafeFunctionType\n[       OK ] Demangle.TransactionSafeFunctionType (0 ms)\n[ RUN      ] Demangle.TemplateParameterObject\n[       OK ] Demangle.TemplateParameterObject (0 ms)\n[ RUN      ] Demangle.EnableIfAttributeOnGlobalFunction\n[       OK ] Demangle.EnableIfAttributeOnGlobalFunction (0 ms)\n[ RUN      ] Demangle.EnableIfAttributeOnNamespaceScopeFunction\n[       OK ] Demangle.EnableIfAttributeOnNamespaceScopeFunction (0 ms)\n[ RUN      ] Demangle.EnableIfAttributeOnFunctionTemplate\n[       OK ] Demangle.EnableIfAttributeOnFunctionTemplate (0 ms)\n[ RUN      ] Demangle.ThisPointerInDependentSignature\n[       OK ] Demangle.ThisPointerInDependentSignature (0 ms)\n[ RUN      ] Demangle.DependentMemberOperatorCall\n[       OK ] Demangle.DependentMemberOperatorCall (0 ms)\n[ RUN      ] Demangle.TypeNestedUnderDecltype\n[       OK ] Demangle.TypeNestedUnderDecltype (0 ms)\n[ RUN      ] Demangle.ElaboratedTypes\n[       OK ] Demangle.ElaboratedTypes (0 ms)\n[ RUN      ] Demangle.SubobjectAddresses\n[       OK ] Demangle.SubobjectAddresses (0 ms)\n[ RUN      ] Demangle.Preincrement\n[       OK ] Demangle.Preincrement (0 ms)\n[ RUN      ] Demangle.Postincrement\n[       OK ] Demangle.Postincrement (0 ms)\n[ RUN      ] Demangle.Predecrement\n[       OK ] Demangle.Predecrement (0 ms)\n[ RUN      ] Demangle.Postdecrement\n[       OK ] Demangle.Postdecrement (0 ms)\n[ RUN      ] Demangle.UnaryFoldExpressions\n[       OK ] Demangle.UnaryFoldExpressions (0 ms)\n[ RUN      ] Demangle.BinaryFoldExpressions\n[       OK ] Demangle.BinaryFoldExpressions (0 ms)\n[ RUN      ] Demangle.SizeofPacks\n[       OK ] Demangle.SizeofPacks (0 ms)\n[ RUN      ] Demangle.SizeofPackInvolvingAnAliasTemplate\n[       OK ] Demangle.SizeofPackInvolvingAnAliasTemplate (0 ms)\n[ RUN      ] Demangle.UserDefinedLiteral\n[       OK ] Demangle.UserDefinedLiteral (0 ms)\n[ RUN      ] Demangle.Spaceship\n[       OK ] Demangle.Spaceship (0 ms)\n[ RUN      ] Demangle.CoAwait\n[       OK ] Demangle.CoAwait (0 ms)\n[ RUN      ] Demangle.VendorExtendedExpressions\n[       OK ] Demangle.VendorExtendedExpressions (0 ms)\n[ RUN      ] Demangle.DirectListInitialization\n[       OK ] Demangle.DirectListInitialization (0 ms)\n[ RUN      ] Demangle.SimpleInitializerLists\n[       OK ] Demangle.SimpleInitializerLists (0 ms)\n[ RUN      ] Demangle.BracedListImplicitlyConstructingAClassObject\n[       OK ] Demangle.BracedListImplicitlyConstructingAClassObject (0 ms)\n[ RUN      ] Demangle.SimpleNewExpression\n[       OK ] Demangle.SimpleNewExpression (0 ms)\n[ RUN      ] Demangle.NewExpressionWithEmptyParentheses\n[       OK ] Demangle.NewExpressionWithEmptyParentheses (0 ms)\n[ RUN      ] Demangle.NewExpressionWithNonemptyParentheses\n[       OK ] Demangle.NewExpressionWithNonemptyParentheses (0 ms)\n[ RUN      ] Demangle.PlacementNewExpression\n[       OK ] Demangle.PlacementNewExpression (0 ms)\n[ RUN      ] Demangle.GlobalScopeNewExpression\n[       OK ] Demangle.GlobalScopeNewExpression (0 ms)\n[ RUN      ] Demangle.NewExpressionWithEmptyBraces\n[       OK ] Demangle.NewExpressionWithEmptyBraces (0 ms)\n[ RUN      ] Demangle.NewExpressionWithNonemptyBraces\n[       OK ] Demangle.NewExpressionWithNonemptyBraces (0 ms)\n[ RUN      ] Demangle.SimpleArrayNewExpression\n[       OK ] Demangle.SimpleArrayNewExpression (0 ms)\n[ RUN      ] Demangle.ArrayNewExpressionWithEmptyParentheses\n[       OK ] Demangle.ArrayNewExpressionWithEmptyParentheses (0 ms)\n[ RUN      ] Demangle.ArrayPlacementNewExpression\n[       OK ] Demangle.ArrayPlacementNewExpression (0 ms)\n[ RUN      ] Demangle.GlobalScopeArrayNewExpression\n[       OK ] Demangle.GlobalScopeArrayNewExpression (0 ms)\n[ RUN      ] Demangle.ArrayNewExpressionWithTwoElementsInBraces\n[       OK ] Demangle.ArrayNewExpressionWithTwoElementsInBraces (0 ms)\n[ RUN      ] Demangle.SimpleDeleteExpression\n[       OK ] Demangle.SimpleDeleteExpression (0 ms)\n[ RUN      ] Demangle.GlobalScopeDeleteExpression\n[       OK ] Demangle.GlobalScopeDeleteExpression (0 ms)\n[ RUN      ] Demangle.SimpleArrayDeleteExpression\n[       OK ] Demangle.SimpleArrayDeleteExpression (0 ms)\n[ RUN      ] Demangle.GlobalScopeArrayDeleteExpression\n[       OK ] Demangle.GlobalScopeArrayDeleteExpression (0 ms)\n[ RUN      ] Demangle.ReferenceQualifiedFunctionTypes\n/Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/state/worktrees/tc-284764-76f4c5b522bd/absl/debugging/internal/demangle_test.cc:1671: Failure\nValue of: Demangle(\"_Z1fPFvvOEi\", tmp, sizeof(tmp))\n  Actual: false\nExpected: true\n\n/Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/state/worktrees/tc-284764-76f4c5b522bd/absl/debugging/internal/demangle_test.cc:1672: Failure\nExpected equality of these values:\n  \"f()\"\n  tmp\n    Which is: \"f\"\n\n/Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/state/worktrees/tc-284764-76f4c5b522bd/absl/debugging/internal/demangle_test.cc:1679: Failure\nValue of: Demangle(\"_Z1fPFvO1SOEi\", tmp, sizeof(tmp))\n  Actual: false\nExpected: true\n\n/Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/state/worktrees/tc-284764-76f4c5b522bd/absl/debugging/internal/demangle_test.cc:1680: Failure\nExpected equality of these values:\n  \"f()\"\n  tmp\n    Which is: \"f\"\n\n[  FAILED  ] Demangle.ReferenceQualifiedFunctionTypes (0 ms)\n[ RUN      ] Demangle.DynamicCast\n[       OK ] Demangle.DynamicCast (0 ms)\n[ RUN      ] Demangle.StaticCast\n[       OK ] Demangle.StaticCast (0 ms)\n[ RUN      ] Demangle.ConstCast\n[       OK ] Demangle.ConstCast (0 ms)\n[ RUN      ] Demangle.ReinterpretCast\n[       OK ] Demangle.ReinterpretCast (0 ms)\n[ RUN      ] Demangle.TypeidType\n[       OK ] Demangle.TypeidType (0 ms)\n[ RUN      ] Demangle.TypeidExpression\n[       OK ] Demangle.TypeidExpression (0 ms)\n[ RUN      ] Demangle.AlignofType\n[       OK ] Demangle.AlignofType (0 ms)\n[ RUN      ] Demangle.AlignofExpression\n[       OK ] Demangle.AlignofExpression (0 ms)\n[ RUN      ] Demangle.NoexceptExpression\n[       OK ] Demangle.NoexceptExpression (0 ms)\n[ RUN      ] Demangle.UnaryThrow\n[       OK ] Demangle.UnaryThrow (0 ms)\n[ RUN      ] Demangle.NullaryThrow\n[       OK ] Demangle.NullaryThrow (0 ms)\n[ RUN      ] Demangle.ThreadLocalWrappers\n[       OK ] Demangle.ThreadLocalWrappers (0 ms)\n[ RUN      ] Demangle.DubiousSrStSymbols\n[       OK ] Demangle.DubiousSrStSymbols (0 ms)\n[ RUN      ] Demangle.DelegatesToDemangleRustSymbolEncoding\n[       OK ] Demangle.DelegatesToDemangleRustSymbolEncoding (0 ms)\n[----------] 123 tests from Demangle (0 ms total)\n\n[----------] 3 tests from DemangleRegression\n[ RUN      ] DemangleRegression.NegativeLength\n[       OK ] DemangleRegression.NegativeLength (0 ms)\n[ RUN      ] DemangleRegression.DeeplyNestedArrayType\n[       OK ] DemangleRegression.DeeplyNestedArrayType (0 ms)\n[ RUN      ] DemangleRegression.ShortOutputBuffer\n[       OK ] DemangleRegression.ShortOutputBuffer (0 ms)\n[----------] 3 tests from DemangleRegression (0 ms total)\n\n[----------] 1 test from DemangleStringTest\n[ RUN      ] DemangleStringTest.SupportsSymbolNameReturnedByTypeId\n[       OK ] DemangleStringTest.SupportsSymbolNameReturnedByTypeId (0 ms)\n[----------] 1 test from DemangleStringTest (0 ms total)\n\n[----------] Global test environment tear-down\n[==========] 127 tests from 3 test suites ran. (1 ms total)\n[  PASSED  ] 126 tests.\n[  FAILED  ] 1 test, listed below:\n[  FAILED  ] Demangle.ReferenceQualifiedFunctionTypes\n\n 1 FAILED TEST\n\nTest command failed with exit code 1.",
+    "logs": [
+      "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/state/runs/tc-284764-76f4c5b522bd/evidence/baseline-8ed2a1b44fa4/build-0.log",
+      "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/state/runs/tc-284764-76f4c5b522bd/evidence/baseline-8ed2a1b44fa4/build-1.log",
+      "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/state/runs/tc-284764-76f4c5b522bd/evidence/baseline-8ed2a1b44fa4/test.log",
+      "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/state/runs/tc-284764-76f4c5b522bd/evidence/baseline-8ed2a1b44fa4/junit.xml"
+    ]
+  },
+  "feedback": "-- Configuring done (0.0s)\n-- Generating done (0.0s)\n-- Build files have been written to: /Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/state/worktrees/tc-284764-76f4c5b522bd/.auto-fix-build/googletest-external\nninja: no work to do.\n-- Configuring done (0.2s)\n-- Generating done (0.3s)\n-- Build files have been written to: /Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/state/worktrees/tc-284764-76f4c5b522bd/.auto-fix-build\n\n[1/3] Building CXX object absl/debugging/CMakeFiles/absl_demangle_internal.dir/internal/demangle.cc.o\n[2/3] Linking CXX static library absl/debugging/libabsl_demangle_internal.a\n[3/3] Linking CXX executable bin/absl_demangle_test\nld: warning: ignoring duplicate libraries: 'absl/debugging/libabsl_demangle_internal.a'\n\nRunning main() from gmock_main.cc\n[==========] Running 127 tests from 3 test suites.\n[----------] Global test environment set-up.\n[----------] 123 tests from Demangle\n[ RUN      ] Demangle.FunctionTemplate\n[       OK ] Demangle.FunctionTemplate (0 ms)\n[ RUN      ] Demangle.FunctionTemplateWithNesting\n[       OK ] Demangle.FunctionTemplateWithNesting (0 ms)\n[ RUN      ] Demangle.FunctionTemplateWithNonTypeParamConstraint\n[       OK ] Demangle.FunctionTemplateWithNonTypeParamConstraint (0 ms)\n[ RUN      ] Demangle.FunctionTemplateWithFunctionRequiresClause\n[       OK ] Demangle.FunctionTemplateWithFunctionRequiresClause (0 ms)\n[ RUN      ] Demangle.FunctionWithTemplateParamRequiresClause\n[       OK ] Demangle.FunctionWithTemplateParamRequiresClause (0 ms)\n[ RUN      ] Demangle.FunctionWithTemplateParamAndFunctionRequiresClauses\n[       OK ] Demangle.FunctionWithTemplateParamAndFunctionRequiresClauses (0 ms)\n[ RUN      ] Demangle.FunctionTemplateBacktracksOnMalformedRequiresClause\n[       OK ] Demangle.FunctionTemplateBacktracksOnMalformedRequiresClause (0 ms)\n[ RUN      ] Demangle.FunctionTemplateWithAutoParam\n[       OK ] Demangle.FunctionTemplateWithAutoParam (0 ms)\n[ RUN      ] Demangle.FunctionTemplateWithNonTypeParamPack\n[       OK ] Demangle.FunctionTemplateWithNonTypeParamPack (0 ms)\n[ RUN      ] Demangle.FunctionTemplateTemplateParamWithConstrainedArg\n[       OK ] Demangle.FunctionTemplateTemplateParamWithConstrainedArg (0 ms)\n[ RUN      ] Demangle.ConstrainedAutoInFunctionTemplate\n[       OK ] Demangle.ConstrainedAutoInFunctionTemplate (0 ms)\n[ RUN      ] Demangle.ConstrainedFriendFunctionTemplate\n[       OK ] Demangle.ConstrainedFriendFunctionTemplate (0 ms)\n[ RUN      ] Demangle.ConstrainedFriendOperatorTemplate\n[       OK ] Demangle.ConstrainedFriendOperatorTemplate (0 ms)\n[ RUN      ] Demangle.NonTemplateBuiltinType\n[       OK ] Demangle.NonTemplateBuiltinType (0 ms)\n[ RUN      ] Demangle.SingleArgTemplateBuiltinType\n[       OK ] Demangle.SingleArgTemplateBuiltinType (0 ms)\n[ RUN      ] Demangle.TwoArgTemplateBuiltinType\n[       OK ] Demangle.TwoArgTemplateBuiltinType (0 ms)\n[ RUN      ] Demangle.TypeNestedUnderTemplatedBuiltinType\n[       OK ] Demangle.TypeNestedUnderTemplatedBuiltinType (0 ms)\n[ RUN      ] Demangle.TemplateTemplateParamSubstitution\n[       OK ] Demangle.TemplateTemplateParamSubstitution (0 ms)\n[ RUN      ] Demangle.TemplateParamSubstitutionWithGenericLambda\n[       OK ] Demangle.TemplateParamSubstitutionWithGenericLambda (0 ms)\n[ RUN      ] Demangle.LambdaRequiresTrue\n[       OK ] Demangle.LambdaRequiresTrue (0 ms)\n[ RUN      ] Demangle.LambdaRequiresSimpleExpression\n[       OK ] Demangle.LambdaRequiresSimpleExpression (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionContainingTrue\n[       OK ] Demangle.LambdaRequiresRequiresExpressionContainingTrue (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionContainingConcept\n[       OK ] Demangle.LambdaRequiresRequiresExpressionContainingConcept (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionContainingNoexceptExpression\n[       OK ] Demangle.LambdaRequiresRequiresExpressionContainingNoexceptExpression (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionContainingReturnTypeConstraint\n[       OK ] Demangle.LambdaRequiresRequiresExpressionContainingReturnTypeConstraint (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionWithBothNoexceptAndReturnType\n[       OK ] Demangle.LambdaRequiresRequiresExpressionWithBothNoexceptAndReturnType (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionContainingType\n[       OK ] Demangle.LambdaRequiresRequiresExpressionContainingType (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionNestingAnotherRequires\n[       OK ] Demangle.LambdaRequiresRequiresExpressionNestingAnotherRequires (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionContainingTwoRequirements\n[       OK ] Demangle.LambdaRequiresRequiresExpressionContainingTwoRequirements (0 ms)\n[ RUN      ] Demangle.RequiresExpressionWithItsOwnParameter\n[       OK ] Demangle.RequiresExpressionWithItsOwnParameter (0 ms)\n[ RUN      ] Demangle.LambdaWithExplicitTypeArgument\n[       OK ] Demangle.LambdaWithExplicitTypeArgument (0 ms)\n[ RUN      ] Demangle.LambdaWithExplicitPackArgument\n[       OK ] Demangle.LambdaWithExplicitPackArgument (0 ms)\n[ RUN      ] Demangle.LambdaInClassMemberDefaultArgument\n[       OK ] Demangle.LambdaInClassMemberDefaultArgument (0 ms)\n[ RUN      ] Demangle.AvoidSignedOverflowForUnfortunateParameterNumbers\n[       OK ] Demangle.AvoidSignedOverflowForUnfortunateParameterNumbers (0 ms)\n[ RUN      ] Demangle.SubstpackNotationForTroublesomeTemplatePack\n[       OK ] Demangle.SubstpackNotationForTroublesomeTemplatePack (0 ms)\n[ RUN      ] Demangle.TemplateTemplateParamAppearingAsBackrefFollowedByTemplateArgs\n[       OK ] Demangle.TemplateTemplateParamAppearingAsBackrefFollowedByTemplateArgs (0 ms)\n[ RUN      ] Demangle.CornerCases\n[       OK ] Demangle.CornerCases (0 ms)\n[ RUN      ] Demangle.Clones\n[       OK ] Demangle.Clones (0 ms)\n[ RUN      ] Demangle.Discriminators\n[       OK ] Demangle.Discriminators (0 ms)\n[ RUN      ] Demangle.SingleDigitDiscriminatorFollowedByADigit\n[       OK ] Demangle.SingleDigitDiscriminatorFollowedByADigit (0 ms)\n[ RUN      ] Demangle.LiteralOfGlobalNamespaceEnumType\n[       OK ] Demangle.LiteralOfGlobalNamespaceEnumType (0 ms)\n[ RUN      ] Demangle.NullptrLiterals\n[       OK ] Demangle.NullptrLiterals (0 ms)\n[ RUN      ] Demangle.StringLiterals\n[       OK ] Demangle.StringLiterals (0 ms)\n[ RUN      ] Demangle.ComplexFloatingPointLiterals\n[       OK ] Demangle.ComplexFloatingPointLiterals (0 ms)\n[ RUN      ] Demangle.Float128\n[       OK ] Demangle.Float128 (0 ms)\n[ RUN      ] Demangle.Float128x\n[       OK ] Demangle.Float128x (0 ms)\n[ RUN      ] Demangle.Bfloat16\n[       OK ] Demangle.Bfloat16 (0 ms)\n[ RUN      ] Demangle.SimpleSignedBitInt\n[       OK ] Demangle.SimpleSignedBitInt (0 ms)\n[ RUN      ] Demangle.SimpleUnsignedBitInt\n[       OK ] Demangle.SimpleUnsignedBitInt (0 ms)\n[ RUN      ] Demangle.DependentBitInt\n[       OK ] Demangle.DependentBitInt (0 ms)\n[ RUN      ] Demangle.ConversionToPointerType\n[       OK ] Demangle.ConversionToPointerType (0 ms)\n[ RUN      ] Demangle.ConversionToLvalueReferenceType\n[       OK ] Demangle.ConversionToLvalueReferenceType (0 ms)\n[ RUN      ] Demangle.ConversionToRvalueReferenceType\n[       OK ] Demangle.ConversionToRvalueReferenceType (0 ms)\n[ RUN      ] Demangle.ConversionToComplexFloatingPointType\n[       OK ] Demangle.ConversionToComplexFloatingPointType (0 ms)\n[ RUN      ] Demangle.ConversionToImaginaryFloatingPointType\n[       OK ] Demangle.ConversionToImaginaryFloatingPointType (0 ms)\n[ RUN      ] Demangle.ConversionToPointerToCvQualifiedType\n[       OK ] Demangle.ConversionToPointerToCvQualifiedType (0 ms)\n[ RUN      ] Demangle.ConversionToLayeredPointerType\n[       OK ] Demangle.ConversionToLayeredPointerType (0 ms)\n[ RUN      ] Demangle.ConversionToTypeWithExtendedQualifier\n[       OK ] Demangle.ConversionToTypeWithExtendedQualifier (0 ms)\n[ RUN      ] Demangle.GlobalInitializers\n[       OK ] Demangle.GlobalInitializers (0 ms)\n[ RUN      ] Demangle.StructuredBindings\n[       OK ] Demangle.StructuredBindings (0 ms)\n[ RUN      ] Demangle.AbiTags\n[       OK ] Demangle.AbiTags (0 ms)\n[ RUN      ] Demangle.SimpleGnuVectorSize\n[       OK ] Demangle.SimpleGnuVectorSize (0 ms)\n[ RUN      ] Demangle.GnuVectorSizeIsATemplateParameter\n[       OK ] Demangle.GnuVectorSizeIsATemplateParameter (0 ms)\n[ RUN      ] Demangle.GnuVectorSizeIsADependentOperatorExpression\n[       OK ] Demangle.GnuVectorSizeIsADependentOperatorExpression (0 ms)\n[ RUN      ] Demangle.SimpleAddressSpace\n[       OK ] Demangle.SimpleAddressSpace (0 ms)\n[ RUN      ] Demangle.DependentAddressSpace\n[       OK ] Demangle.DependentAddressSpace (0 ms)\n[ RUN      ] Demangle.TransactionSafeEntryPoint\n[       OK ] Demangle.TransactionSafeEntryPoint (0 ms)\n[ RUN      ] Demangle.TransactionSafeFunctionType\n[       OK ] Demangle.TransactionSafeFunctionType (0 ms)\n[ RUN      ] Demangle.TemplateParameterObject\n[       OK ] Demangle.TemplateParameterObject (0 ms)\n[ RUN      ] Demangle.EnableIfAttributeOnGlobalFunction\n[       OK ] Demangle.EnableIfAttributeOnGlobalFunction (0 ms)\n[ RUN      ] Demangle.EnableIfAttributeOnNamespaceScopeFunction\n[       OK ] Demangle.EnableIfAttributeOnNamespaceScopeFunction (0 ms)\n[ RUN      ] Demangle.EnableIfAttributeOnFunctionTemplate\n[       OK ] Demangle.EnableIfAttributeOnFunctionTemplate (0 ms)\n[ RUN      ] Demangle.ThisPointerInDependentSignature\n[       OK ] Demangle.ThisPointerInDependentSignature (0 ms)\n[ RUN      ] Demangle.DependentMemberOperatorCall\n[       OK ] Demangle.DependentMemberOperatorCall (0 ms)\n[ RUN      ] Demangle.TypeNestedUnderDecltype\n[       OK ] Demangle.TypeNestedUnderDecltype (0 ms)\n[ RUN      ] Demangle.ElaboratedTypes\n[       OK ] Demangle.ElaboratedTypes (0 ms)\n[ RUN      ] Demangle.SubobjectAddresses\n[       OK ] Demangle.SubobjectAddresses (0 ms)\n[ RUN      ] Demangle.Preincrement\n[       OK ] Demangle.Preincrement (0 ms)\n[ RUN      ] Demangle.Postincrement\n[       OK ] Demangle.Postincrement (0 ms)\n[ RUN      ] Demangle.Predecrement\n[       OK ] Demangle.Predecrement (0 ms)\n[ RUN      ] Demangle.Postdecrement\n[       OK ] Demangle.Postdecrement (0 ms)\n[ RUN      ] Demangle.UnaryFoldExpressions\n[       OK ] Demangle.UnaryFoldExpressions (0 ms)\n[ RUN      ] Demangle.BinaryFoldExpressions\n[       OK ] Demangle.BinaryFoldExpressions (0 ms)\n[ RUN      ] Demangle.SizeofPacks\n[       OK ] Demangle.SizeofPacks (0 ms)\n[ RUN      ] Demangle.SizeofPackInvolvingAnAliasTemplate\n[       OK ] Demangle.SizeofPackInvolvingAnAliasTemplate (0 ms)\n[ RUN      ] Demangle.UserDefinedLiteral\n[       OK ] Demangle.UserDefinedLiteral (0 ms)\n[ RUN      ] Demangle.Spaceship\n[       OK ] Demangle.Spaceship (0 ms)\n[ RUN      ] Demangle.CoAwait\n[       OK ] Demangle.CoAwait (0 ms)\n[ RUN      ] Demangle.VendorExtendedExpressions\n[       OK ] Demangle.VendorExtendedExpressions (0 ms)\n[ RUN      ] Demangle.DirectListInitialization\n[       OK ] Demangle.DirectListInitialization (0 ms)\n[ RUN      ] Demangle.SimpleInitializerLists\n[       OK ] Demangle.SimpleInitializerLists (0 ms)\n[ RUN      ] Demangle.BracedListImplicitlyConstructingAClassObject\n[       OK ] Demangle.BracedListImplicitlyConstructingAClassObject (0 ms)\n[ RUN      ] Demangle.SimpleNewExpression\n[       OK ] Demangle.SimpleNewExpression (0 ms)\n[ RUN      ] Demangle.NewExpressionWithEmptyParentheses\n[       OK ] Demangle.NewExpressionWithEmptyParentheses (0 ms)\n[ RUN      ] Demangle.NewExpressionWithNonemptyParentheses\n[       OK ] Demangle.NewExpressionWithNonemptyParentheses (0 ms)\n[ RUN      ] Demangle.PlacementNewExpression\n[       OK ] Demangle.PlacementNewExpression (0 ms)\n[ RUN      ] Demangle.GlobalScopeNewExpression\n[       OK ] Demangle.GlobalScopeNewExpression (0 ms)\n[ RUN      ] Demangle.NewExpressionWithEmptyBraces\n[       OK ] Demangle.NewExpressionWithEmptyBraces (0 ms)\n[ RUN      ] Demangle.NewExpressionWithNonemptyBraces\n[       OK ] Demangle.NewExpressionWithNonemptyBraces (0 ms)\n[ RUN      ] Demangle.SimpleArrayNewExpression\n[       OK ] Demangle.SimpleArrayNewExpression (0 ms)\n[ RUN      ] Demangle.ArrayNewExpressionWithEmptyParentheses\n[       OK ] Demangle.ArrayNewExpressionWithEmptyParentheses (0 ms)\n[ RUN      ] Demangle.ArrayPlacementNewExpression\n[       OK ] Demangle.ArrayPlacementNewExpression (0 ms)\n[ RUN      ] Demangle.GlobalScopeArrayNewExpression\n[       OK ] Demangle.GlobalScopeArrayNewExpression (0 ms)\n[ RUN      ] Demangle.ArrayNewExpressionWithTwoElementsInBraces\n[       OK ] Demangle.ArrayNewExpressionWithTwoElementsInBraces (0 ms)\n[ RUN      ] Demangle.SimpleDeleteExpression\n[       OK ] Demangle.SimpleDeleteExpression (0 ms)\n[ RUN      ] Demangle.GlobalScopeDeleteExpression\n[       OK ] Demangle.GlobalScopeDeleteExpression (0 ms)\n[ RUN      ] Demangle.SimpleArrayDeleteExpression\n[       OK ] Demangle.SimpleArrayDeleteExpression (0 ms)\n[ RUN      ] Demangle.GlobalScopeArrayDeleteExpression\n[       OK ] Demangle.GlobalScopeArrayDeleteExpression (0 ms)\n[ RUN      ] Demangle.ReferenceQualifiedFunctionTypes\n[       OK ] Demangle.ReferenceQualifiedFunctionTypes (0 ms)\n[ RUN      ] Demangle.DynamicCast\n[       OK ] Demangle.DynamicCast (0 ms)\n[ RUN      ] Demangle.StaticCast\n[       OK ] Demangle.StaticCast (0 ms)\n[ RUN      ] Demangle.ConstCast\n[       OK ] Demangle.ConstCast (0 ms)\n[ RUN      ] Demangle.ReinterpretCast\n[       OK ] Demangle.ReinterpretCast (0 ms)\n[ RUN      ] Demangle.TypeidType\n[       OK ] Demangle.TypeidType (0 ms)\n[ RUN      ] Demangle.TypeidExpression\n[       OK ] Demangle.TypeidExpression (0 ms)\n[ RUN      ] Demangle.AlignofType\n[       OK ] Demangle.AlignofType (0 ms)\n[ RUN      ] Demangle.AlignofExpression\n[       OK ] Demangle.AlignofExpression (0 ms)\n[ RUN      ] Demangle.NoexceptExpression\n[       OK ] Demangle.NoexceptExpression (0 ms)\n[ RUN      ] Demangle.UnaryThrow\n[       OK ] Demangle.UnaryThrow (0 ms)\n[ RUN      ] Demangle.NullaryThrow\n[       OK ] Demangle.NullaryThrow (0 ms)\n[ RUN      ] Demangle.ThreadLocalWrappers\n[       OK ] Demangle.ThreadLocalWrappers (0 ms)\n[ RUN      ] Demangle.DubiousSrStSymbols\n[       OK ] Demangle.DubiousSrStSymbols (0 ms)\n[ RUN      ] Demangle.DelegatesToDemangleRustSymbolEncoding\n[       OK ] Demangle.DelegatesToDemangleRustSymbolEncoding (0 ms)\n[----------] 123 tests from Demangle (0 ms total)\n\n[----------] 3 tests from DemangleRegression\n[ RUN      ] DemangleRegression.NegativeLength\n[       OK ] DemangleRegression.NegativeLength (0 ms)\n[ RUN      ] DemangleRegression.DeeplyNestedArrayType\n[       OK ] DemangleRegression.DeeplyNestedArrayType (0 ms)\n[ RUN      ] DemangleRegression.ShortOutputBuffer\n[       OK ] DemangleRegression.ShortOutputBuffer (0 ms)\n[----------] 3 tests from DemangleRegression (0 ms total)\n\n[----------] 1 test from DemangleStringTest\n[ RUN      ] DemangleStringTest.SupportsSymbolNameReturnedByTypeId\n[       OK ] DemangleStringTest.SupportsSymbolNameReturnedByTypeId (0 ms)\n[----------] 1 test from DemangleStringTest (0 ms total)\n\n[----------] Global test environment tear-down\n[==========] 127 tests from 3 test suites ran. (1 ms total)\n[  PASSED  ] 127 tests.\n",
+  "proposal": {
+    "summary": "Accept rvalue-reference qualifiers on function types",
+    "explanation": "ParseFunctionType currently accepts only the `R` lvalue-reference qualifier. The Itanium ABI permits `O` for an rvalue-reference qualifier too, and both failing mangled names contain it. Accept either qualifier so the existing parser can consume these types.",
+    "edits": [
+      {
+        "path": "absl/debugging/internal/demangle.cc",
+        "old": "  Optional(ParseCharClass(state, \"R\"));",
+        "new": "  Optional(ParseCharClass(state, \"RO\"));"
+      }
+    ]
+  },
+  "verification": {
+    "build_ok": true,
+    "test_ok": true,
+    "report": {
+      "passed": [
+        "Demangle.FunctionTemplate",
+        "Demangle.FunctionTemplateWithNesting",
+        "Demangle.FunctionTemplateWithNonTypeParamConstraint",
+        "Demangle.FunctionTemplateWithFunctionRequiresClause",
+        "Demangle.FunctionWithTemplateParamRequiresClause",
+        "Demangle.FunctionWithTemplateParamAndFunctionRequiresClauses",
+        "Demangle.FunctionTemplateBacktracksOnMalformedRequiresClause",
+        "Demangle.FunctionTemplateWithAutoParam",
+        "Demangle.FunctionTemplateWithNonTypeParamPack",
+        "Demangle.FunctionTemplateTemplateParamWithConstrainedArg",
+        "Demangle.ConstrainedAutoInFunctionTemplate",
+        "Demangle.ConstrainedFriendFunctionTemplate",
+        "Demangle.ConstrainedFriendOperatorTemplate",
+        "Demangle.NonTemplateBuiltinType",
+        "Demangle.SingleArgTemplateBuiltinType",
+        "Demangle.TwoArgTemplateBuiltinType",
+        "Demangle.TypeNestedUnderTemplatedBuiltinType",
+        "Demangle.TemplateTemplateParamSubstitution",
+        "Demangle.TemplateParamSubstitutionWithGenericLambda",
+        "Demangle.LambdaRequiresTrue",
+        "Demangle.LambdaRequiresSimpleExpression",
+        "Demangle.LambdaRequiresRequiresExpressionContainingTrue",
+        "Demangle.LambdaRequiresRequiresExpressionContainingConcept",
+        "Demangle.LambdaRequiresRequiresExpressionContainingNoexceptExpression",
+        "Demangle.LambdaRequiresRequiresExpressionContainingReturnTypeConstraint",
+        "Demangle.LambdaRequiresRequiresExpressionWithBothNoexceptAndReturnType",
+        "Demangle.LambdaRequiresRequiresExpressionContainingType",
+        "Demangle.LambdaRequiresRequiresExpressionNestingAnotherRequires",
+        "Demangle.LambdaRequiresRequiresExpressionContainingTwoRequirements",
+        "Demangle.RequiresExpressionWithItsOwnParameter",
+        "Demangle.LambdaWithExplicitTypeArgument",
+        "Demangle.LambdaWithExplicitPackArgument",
+        "Demangle.LambdaInClassMemberDefaultArgument",
+        "Demangle.AvoidSignedOverflowForUnfortunateParameterNumbers",
+        "Demangle.SubstpackNotationForTroublesomeTemplatePack",
+        "Demangle.TemplateTemplateParamAppearingAsBackrefFollowedByTemplateArgs",
+        "Demangle.CornerCases",
+        "Demangle.Clones",
+        "Demangle.Discriminators",
+        "Demangle.SingleDigitDiscriminatorFollowedByADigit",
+        "Demangle.LiteralOfGlobalNamespaceEnumType",
+        "Demangle.NullptrLiterals",
+        "Demangle.StringLiterals",
+        "Demangle.ComplexFloatingPointLiterals",
+        "Demangle.Float128",
+        "Demangle.Float128x",
+        "Demangle.Bfloat16",
+        "Demangle.SimpleSignedBitInt",
+        "Demangle.SimpleUnsignedBitInt",
+        "Demangle.DependentBitInt",
+        "Demangle.ConversionToPointerType",
+        "Demangle.ConversionToLvalueReferenceType",
+        "Demangle.ConversionToRvalueReferenceType",
+        "Demangle.ConversionToComplexFloatingPointType",
+        "Demangle.ConversionToImaginaryFloatingPointType",
+        "Demangle.ConversionToPointerToCvQualifiedType",
+        "Demangle.ConversionToLayeredPointerType",
+        "Demangle.ConversionToTypeWithExtendedQualifier",
+        "Demangle.GlobalInitializers",
+        "Demangle.StructuredBindings",
+        "Demangle.AbiTags",
+        "Demangle.SimpleGnuVectorSize",
+        "Demangle.GnuVectorSizeIsATemplateParameter",
+        "Demangle.GnuVectorSizeIsADependentOperatorExpression",
+        "Demangle.SimpleAddressSpace",
+        "Demangle.DependentAddressSpace",
+        "Demangle.TransactionSafeEntryPoint",
+        "Demangle.TransactionSafeFunctionType",
+        "Demangle.TemplateParameterObject",
+        "Demangle.EnableIfAttributeOnGlobalFunction",
+        "Demangle.EnableIfAttributeOnNamespaceScopeFunction",
+        "Demangle.EnableIfAttributeOnFunctionTemplate",
+        "Demangle.ThisPointerInDependentSignature",
+        "Demangle.DependentMemberOperatorCall",
+        "Demangle.TypeNestedUnderDecltype",
+        "Demangle.ElaboratedTypes",
+        "Demangle.SubobjectAddresses",
+        "Demangle.Preincrement",
+        "Demangle.Postincrement",
+        "Demangle.Predecrement",
+        "Demangle.Postdecrement",
+        "Demangle.UnaryFoldExpressions",
+        "Demangle.BinaryFoldExpressions",
+        "Demangle.SizeofPacks",
+        "Demangle.SizeofPackInvolvingAnAliasTemplate",
+        "Demangle.UserDefinedLiteral",
+        "Demangle.Spaceship",
+        "Demangle.CoAwait",
+        "Demangle.VendorExtendedExpressions",
+        "Demangle.DirectListInitialization",
+        "Demangle.SimpleInitializerLists",
+        "Demangle.BracedListImplicitlyConstructingAClassObject",
+        "Demangle.SimpleNewExpression",
+        "Demangle.NewExpressionWithEmptyParentheses",
+        "Demangle.NewExpressionWithNonemptyParentheses",
+        "Demangle.PlacementNewExpression",
+        "Demangle.GlobalScopeNewExpression",
+        "Demangle.NewExpressionWithEmptyBraces",
+        "Demangle.NewExpressionWithNonemptyBraces",
+        "Demangle.SimpleArrayNewExpression",
+        "Demangle.ArrayNewExpressionWithEmptyParentheses",
+        "Demangle.ArrayPlacementNewExpression",
+        "Demangle.GlobalScopeArrayNewExpression",
+        "Demangle.ArrayNewExpressionWithTwoElementsInBraces",
+        "Demangle.SimpleDeleteExpression",
+        "Demangle.GlobalScopeDeleteExpression",
+        "Demangle.SimpleArrayDeleteExpression",
+        "Demangle.GlobalScopeArrayDeleteExpression",
+        "Demangle.ReferenceQualifiedFunctionTypes",
+        "Demangle.DynamicCast",
+        "Demangle.StaticCast",
+        "Demangle.ConstCast",
+        "Demangle.ReinterpretCast",
+        "Demangle.TypeidType",
+        "Demangle.TypeidExpression",
+        "Demangle.AlignofType",
+        "Demangle.AlignofExpression",
+        "Demangle.NoexceptExpression",
+        "Demangle.UnaryThrow",
+        "Demangle.NullaryThrow",
+        "Demangle.ThreadLocalWrappers",
+        "Demangle.DubiousSrStSymbols",
+        "Demangle.DelegatesToDemangleRustSymbolEncoding",
+        "DemangleRegression.NegativeLength",
+        "DemangleRegression.DeeplyNestedArrayType",
+        "DemangleRegression.ShortOutputBuffer",
+        "DemangleStringTest.SupportsSymbolNameReturnedByTypeId"
+      ],
+      "failed": [],
+      "skipped": []
+    },
+    "output": "-- Configuring done (0.0s)\n-- Generating done (0.0s)\n-- Build files have been written to: /Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/state/worktrees/tc-284764-76f4c5b522bd/.auto-fix-build/googletest-external\nninja: no work to do.\n-- Configuring done (0.2s)\n-- Generating done (0.3s)\n-- Build files have been written to: /Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/state/worktrees/tc-284764-76f4c5b522bd/.auto-fix-build\n\nninja: no work to do.\n\nRunning main() from gmock_main.cc\n[==========] Running 127 tests from 3 test suites.\n[----------] Global test environment set-up.\n[----------] 123 tests from Demangle\n[ RUN      ] Demangle.FunctionTemplate\n[       OK ] Demangle.FunctionTemplate (0 ms)\n[ RUN      ] Demangle.FunctionTemplateWithNesting\n[       OK ] Demangle.FunctionTemplateWithNesting (0 ms)\n[ RUN      ] Demangle.FunctionTemplateWithNonTypeParamConstraint\n[       OK ] Demangle.FunctionTemplateWithNonTypeParamConstraint (0 ms)\n[ RUN      ] Demangle.FunctionTemplateWithFunctionRequiresClause\n[       OK ] Demangle.FunctionTemplateWithFunctionRequiresClause (0 ms)\n[ RUN      ] Demangle.FunctionWithTemplateParamRequiresClause\n[       OK ] Demangle.FunctionWithTemplateParamRequiresClause (0 ms)\n[ RUN      ] Demangle.FunctionWithTemplateParamAndFunctionRequiresClauses\n[       OK ] Demangle.FunctionWithTemplateParamAndFunctionRequiresClauses (0 ms)\n[ RUN      ] Demangle.FunctionTemplateBacktracksOnMalformedRequiresClause\n[       OK ] Demangle.FunctionTemplateBacktracksOnMalformedRequiresClause (0 ms)\n[ RUN      ] Demangle.FunctionTemplateWithAutoParam\n[       OK ] Demangle.FunctionTemplateWithAutoParam (0 ms)\n[ RUN      ] Demangle.FunctionTemplateWithNonTypeParamPack\n[       OK ] Demangle.FunctionTemplateWithNonTypeParamPack (0 ms)\n[ RUN      ] Demangle.FunctionTemplateTemplateParamWithConstrainedArg\n[       OK ] Demangle.FunctionTemplateTemplateParamWithConstrainedArg (0 ms)\n[ RUN      ] Demangle.ConstrainedAutoInFunctionTemplate\n[       OK ] Demangle.ConstrainedAutoInFunctionTemplate (0 ms)\n[ RUN      ] Demangle.ConstrainedFriendFunctionTemplate\n[       OK ] Demangle.ConstrainedFriendFunctionTemplate (0 ms)\n[ RUN      ] Demangle.ConstrainedFriendOperatorTemplate\n[       OK ] Demangle.ConstrainedFriendOperatorTemplate (0 ms)\n[ RUN      ] Demangle.NonTemplateBuiltinType\n[       OK ] Demangle.NonTemplateBuiltinType (0 ms)\n[ RUN      ] Demangle.SingleArgTemplateBuiltinType\n[       OK ] Demangle.SingleArgTemplateBuiltinType (0 ms)\n[ RUN      ] Demangle.TwoArgTemplateBuiltinType\n[       OK ] Demangle.TwoArgTemplateBuiltinType (0 ms)\n[ RUN      ] Demangle.TypeNestedUnderTemplatedBuiltinType\n[       OK ] Demangle.TypeNestedUnderTemplatedBuiltinType (0 ms)\n[ RUN      ] Demangle.TemplateTemplateParamSubstitution\n[       OK ] Demangle.TemplateTemplateParamSubstitution (0 ms)\n[ RUN      ] Demangle.TemplateParamSubstitutionWithGenericLambda\n[       OK ] Demangle.TemplateParamSubstitutionWithGenericLambda (0 ms)\n[ RUN      ] Demangle.LambdaRequiresTrue\n[       OK ] Demangle.LambdaRequiresTrue (0 ms)\n[ RUN      ] Demangle.LambdaRequiresSimpleExpression\n[       OK ] Demangle.LambdaRequiresSimpleExpression (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionContainingTrue\n[       OK ] Demangle.LambdaRequiresRequiresExpressionContainingTrue (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionContainingConcept\n[       OK ] Demangle.LambdaRequiresRequiresExpressionContainingConcept (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionContainingNoexceptExpression\n[       OK ] Demangle.LambdaRequiresRequiresExpressionContainingNoexceptExpression (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionContainingReturnTypeConstraint\n[       OK ] Demangle.LambdaRequiresRequiresExpressionContainingReturnTypeConstraint (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionWithBothNoexceptAndReturnType\n[       OK ] Demangle.LambdaRequiresRequiresExpressionWithBothNoexceptAndReturnType (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionContainingType\n[       OK ] Demangle.LambdaRequiresRequiresExpressionContainingType (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionNestingAnotherRequires\n[       OK ] Demangle.LambdaRequiresRequiresExpressionNestingAnotherRequires (0 ms)\n[ RUN      ] Demangle.LambdaRequiresRequiresExpressionContainingTwoRequirements\n[       OK ] Demangle.LambdaRequiresRequiresExpressionContainingTwoRequirements (0 ms)\n[ RUN      ] Demangle.RequiresExpressionWithItsOwnParameter\n[       OK ] Demangle.RequiresExpressionWithItsOwnParameter (0 ms)\n[ RUN      ] Demangle.LambdaWithExplicitTypeArgument\n[       OK ] Demangle.LambdaWithExplicitTypeArgument (0 ms)\n[ RUN      ] Demangle.LambdaWithExplicitPackArgument\n[       OK ] Demangle.LambdaWithExplicitPackArgument (0 ms)\n[ RUN      ] Demangle.LambdaInClassMemberDefaultArgument\n[       OK ] Demangle.LambdaInClassMemberDefaultArgument (0 ms)\n[ RUN      ] Demangle.AvoidSignedOverflowForUnfortunateParameterNumbers\n[       OK ] Demangle.AvoidSignedOverflowForUnfortunateParameterNumbers (0 ms)\n[ RUN      ] Demangle.SubstpackNotationForTroublesomeTemplatePack\n[       OK ] Demangle.SubstpackNotationForTroublesomeTemplatePack (0 ms)\n[ RUN      ] Demangle.TemplateTemplateParamAppearingAsBackrefFollowedByTemplateArgs\n[       OK ] Demangle.TemplateTemplateParamAppearingAsBackrefFollowedByTemplateArgs (0 ms)\n[ RUN      ] Demangle.CornerCases\n[       OK ] Demangle.CornerCases (0 ms)\n[ RUN      ] Demangle.Clones\n[       OK ] Demangle.Clones (0 ms)\n[ RUN      ] Demangle.Discriminators\n[       OK ] Demangle.Discriminators (0 ms)\n[ RUN      ] Demangle.SingleDigitDiscriminatorFollowedByADigit\n[       OK ] Demangle.SingleDigitDiscriminatorFollowedByADigit (0 ms)\n[ RUN      ] Demangle.LiteralOfGlobalNamespaceEnumType\n[       OK ] Demangle.LiteralOfGlobalNamespaceEnumType (0 ms)\n[ RUN      ] Demangle.NullptrLiterals\n[       OK ] Demangle.NullptrLiterals (0 ms)\n[ RUN      ] Demangle.StringLiterals\n[       OK ] Demangle.StringLiterals (0 ms)\n[ RUN      ] Demangle.ComplexFloatingPointLiterals\n[       OK ] Demangle.ComplexFloatingPointLiterals (0 ms)\n[ RUN      ] Demangle.Float128\n[       OK ] Demangle.Float128 (0 ms)\n[ RUN      ] Demangle.Float128x\n[       OK ] Demangle.Float128x (0 ms)\n[ RUN      ] Demangle.Bfloat16\n[       OK ] Demangle.Bfloat16 (0 ms)\n[ RUN      ] Demangle.SimpleSignedBitInt\n[       OK ] Demangle.SimpleSignedBitInt (0 ms)\n[ RUN      ] Demangle.SimpleUnsignedBitInt\n[       OK ] Demangle.SimpleUnsignedBitInt (0 ms)\n[ RUN      ] Demangle.DependentBitInt\n[       OK ] Demangle.DependentBitInt (0 ms)\n[ RUN      ] Demangle.ConversionToPointerType\n[       OK ] Demangle.ConversionToPointerType (0 ms)\n[ RUN      ] Demangle.ConversionToLvalueReferenceType\n[       OK ] Demangle.ConversionToLvalueReferenceType (0 ms)\n[ RUN      ] Demangle.ConversionToRvalueReferenceType\n[       OK ] Demangle.ConversionToRvalueReferenceType (0 ms)\n[ RUN      ] Demangle.ConversionToComplexFloatingPointType\n[       OK ] Demangle.ConversionToComplexFloatingPointType (0 ms)\n[ RUN      ] Demangle.ConversionToImaginaryFloatingPointType\n[       OK ] Demangle.ConversionToImaginaryFloatingPointType (0 ms)\n[ RUN      ] Demangle.ConversionToPointerToCvQualifiedType\n[       OK ] Demangle.ConversionToPointerToCvQualifiedType (0 ms)\n[ RUN      ] Demangle.ConversionToLayeredPointerType\n[       OK ] Demangle.ConversionToLayeredPointerType (0 ms)\n[ RUN      ] Demangle.ConversionToTypeWithExtendedQualifier\n[       OK ] Demangle.ConversionToTypeWithExtendedQualifier (0 ms)\n[ RUN      ] Demangle.GlobalInitializers\n[       OK ] Demangle.GlobalInitializers (0 ms)\n[ RUN      ] Demangle.StructuredBindings\n[       OK ] Demangle.StructuredBindings (0 ms)\n[ RUN      ] Demangle.AbiTags\n[       OK ] Demangle.AbiTags (0 ms)\n[ RUN      ] Demangle.SimpleGnuVectorSize\n[       OK ] Demangle.SimpleGnuVectorSize (0 ms)\n[ RUN      ] Demangle.GnuVectorSizeIsATemplateParameter\n[       OK ] Demangle.GnuVectorSizeIsATemplateParameter (0 ms)\n[ RUN      ] Demangle.GnuVectorSizeIsADependentOperatorExpression\n[       OK ] Demangle.GnuVectorSizeIsADependentOperatorExpression (0 ms)\n[ RUN      ] Demangle.SimpleAddressSpace\n[       OK ] Demangle.SimpleAddressSpace (0 ms)\n[ RUN      ] Demangle.DependentAddressSpace\n[       OK ] Demangle.DependentAddressSpace (0 ms)\n[ RUN      ] Demangle.TransactionSafeEntryPoint\n[       OK ] Demangle.TransactionSafeEntryPoint (0 ms)\n[ RUN      ] Demangle.TransactionSafeFunctionType\n[       OK ] Demangle.TransactionSafeFunctionType (0 ms)\n[ RUN      ] Demangle.TemplateParameterObject\n[       OK ] Demangle.TemplateParameterObject (0 ms)\n[ RUN      ] Demangle.EnableIfAttributeOnGlobalFunction\n[       OK ] Demangle.EnableIfAttributeOnGlobalFunction (0 ms)\n[ RUN      ] Demangle.EnableIfAttributeOnNamespaceScopeFunction\n[       OK ] Demangle.EnableIfAttributeOnNamespaceScopeFunction (0 ms)\n[ RUN      ] Demangle.EnableIfAttributeOnFunctionTemplate\n[       OK ] Demangle.EnableIfAttributeOnFunctionTemplate (0 ms)\n[ RUN      ] Demangle.ThisPointerInDependentSignature\n[       OK ] Demangle.ThisPointerInDependentSignature (0 ms)\n[ RUN      ] Demangle.DependentMemberOperatorCall\n[       OK ] Demangle.DependentMemberOperatorCall (0 ms)\n[ RUN      ] Demangle.TypeNestedUnderDecltype\n[       OK ] Demangle.TypeNestedUnderDecltype (0 ms)\n[ RUN      ] Demangle.ElaboratedTypes\n[       OK ] Demangle.ElaboratedTypes (0 ms)\n[ RUN      ] Demangle.SubobjectAddresses\n[       OK ] Demangle.SubobjectAddresses (0 ms)\n[ RUN      ] Demangle.Preincrement\n[       OK ] Demangle.Preincrement (0 ms)\n[ RUN      ] Demangle.Postincrement\n[       OK ] Demangle.Postincrement (0 ms)\n[ RUN      ] Demangle.Predecrement\n[       OK ] Demangle.Predecrement (0 ms)\n[ RUN      ] Demangle.Postdecrement\n[       OK ] Demangle.Postdecrement (0 ms)\n[ RUN      ] Demangle.UnaryFoldExpressions\n[       OK ] Demangle.UnaryFoldExpressions (0 ms)\n[ RUN      ] Demangle.BinaryFoldExpressions\n[       OK ] Demangle.BinaryFoldExpressions (0 ms)\n[ RUN      ] Demangle.SizeofPacks\n[       OK ] Demangle.SizeofPacks (0 ms)\n[ RUN      ] Demangle.SizeofPackInvolvingAnAliasTemplate\n[       OK ] Demangle.SizeofPackInvolvingAnAliasTemplate (0 ms)\n[ RUN      ] Demangle.UserDefinedLiteral\n[       OK ] Demangle.UserDefinedLiteral (0 ms)\n[ RUN      ] Demangle.Spaceship\n[       OK ] Demangle.Spaceship (0 ms)\n[ RUN      ] Demangle.CoAwait\n[       OK ] Demangle.CoAwait (0 ms)\n[ RUN      ] Demangle.VendorExtendedExpressions\n[       OK ] Demangle.VendorExtendedExpressions (0 ms)\n[ RUN      ] Demangle.DirectListInitialization\n[       OK ] Demangle.DirectListInitialization (0 ms)\n[ RUN      ] Demangle.SimpleInitializerLists\n[       OK ] Demangle.SimpleInitializerLists (0 ms)\n[ RUN      ] Demangle.BracedListImplicitlyConstructingAClassObject\n[       OK ] Demangle.BracedListImplicitlyConstructingAClassObject (0 ms)\n[ RUN      ] Demangle.SimpleNewExpression\n[       OK ] Demangle.SimpleNewExpression (0 ms)\n[ RUN      ] Demangle.NewExpressionWithEmptyParentheses\n[       OK ] Demangle.NewExpressionWithEmptyParentheses (0 ms)\n[ RUN      ] Demangle.NewExpressionWithNonemptyParentheses\n[       OK ] Demangle.NewExpressionWithNonemptyParentheses (0 ms)\n[ RUN      ] Demangle.PlacementNewExpression\n[       OK ] Demangle.PlacementNewExpression (0 ms)\n[ RUN      ] Demangle.GlobalScopeNewExpression\n[       OK ] Demangle.GlobalScopeNewExpression (0 ms)\n[ RUN      ] Demangle.NewExpressionWithEmptyBraces\n[       OK ] Demangle.NewExpressionWithEmptyBraces (0 ms)\n[ RUN      ] Demangle.NewExpressionWithNonemptyBraces\n[       OK ] Demangle.NewExpressionWithNonemptyBraces (0 ms)\n[ RUN      ] Demangle.SimpleArrayNewExpression\n[       OK ] Demangle.SimpleArrayNewExpression (0 ms)\n[ RUN      ] Demangle.ArrayNewExpressionWithEmptyParentheses\n[       OK ] Demangle.ArrayNewExpressionWithEmptyParentheses (0 ms)\n[ RUN      ] Demangle.ArrayPlacementNewExpression\n[       OK ] Demangle.ArrayPlacementNewExpression (0 ms)\n[ RUN      ] Demangle.GlobalScopeArrayNewExpression\n[       OK ] Demangle.GlobalScopeArrayNewExpression (0 ms)\n[ RUN      ] Demangle.ArrayNewExpressionWithTwoElementsInBraces\n[       OK ] Demangle.ArrayNewExpressionWithTwoElementsInBraces (0 ms)\n[ RUN      ] Demangle.SimpleDeleteExpression\n[       OK ] Demangle.SimpleDeleteExpression (0 ms)\n[ RUN      ] Demangle.GlobalScopeDeleteExpression\n[       OK ] Demangle.GlobalScopeDeleteExpression (0 ms)\n[ RUN      ] Demangle.SimpleArrayDeleteExpression\n[       OK ] Demangle.SimpleArrayDeleteExpression (0 ms)\n[ RUN      ] Demangle.GlobalScopeArrayDeleteExpression\n[       OK ] Demangle.GlobalScopeArrayDeleteExpression (0 ms)\n[ RUN      ] Demangle.ReferenceQualifiedFunctionTypes\n[       OK ] Demangle.ReferenceQualifiedFunctionTypes (0 ms)\n[ RUN      ] Demangle.DynamicCast\n[       OK ] Demangle.DynamicCast (0 ms)\n[ RUN      ] Demangle.StaticCast\n[       OK ] Demangle.StaticCast (0 ms)\n[ RUN      ] Demangle.ConstCast\n[       OK ] Demangle.ConstCast (0 ms)\n[ RUN      ] Demangle.ReinterpretCast\n[       OK ] Demangle.ReinterpretCast (0 ms)\n[ RUN      ] Demangle.TypeidType\n[       OK ] Demangle.TypeidType (0 ms)\n[ RUN      ] Demangle.TypeidExpression\n[       OK ] Demangle.TypeidExpression (0 ms)\n[ RUN      ] Demangle.AlignofType\n[       OK ] Demangle.AlignofType (0 ms)\n[ RUN      ] Demangle.AlignofExpression\n[       OK ] Demangle.AlignofExpression (0 ms)\n[ RUN      ] Demangle.NoexceptExpression\n[       OK ] Demangle.NoexceptExpression (0 ms)\n[ RUN      ] Demangle.UnaryThrow\n[       OK ] Demangle.UnaryThrow (0 ms)\n[ RUN      ] Demangle.NullaryThrow\n[       OK ] Demangle.NullaryThrow (0 ms)\n[ RUN      ] Demangle.ThreadLocalWrappers\n[       OK ] Demangle.ThreadLocalWrappers (0 ms)\n[ RUN      ] Demangle.DubiousSrStSymbols\n[       OK ] Demangle.DubiousSrStSymbols (0 ms)\n[ RUN      ] Demangle.DelegatesToDemangleRustSymbolEncoding\n[       OK ] Demangle.DelegatesToDemangleRustSymbolEncoding (0 ms)\n[----------] 123 tests from Demangle (0 ms total)\n\n[----------] 3 tests from DemangleRegression\n[ RUN      ] DemangleRegression.NegativeLength\n[       OK ] DemangleRegression.NegativeLength (0 ms)\n[ RUN      ] DemangleRegression.DeeplyNestedArrayType\n[       OK ] DemangleRegression.DeeplyNestedArrayType (0 ms)\n[ RUN      ] DemangleRegression.ShortOutputBuffer\n[       OK ] DemangleRegression.ShortOutputBuffer (0 ms)\n[----------] 3 tests from DemangleRegression (0 ms total)\n\n[----------] 1 test from DemangleStringTest\n[ RUN      ] DemangleStringTest.SupportsSymbolNameReturnedByTypeId\n[       OK ] DemangleStringTest.SupportsSymbolNameReturnedByTypeId (0 ms)\n[----------] 1 test from DemangleStringTest (0 ms total)\n\n[----------] Global test environment tear-down\n[==========] 127 tests from 3 test suites ran. (1 ms total)\n[  PASSED  ] 127 tests.\n",
+    "logs": [
+      "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/state/runs/tc-284764-76f4c5b522bd/evidence/final-rebased-da5b71e9edbc/build-0.log",
+      "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/state/runs/tc-284764-76f4c5b522bd/evidence/final-rebased-da5b71e9edbc/build-1.log",
+      "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/state/runs/tc-284764-76f4c5b522bd/evidence/final-rebased-da5b71e9edbc/test.log",
+      "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/confirmation-v2/demangle_rvalue_function_qualifier/state/runs/tc-284764-76f4c5b522bd/evidence/final-rebased-da5b71e9edbc/junit.xml"
+    ]
+  },
+  "head": "8b38c57f19c0836ff3895921176ec5e244a85949",
+  "pr": {
+    "title": "[auto-fix] Accept rvalue-reference qualifiers on function types",
+    "description": "ParseFunctionType currently accepts only the `R` lvalue-reference qualifier. The Itanium ABI permits `O` for an rvalue-reference qualifier too, and both failing mangled names contain it. Accept either qualifier so the existing parser can consume these types.\n\nReproduced failing tests:\n- `Demangle.ReferenceQualifiedFunctionTypes`\n\nOriginal TeamCity revision: `ae1b93c4dcaf0a71a38fc4c953dbdcb59b2fce28`\n\nVerified commit after rebasing onto the configured base: `8b38c57f19c0836ff3895921176ec5e244a85949`\n\nValidation: configured native build and full test command passed; originally failing tests are present and passing in the fresh JUnit report.\n\nContext:\n- [TeamCity build 284764](https://ci.meridian.invalid/teamcity/viewLog.html?buildId=284764)\n- [CORE-1889](https://issues.meridian.invalid/jira/browse/CORE-1889)\n- [OPS-218](https://issues.meridian.invalid/jira/browse/OPS-218)\n- [PLAT-1731](https://issues.meridian.invalid/jira/browse/PLAT-1731)\n- [Related PR 418](https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/418)\n- [Related PR 402](https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/402)\n- [Related PR 425](https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/425)\n\n[TeamCity artifact](https://ci.meridian.invalid/teamcity/app/rest/builds/id:284764/artifacts/content/reports/unit-test-failure.svg)\n\n![TeamCity evidence](https://ci.meridian.invalid/teamcity/app/rest/builds/id:284764/artifacts/content/reports/unit-test-failure.svg)\n\nAutomation run: `tc-284764-76f4c5b522bd`. AI-generated candidate; review before merging.",
+    "fromRef": {
+      "id": "refs/heads/auto-fix/tc-284764-76f4c5b522bd",
+      "repository": {
+        "slug": "cpp-runtime",
+        "project": {
+          "key": "PLAT"
+        }
+      },
+      "latestCommit": "8b38c57f19c0836ff3895921176ec5e244a85949"
+    },
+    "toRef": {
+      "id": "refs/heads/master",
+      "repository": {
+        "slug": "cpp-runtime",
+        "project": {
+          "key": "PLAT"
+        }
+      }
+    },
+    "id": 901,
+    "version": 0,
+    "state": "OPEN",
+    "open": true,
+    "closed": false,
+    "author": {
+      "user": {
+        "name": "svc.auto-fix",
+        "emailAddress": "auto-fix@meridian.invalid",
+        "displayName": "Auto Fix Evaluation Bot",
+        "active": true,
+        "slug": "svc.auto-fix",
+        "type": "NORMAL"
+      },
+      "role": "AUTHOR"
+    },
+    "reviewers": [],
+    "synthetic": true,
+    "links": {
+      "self": [
+        {
+          "href": "https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/901"
+        }
+      ]
+    }
+  }
+}

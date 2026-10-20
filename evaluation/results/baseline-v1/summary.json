@@ -1,0 +1,230 @@
+{
+  "project": {
+    "schema_version": 1,
+    "name": "Abseil C++ Common Libraries",
+    "repository": "https://github.com/abseil/abseil-cpp.git",
+    "tag": "20260107.1",
+    "commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+    "license": "Apache-2.0",
+    "license_url": "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/LICENSE",
+    "google_test": {
+      "repository": "https://github.com/google/googletest.git",
+      "tag": "v1.17.0",
+      "commit": "52eb8108c5bdec04579160ae17225d66034bd723",
+      "license": "BSD-3-Clause"
+    },
+    "cmake_options": [
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DCMAKE_CXX_STANDARD=17",
+      "-DABSL_BUILD_TESTING=ON",
+      "-DABSL_USE_GOOGLETEST_HEAD=OFF",
+      "-DABSL_ENABLE_INSTALL=OFF"
+    ],
+    "build_targets": [
+      "absl_ascii_test",
+      "absl_escaping_test",
+      "absl_str_split_test",
+      "absl_demangle_test"
+    ],
+    "ctest_regex": "^absl_(ascii|escaping|str_split|demangle)_test$",
+    "metrics": {
+      "measured_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+      "tree_bytes_excluding_git": 10862971,
+      "cpp_source_header_files": 840,
+      "cpp_source_header_lines": 265865,
+      "production_cpp_source_header_files": 517,
+      "production_cpp_source_header_lines": 142256,
+      "test_cpp_source_header_files": 274,
+      "test_cpp_source_header_lines": 112753,
+      "method": "Count .cc/.h under absl; line count uses bytes.splitlines(); production excludes filenames containing _test or _benchmark and path components testdata, test, tests. Test count includes filenames containing _test. Generated upstream source is included; third_party outside absl is excluded."
+    },
+    "sources": [
+      "https://github.com/abseil/abseil-cpp/releases/tag/20260107.1",
+      "https://abseil.io/docs/cpp/quickstart-cmake.html",
+      "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/CMakeLists.txt",
+      "https://github.com/google/googletest/releases/tag/v1.17.0"
+    ]
+  },
+  "profile": "legacy",
+  "model": "gpt-6-luna",
+  "backend": "codex",
+  "platform": "macOS-26.4.1-arm64-arm-64bit",
+  "cases": [
+    {
+      "case": "ascii_lower_dispatch",
+      "profile": "legacy",
+      "model": "gpt-6-luna",
+      "status": "published",
+      "success": true,
+      "reason": "",
+      "elapsed_seconds": 19.165,
+      "attempts": 1,
+      "baseline_failed": [
+        "AsciiStrTo.Lower"
+      ],
+      "passed_test_count": 12,
+      "remaining_failures": [],
+      "model_calls": [
+        {
+          "model": "gpt-6-luna",
+          "transport": "codex-cli",
+          "reasoning_effort": "medium",
+          "elapsed_seconds": 6.297,
+          "returncode": 0,
+          "usage": {
+            "input_tokens": 31089,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 198,
+            "reasoning_output_tokens": 0
+          },
+          "directory": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/baseline-v1/ascii_lower_dispatch/model/call-1"
+        }
+      ],
+      "pull_requests_created": 1,
+      "result": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/baseline-v1/ascii_lower_dispatch/state/runs/tc-284761-a9471a3aef70/result.json",
+      "verified_head": "3d1552d7e2336e61b2fe228c3486c319522790ef",
+      "exported_evidence": "ascii_lower_dispatch"
+    },
+    {
+      "case": "hex_digit_conversion",
+      "profile": "legacy",
+      "model": "gpt-6-luna",
+      "status": "published",
+      "success": true,
+      "reason": "",
+      "elapsed_seconds": 27.821,
+      "attempts": 1,
+      "baseline_failed": [
+        "CEscape.EscapeAndUnescape",
+        "Unescape.BasicFunction",
+        "CUnescapeTest.UnescapesMultipleHexNulls"
+      ],
+      "passed_test_count": 18,
+      "remaining_failures": [],
+      "model_calls": [
+        {
+          "model": "gpt-6-luna",
+          "transport": "codex-cli",
+          "reasoning_effort": "medium",
+          "elapsed_seconds": 5.585,
+          "returncode": 0,
+          "usage": {
+            "input_tokens": 33351,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 137,
+            "reasoning_output_tokens": 0
+          },
+          "directory": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/baseline-v1/hex_digit_conversion/model/call-1"
+        }
+      ],
+      "pull_requests_created": 1,
+      "result": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/baseline-v1/hex_digit_conversion/state/runs/tc-284762-d2b03e7a9642/result.json",
+      "verified_head": "656b2d9197fcef64c83ad1c3d8d45b01d2677eb1",
+      "exported_evidence": "hex_digit_conversion"
+    },
+    {
+      "case": "split_ascii_carriage_return",
+      "profile": "legacy",
+      "model": "gpt-6-luna",
+      "status": "blocked",
+      "success": false,
+      "reason": "Repair budget exhausted: Edit makes no change: absl/strings/internal/str_split_internal.h",
+      "elapsed_seconds": 40.307,
+      "attempts": 2,
+      "baseline_failed": [
+        "Split.ByAsciiWhitespace"
+      ],
+      "passed_test_count": 0,
+      "remaining_failures": [],
+      "model_calls": [
+        {
+          "model": "gpt-6-luna",
+          "transport": "codex-cli",
+          "reasoning_effort": "medium",
+          "elapsed_seconds": 4.812,
+          "returncode": 0,
+          "usage": {
+            "input_tokens": 29406,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 143,
+            "reasoning_output_tokens": 0
+          },
+          "directory": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/baseline-v1/split_ascii_carriage_return/model/call-1"
+        },
+        {
+          "model": "gpt-6-luna",
+          "transport": "codex-cli",
+          "reasoning_effort": "medium",
+          "elapsed_seconds": 4.953,
+          "returncode": 0,
+          "usage": {
+            "input_tokens": 25877,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 163,
+            "reasoning_output_tokens": 0
+          },
+          "directory": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/baseline-v1/split_ascii_carriage_return/model/call-2"
+        }
+      ],
+      "pull_requests_created": 0,
+      "result": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/baseline-v1/split_ascii_carriage_return/state/runs/tc-284763-f54a8a3e7243/result.json",
+      "exported_evidence": "split_ascii_carriage_return"
+    },
+    {
+      "case": "demangle_rvalue_function_qualifier",
+      "profile": "legacy",
+      "model": "gpt-6-luna",
+      "status": "blocked",
+      "success": false,
+      "reason": "Repair budget exhausted: Edit makes no change: absl/debugging/internal/demangle.cc",
+      "elapsed_seconds": 28.68,
+      "attempts": 2,
+      "baseline_failed": [
+        "Demangle.ReferenceQualifiedFunctionTypes"
+      ],
+      "passed_test_count": 0,
+      "remaining_failures": [],
+      "model_calls": [
+        {
+          "model": "gpt-6-luna",
+          "transport": "codex-cli",
+          "reasoning_effort": "medium",
+          "elapsed_seconds": 3.964,
+          "returncode": 0,
+          "usage": {
+            "input_tokens": 29656,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 110,
+            "reasoning_output_tokens": 0
+          },
+          "directory": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/baseline-v1/demangle_rvalue_function_qualifier/model/call-1"
+        },
+        {
+          "model": "gpt-6-luna",
+          "transport": "codex-cli",
+          "reasoning_effort": "medium",
+          "elapsed_seconds": 4.075,
+          "returncode": 0,
+          "usage": {
+            "input_tokens": 26336,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 115,
+            "reasoning_output_tokens": 0
+          },
+          "directory": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/baseline-v1/demangle_rvalue_function_qualifier/model/call-2"
+        }
+      ],
+      "pull_requests_created": 0,
+      "result": "/Users/antoine/projects/auto-fix/.auto-fix/evaluations/baseline-v1/demangle_rvalue_function_qualifier/state/runs/tc-284764-c3219a1bc510/result.json",
+      "exported_evidence": "demangle_rvalue_function_qualifier"
+    }
+  ],
+  "successes": 2,
+  "total": 4
+}

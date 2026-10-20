@@ -28,6 +28,12 @@ auto-fix = "auto_fix.cli:main"
 [tool.hatch.build.targets.wheel]
 packages = ["src/auto_fix"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"evaluation/fixtures/onprem.json" = "auto_fix/fixtures/onprem.json"
+
+[tool.hatch.build.targets.sdist.force-include]
+"evaluation/fixtures/onprem.json" = "evaluation/fixtures/onprem.json"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 

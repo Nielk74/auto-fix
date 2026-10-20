@@ -1,0 +1,439 @@
+"""Deterministic, bounded source retrieval for a repository repair request.
+
+The caller supplies tracked paths and a safe reader. This module only ranks source
+evidence; it neither executes repository code nor follows filesystem paths itself.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+from collections import defaultdict, deque
+from collections.abc import Callable, Iterable
+from pathlib import PurePosixPath
+from typing import Any
+
+_IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z_0-9]*")
+_CAMEL = re.compile(r"[A-Z]+(?=[A-Z][a-z]|\b)|[A-Z]?[a-z]+|\d+")
+_INCLUDE = re.compile(r'^\s*#\s*include\s*[<"]([^>"\r\n]+)[>"]', re.MULTILINE)
+_SOURCE = {".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".hxx", ".inl", ".ipp", ".tpp", ".inc"}
+_STOP = {
+    "actual",
+    "assert",
+    "assertion",
+    "build",
+    "below",
+    "check",
+    "cmake",
+    "error",
+    "equality",
+    "expect",
+    "expected",
+    "expectation",
+    "false",
+    "fatal",
+    "failed",
+    "failure",
+    "files",
+    "from",
+    "google",
+    "include",
+    "information",
+    "line",
+    "listed",
+    "main",
+    "name",
+    "none",
+    "null",
+    "output",
+    "passed",
+    "return",
+    "running",
+    "should",
+    "sizeof",
+    "source",
+    "stack",
+    "std",
+    "test",
+    "tests",
+    "testing",
+    "that",
+    "these",
+    "this",
+    "trace",
+    "true",
+    "value",
+    "values",
+    "warning",
+    "which",
+    "with",
+    "work",
+}
+_STOP.update(
+    {
+        "alignas",
+        "alignof",
+        "auto",
+        "bool",
+        "break",
+        "case",
+        "catch",
+        "char",
+        "class",
+        "const",
+        "constexpr",
+        "continue",
+        "decltype",
+        "default",
+        "delete",
+        "double",
+        "else",
+        "enum",
+        "explicit",
+        "extern",
+        "float",
+        "friend",
+        "inline",
+        "long",
+        "mutable",
+        "namespace",
+        "noexcept",
+        "nullptr",
+        "operator",
+        "private",
+        "protected",
+        "public",
+        "register",
+        "reinterpret_cast",
+        "short",
+        "signed",
+        "static",
+        "static_assert",
+        "struct",
+        "switch",
+        "template",
+        "thread_local",
+        "throw",
+        "try",
+        "typedef",
+        "typename",
+        "union",
+        "unsigned",
+        "using",
+        "virtual",
+        "void",
+        "volatile",
+        "while",
+    }
+)
+_MAX_FILE_BYTES = 2_000_000
+_MAX_SCAN_BYTES = 32_000_000
+
+
+def _stem(word: str) -> str:
+    if len(word) > 5 and word.endswith("ies"):
+        word = word[:-3] + "y"
+    elif len(word) > 4 and word.endswith("s") and not word.endswith("ss"):
+        word = word[:-1]
+    for suffix in ("ing", "ed", "er"):
+        if len(word) > len(suffix) + 4 and word.endswith(suffix):
+            return word[: -len(suffix)]
+    return word
+
+
+def _word_forms(word: str) -> set[str]:
+    if word.isupper():
+        return {word.casefold()}
+    parts = {part.casefold() for part in _CAMEL.findall(word.replace("_", " "))}
+    parts.add(word.casefold())
+    return parts | {_stem(part) for part in parts}
+
+
+def _terms(signals: Iterable[str]) -> dict[str, int]:
+    terms: dict[str, int] = {}
+    signals = list(signals)
+    suite_words = {
+        form
+        for signal in signals
+        if re.fullmatch(r"[\w:/-]+\.[\w:/-]+", signal.strip())
+        for word in _IDENTIFIER.findall(signal.rsplit(".", 1)[0])
+        for form in _word_forms(word)
+    }
+    for signal in signals:
+        auxiliary = bool(re.search(r"\s", signal))
+        # Stack paths are location anchors, not semantic evidence that words like
+        # "internal", a developer username or a checkout directory explain a bug.
+        signal = re.sub(
+            r'[^\s()"\'<>]*[/\\][^\s()"\'<>]+\.(?:cxx|cpp|cc|c|hpp|hh|hxx|h|inc)\b',
+            " ",
+            signal,
+        )
+        for word in _IDENTIFIER.findall(signal):
+            folded = word.casefold()
+            if len(word) >= 4 and folded not in _STOP:
+                weight = 14 if len(word) >= 8 else 7
+                if auxiliary:
+                    weight = 8 if "_" in word or (not word.islower() and not word.isupper()) else 1
+                if folded in suite_words:
+                    weight = min(weight, 4)
+                terms[folded] = max(terms.get(folded, 0), weight)
+                stripped = re.sub(r"_?tests?$", "", folded)
+                if stripped != folded and len(stripped) >= 4 and stripped not in _STOP:
+                    terms[stripped] = max(terms.get(stripped, 0), min(weight, 10))
+            for part in _CAMEL.findall(word.replace("_", " ")):
+                part = part.casefold()
+                if len(part) >= 4 and part not in _STOP:
+                    weight = 1 if auxiliary else 3
+                    terms[part] = max(terms.get(part, 0), weight)
+                    terms[_stem(part)] = max(terms.get(_stem(part), 0), weight)
+    return terms
+
+
+def _normalize_include(path: str) -> str | None:
+    parts: list[str] = []
+    for part in path.split("/"):
+        if part in {"", "."}:
+            continue
+        if part == "..":
+            if not parts:
+                return None
+            parts.pop()
+        else:
+            parts.append(part)
+    return "/".join(parts)
+
+
+def _windows(lines: list[str], hits: list[tuple[int, int]], limit: int) -> list[dict[str, Any]]:
+    if not lines or limit < 80:
+        return []
+    # Prefer the exact assertion/symbol window; do not spend the budget on a header preamble.
+    ranked = sorted(hits, key=lambda value: (-value[1], value[0])) or [(0, 1)]
+    selected: set[int] = set()
+    size = 0
+    for anchor, _ in ranked[:8]:
+        # A full neighborhood gives the model function signatures, branches and return values.
+        candidates = [anchor]
+        for distance in range(1, 33):
+            candidates.extend((anchor - distance, anchor + distance))
+        for index in candidates:
+            if index in selected or not 0 <= index < len(lines):
+                continue
+            cost = len(json.dumps(lines[index]))
+            if size + cost > limit:
+                continue
+            selected.add(index)
+            size += cost
+        if size >= limit * 0.8:
+            break
+    ranges: list[tuple[int, int]] = []
+    for index in sorted(selected):
+        if ranges and ranges[-1][1] == index:
+            ranges[-1] = (ranges[-1][0], index + 1)
+        else:
+            ranges.append((index, index + 1))
+    return [
+        {"start_line": first + 1, "end_line": last, "content": "".join(lines[first:last])}
+        for first, last in ranges
+    ]
+
+
+def retrieve_sources(
+    paths: list[str],
+    read_text: Callable[[str], str],
+    *,
+    changed_paths: set[str],
+    signals: Iterable[str],
+    max_chars: int,
+) -> list[dict[str, Any]]:
+    """Return JSON-budgeted, exact source excerpts ranked by failure evidence.
+
+    File reads are limited to source suffixes in ``paths`` and capped to 2 MB per
+    file / 32 MB per request. Include lookup only resolves within that path set.
+    Character budgets count JSON escaping, matching the model request accounting.
+    """
+    if max_chars < 100:
+        return []
+    signals = list(signals)
+    query = "\n".join(signals).replace("\\", "/").casefold()
+    terms = _terms(signals)
+    tracked = {path for path in paths if PurePosixPath(path).suffix.casefold() in _SOURCE}
+    by_basename: dict[str, list[str]] = defaultdict(list)
+    for path in sorted(tracked):
+        by_basename[PurePosixPath(path).name].append(path)
+    documents: dict[str, tuple[str, list[str], list[tuple[int, int]]]] = {}
+    scores: dict[str, float] = {}
+    reasons: dict[str, str] = {}
+    scanned = 0
+
+    def path_priority(path: str) -> tuple[int, int, str]:
+        lower = path.casefold()
+        return (
+            -int(lower in query),
+            -sum(weight for term, weight in terms.items() if term in lower),
+            path,
+        )
+
+    for path in sorted(tracked, key=path_priority):
+        try:
+            text = read_text(path)
+        except (OSError, UnicodeError, ValueError, RuntimeError):
+            continue
+        size = len(text.encode("utf-8"))
+        if size > _MAX_FILE_BYTES or scanned + size > _MAX_SCAN_BYTES:
+            continue
+        scanned += size
+        lines = text.splitlines(keepends=True)
+        lower = path.casefold()
+        basename = PurePosixPath(path).name.casefold()
+        path_score = min(50, sum(min(weight, 7) for term, weight in terms.items() if term in lower))
+        explicit = lower in query or (len(basename) > 5 and basename in query)
+        score = path_score + (1000 if lower in query else 600 if explicit else 0)
+        seen_terms: set[str] = set()
+        hits: list[tuple[int, int]] = []
+        for index, line in enumerate(lines):
+            found = {
+                form for word in _IDENTIFIER.findall(line) for form in _word_forms(word)
+            } & terms.keys()
+            # Several independent concepts on the same line are more informative
+            # than a repeated module name or a single common entry-point symbol.
+            line_score = sum(terms[word] for word in found) * min(3, len(found))
+            if line_score:
+                hits.append((index, line_score))
+                seen_terms.update(found)
+        score += min(80, sum(terms[word] for word in seen_terms))
+        # Stack traces use either POSIX :line or MSVC's Windows file(line) notation.
+        for name in (lower, basename):
+            for match in re.finditer(re.escape(name) + r"(?::|\()(\d+)", query):
+                line_number = int(match.group(1))
+                if 1 <= line_number <= len(lines):
+                    hits.append((line_number - 1, 1000))
+        if path in changed_paths:
+            score += 4
+        documents[path] = (text, lines, hits)
+        scores[path] = score
+        reasons[path] = (
+            "failure location"
+            if explicit
+            else "failure symbols"
+            if seen_terms or path_score
+            else "recent change"
+            if path in changed_paths
+            else "source fallback"
+        )
+
+    # foo_test.cc usually exercises foo.h/foo.cc even when it includes many
+    # unrelated container or test-support headers. Keep that unit ahead of them.
+    for path in sorted(scores):
+        stem = PurePosixPath(path).stem
+        production_stem = re.sub(r"(?:_tests?|tests?)$", "", stem)
+        production_stem = re.sub(r"^tests?_", "", production_stem)
+        if production_stem == stem or not production_stem:
+            continue
+        siblings = [
+            candidate for candidate in documents if PurePosixPath(candidate).stem == production_stem
+        ]
+        for target in siblings:
+            scores[target] = max(scores[target], scores[path] * 0.85)
+            reasons[target] = "implementation unit of " + path
+
+    # Follow the headers actually used by likely failing tests/source, including
+    # same-directory includes, without consulting untracked files or the network.
+    seeds = sorted(scores, key=lambda path: (-scores[path], path))[:12]
+    if seeds and scores[seeds[0]] >= 500:
+        seeds = [path for path in seeds if scores[path] >= scores[seeds[0]] * 0.2]
+    queue = deque((path, 0) for path in seeds if scores[path] > 4)
+    visited: set[str] = set()
+    while queue and len(visited) < 160:
+        path, depth = queue.popleft()
+        if path in visited:
+            continue
+        visited.add(path)
+        if depth >= 2:
+            continue
+        text = documents[path][0]
+        _, parent_lines, parent_hits = documents[path]
+        nearby: set[str] = set()
+        for anchor, _ in sorted(parent_hits, key=lambda hit: -hit[1])[:4]:
+            nearby.update(
+                word.casefold()
+                for line in parent_lines[max(0, anchor - 12) : anchor + 18]
+                for word in re.findall(r"\b([A-Za-z_]\w*)\s*(?:\(|<)", line)
+                if len(word) >= 5 and not word.isupper() and word.casefold() not in _STOP
+            )
+        includes = _INCLUDE.findall(text)[:80]
+        for include in includes:
+            local = _normalize_include(str(PurePosixPath(path).parent / include))
+            matches = [candidate for candidate in (include, local) if candidate in documents]
+            if not matches:
+                matches = [
+                    candidate
+                    for candidate in by_basename.get(PurePosixPath(include).name, [])
+                    if candidate in documents and candidate.endswith("/" + include)
+                ]
+            # Public headers commonly declare functions implemented in a sibling
+            # .cc file (sometimes under a separate src/ tree).
+            for header in list(matches):
+                if PurePosixPath(header).suffix not in {".h", ".hh", ".hpp", ".hxx"}:
+                    continue
+                for suffix in (".cc", ".cpp", ".cxx", ".c"):
+                    sibling = str(PurePosixPath(header).with_suffix(suffix))
+                    alternatives = by_basename.get(PurePosixPath(sibling).name, [])
+                    if sibling in documents:
+                        matches.append(sibling)
+                    elif len(alternatives) == 1 and alternatives[0] in documents:
+                        matches.append(alternatives[0])
+            # A .cc file including its own public header is not new evidence
+            # about itself; re-anchoring from its helper calls hides the original
+            # failure concepts behind common internal functions.
+            matches = [target for target in matches if target != path]
+            related = any(
+                re.search(r"\b" + re.escape(word) + r"\s*(?:\(|<)", documents[target][0], re.I)
+                for target in matches
+                for word in nearby
+            )
+            for target in dict.fromkeys(matches):
+                boost = min(scores[path] * 0.9, scores[path] * 0.6 + 16) if related else 8
+                if boost > scores[target]:
+                    scores[target] = boost
+                    reasons[target] = "included by " + path
+                # The test name often differs from the implementation symbol.
+                # Calls next to the failing assertion bridge that vocabulary gap.
+                target_text, target_lines, target_hits = documents[target]
+                if nearby and target not in visited:
+                    anchored: set[str] = set()
+                    for index, line in enumerate(target_lines):
+                        found = {
+                            word.casefold()
+                            for word in re.findall(r"\b([A-Za-z_]\w*)\s*(?:\(|<)", line)
+                        } & nearby
+                        if found - anchored:
+                            weight = (
+                                10 if all(0 < terms.get(word, 0) <= 4 for word in found) else 35
+                            )
+                            target_hits.append((index, weight))
+                            anchored.update(found)
+                    documents[target] = (target_text, target_lines, target_hits)
+                queue.append((target, depth + 1))
+
+    ranked = sorted(scores, key=lambda path: (-scores[path], path))
+    result: list[dict[str, Any]] = []
+    for path in ranked[:24]:
+        remaining = max_chars - len(json.dumps(result)) - 200
+        if remaining < 180:
+            break
+        text, lines, hits = documents[path]
+        # Reserve room for several connected files instead of filling the request
+        # with the first large header. Small files are retained in their entirety.
+        allocation = min(9000, max(700, max_chars // 3), remaining)
+        full = [{"start_line": 1, "end_line": len(lines), "content": text}]
+        selected = (
+            full if len(json.dumps(full)) < allocation else _windows(lines, hits, allocation - 200)
+        )
+        item = {"path": path, "reason": reasons[path], "excerpts": selected}
+        while selected and len(json.dumps([*result, item])) > max_chars:
+            allocation //= 2
+            selected = _windows(lines, hits, allocation - 200)
+            item["excerpts"] = selected
+        if selected:
+            result.append(item)
+    return result

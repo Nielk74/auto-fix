@@ -1,0 +1,1 @@
+{"summary":"Restore correct hexadecimal digit conversion","explanation":"The regression changes the letter-digit offset from 9 to 8, so A–F decode one lower than their hexadecimal values. Restoring the offset fixes the reported escape and unescape failures.","edits":[{"path":"absl/strings/escaping.cc","old":"    x += 8;","new":"    x += 9;"}]}

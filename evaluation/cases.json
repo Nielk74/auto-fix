@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "ascii_lower_dispatch",
+      "title": "In-place lowercase conversion changes case in the wrong direction",
+      "description": "Search indexing normalizes mixed-case identifiers inconsistently after string dispatch refactoring.",
+      "exposure": "direct",
+      "mutations": [
+        {
+          "path": "absl/strings/ascii.cc",
+          "before": "void AsciiStrToLower(std::string* absl_nonnull s) {\n  char* p = &(*s)[0];\n  return ascii_internal::AsciiStrCaseFold<false>(p, p, s->size());\n}",
+          "after": "void AsciiStrToLower(std::string* absl_nonnull s) {\n  char* p = &(*s)[0];\n  return ascii_internal::AsciiStrCaseFold<true>(p, p, s->size());\n}"
+        }
+      ],
+      "build_targets": [
+        "absl_ascii_test"
+      ],
+      "ctest_regex": "^absl_ascii_test$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "AsciiStrTo.Lower"
+      ],
+      "changed_files": [
+        "absl/strings/ascii.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-1842",
+        "jira_summary": "Search indexing normalizes mixed-case identifiers inconsistently after string dispatch refactoring.",
+        "commit_message": "CORE-1842: Normalize string case dispatch in the ingestion pipeline",
+        "pr_title": "CORE-1842: Normalize string case dispatch in the ingestion pipeline"
+      },
+      "source_metrics": {
+        "file_bytes": 12791,
+        "mutation_byte_offset": 11740,
+        "mutation_line": 256
+      },
+      "upstream_test_count": 12,
+      "upstream_disabled_test_count": 0
+    },
+    {
+      "id": "hex_digit_conversion",
+      "title": "Hexadecimal alphabetic digits decode to the wrong byte values",
+      "description": "The configuration importer corrupts escaped byte sequences containing hexadecimal letters. Decimal-only escapes still work.",
+      "exposure": "direct",
+      "mutations": [
+        {
+          "path": "absl/strings/escaping.cc",
+          "before": "  if (x > '9') {\n    x += 9;\n  }",
+          "after": "  if (x > '9') {\n    x += 8;\n  }"
+        }
+      ],
+      "build_targets": [
+        "absl_escaping_test"
+      ],
+      "ctest_regex": "^absl_escaping_test$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "CEscape.EscapeAndUnescape",
+        "Unescape.BasicFunction",
+        "CUnescapeTest.UnescapesMultipleHexNulls"
+      ],
+      "changed_files": [
+        "absl/strings/escaping.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-1857",
+        "jira_summary": "The configuration importer corrupts escaped byte sequences containing hexadecimal letters. Decimal-only escapes still work.",
+        "commit_message": "CORE-1857: Unify byte escape decoding for configuration payloads",
+        "pr_title": "CORE-1857: Unify byte escape decoding for configuration payloads"
+      },
+      "source_metrics": {
+        "file_bytes": 39951,
+        "mutation_byte_offset": 1903,
+        "mutation_line": 57
+      },
+      "upstream_test_count": 19,
+      "upstream_disabled_test_count": 1
+    },
+    {
+      "id": "split_ascii_carriage_return",
+      "title": "ASCII whitespace splitting retains carriage returns in tokens",
+      "description": "Imports from Windows exports leave invisible characters in fields even though whitespace splitting is requested. Linux exports appear unaffected.",
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "absl/strings/str_split.cc",
+          "before": "  return GenericFind(text, \" \\t\\v\\f\\r\\n\", pos, AnyOfPolicy());",
+          "after": "  return GenericFind(text, \" \\t\\v\\f\\n\", pos, AnyOfPolicy());"
+        }
+      ],
+      "build_targets": [
+        "absl_str_split_test"
+      ],
+      "ctest_regex": "^absl_str_split_test$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "Split.ByAsciiWhitespace"
+      ],
+      "changed_files": [
+        "absl/strings/str_cat.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-1873",
+        "jira_summary": "Imports from Windows exports leave invisible characters in fields even though whitespace splitting is requested. Linux exports appear unaffected.",
+        "commit_message": "CORE-1873: Refresh import diagnostics for cross-platform text records",
+        "pr_title": "CORE-1873: Refresh import diagnostics for cross-platform text records"
+      },
+      "source_metrics": {
+        "file_bytes": 4814,
+        "mutation_byte_offset": 3615,
+        "mutation_line": 101
+      },
+      "upstream_test_count": 31,
+      "upstream_disabled_test_count": 0
+    },
+    {
+      "id": "demangle_rvalue_function_qualifier",
+      "title": "Demangling fails for rvalue reference qualified function types",
+      "description": "Native crash symbols from a plugin with reference-qualified callback signatures remain mangled; other symbols resolve normally.",
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "absl/debugging/internal/demangle.cc",
+          "before": "  Optional(ParseCharClass(state, \"RO\"));",
+          "after": "  Optional(ParseCharClass(state, \"R\"));"
+        }
+      ],
+      "build_targets": [
+        "absl_demangle_test"
+      ],
+      "ctest_regex": "^absl_demangle_test$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "Demangle.ReferenceQualifiedFunctionTypes"
+      ],
+      "changed_files": [
+        "absl/debugging/symbolize.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-1889",
+        "jira_summary": "Native crash symbols from a plugin with reference-qualified callback signatures remain mangled; other symbols resolve normally.",
+        "commit_message": "CORE-1889: Refresh crash symbol diagnostics for callback plugins",
+        "pr_title": "CORE-1889: Refresh crash symbol diagnostics for callback plugins"
+      },
+      "source_metrics": {
+        "file_bytes": 101007,
+        "mutation_byte_offset": 58146,
+        "mutation_line": 1716
+      },
+      "upstream_test_count": 127,
+      "upstream_disabled_test_count": 0
+    }
+  ]
+}

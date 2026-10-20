@@ -1,0 +1,1 @@
+{"summary":"Restore correct hexadecimal digit conversion","explanation":"The regression changes the alphabetic hex digit offset from 9 to 8. Hex digits A–F must map to 10–15; restoring the offset fixes the reported escape and unescape failures.","edits":[{"path":"absl/strings/escaping.cc","old":"  if (x > '9') {\n    x += 8;\n  }","new":"  if (x > '9') {\n    x += 9;\n  }"}]}

@@ -1,0 +1,50 @@
+[
+  {
+    "title": "[auto-fix] Restore lowercase dispatch for in-place string conversion",
+    "description": "The std::string overload of AsciiStrToLower calls the case-folding helper with ToUpper=true, which explains both reported failures. Change it to false, matching the destination/source overload and preserving the lowercase contract.\n\nReproduced failing tests:\n- `AsciiStrTo.Lower`\n\nOriginal TeamCity revision: `8a97923e74d9e5371dfa2dd95fb5d438b64d5fca`\n\nVerified commit after rebasing onto the configured base: `3d1552d7e2336e61b2fe228c3486c319522790ef`\n\nValidation: configured native build and full test command passed; originally failing tests are present and passing in the fresh JUnit report.\n\nContext:\n- [TeamCity build 284761](https://ci.meridian.invalid/teamcity/viewLog.html?buildId=284761)\n- [CORE-1842](https://issues.meridian.invalid/jira/browse/CORE-1842)\n- [OPS-218](https://issues.meridian.invalid/jira/browse/OPS-218)\n- [PLAT-1731](https://issues.meridian.invalid/jira/browse/PLAT-1731)\n- [Related PR 418](https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/418)\n- [Related PR 402](https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/402)\n- [Related PR 425](https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/425)\n\n[Screenshot artifact](https://ci.meridian.invalid/teamcity/app/rest/builds/id:284761/artifacts/content/reports/unit-test-failure.svg)\n\n![TeamCity screenshot](https://ci.meridian.invalid/teamcity/app/rest/builds/id:284761/artifacts/content/reports/unit-test-failure.svg)\n\nAutomation run: `tc-284761-a9471a3aef70`. AI-generated candidate; review before merging.",
+    "fromRef": {
+      "id": "refs/heads/auto-fix/tc-284761-a9471a3aef70",
+      "repository": {
+        "slug": "cpp-runtime",
+        "project": {
+          "key": "PLAT"
+        }
+      },
+      "latestCommit": "3d1552d7e2336e61b2fe228c3486c319522790ef"
+    },
+    "toRef": {
+      "id": "refs/heads/master",
+      "repository": {
+        "slug": "cpp-runtime",
+        "project": {
+          "key": "PLAT"
+        }
+      }
+    },
+    "id": 901,
+    "version": 0,
+    "state": "OPEN",
+    "open": true,
+    "closed": false,
+    "author": {
+      "user": {
+        "name": "svc.auto-fix",
+        "emailAddress": "auto-fix@meridian.invalid",
+        "displayName": "Auto Fix Evaluation Bot",
+        "active": true,
+        "slug": "svc.auto-fix",
+        "type": "NORMAL"
+      },
+      "role": "AUTHOR"
+    },
+    "reviewers": [],
+    "synthetic": true,
+    "links": {
+      "self": [
+        {
+          "href": "https://code.meridian.invalid/bitbucket/projects/PLAT/repos/cpp-runtime/pull-requests/901"
+        }
+      ]
+    }
+  }
+]

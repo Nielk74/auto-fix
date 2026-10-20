@@ -89,6 +89,17 @@ def main(argv: list[str] | None = None) -> int:
             )
     demo = commands.add_parser("demo")
     demo.add_argument("--directory", type=Path, default=Path(".auto-fix/demo"))
+    evaluation = commands.add_parser(
+        "evaluate", help="Run large C++ fixtures with a live repair model"
+    )
+    evaluation.add_argument("--directory", type=Path, required=True)
+    evaluation.add_argument("--profile", choices=["legacy", "focused"], default="focused")
+    evaluation.add_argument("--backend", choices=["codex", "endpoint", "replay"], default="codex")
+    evaluation.add_argument("--model", default="gpt-6-luna")
+    evaluation.add_argument("--case", action="append", dest="cases")
+    evaluation.add_argument("--upstream-cache", type=Path, default=Path(".auto-fix/upstream"))
+    evaluation.add_argument("--config", type=Path)
+    evaluation.add_argument("--recordings", type=Path)
     commands.add_parser("graph")
     args = parser.parse_args(argv)
     if args.command == "graph":
@@ -98,6 +109,19 @@ def main(argv: list[str] | None = None) -> int:
         from auto_fix.demo import run_demo
 
         return run_demo(args.directory)
+    if args.command == "evaluate":
+        from auto_fix.evaluation import run_evaluation
+
+        return run_evaluation(
+            args.directory,
+            profile=args.profile,
+            backend=args.backend,
+            model_name=args.model,
+            selected=args.cases,
+            upstream_cache=args.upstream_cache,
+            endpoint_config=args.config,
+            recordings=args.recordings,
+        )
     # Configuration-adjacent secrets work independently of Task Scheduler's working directory.
     load_dotenv(args.config.resolve().parent / ".env", override=False)
     services = []
