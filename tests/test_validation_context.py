@@ -74,6 +74,30 @@ def test_expected_actual_xml_fields_and_namespaces_match_builder_identity(tmp_pa
     assert result["assertions"][1]["text"] == "native crash"
 
 
+@pytest.mark.parametrize(
+    "operands",
+    [
+        "  expected_status\n    Which is: false\n  observed_status\n    Which is: true",
+        "  observed_status\n    Which is: true\n  expected_status\n    Which is: false",
+        '  Decode(input)\n    Which is: "N"\n  "M"',
+    ],
+)
+def test_google_test_operand_values_are_not_mislabeled_as_actual(tmp_path, operands):
+    from xml.sax.saxutils import escape
+
+    text = "Expected equality of these values:\n" + operands
+    verification, _ = report(
+        tmp_path,
+        '<testsuite><testcase classname="Parser" name="Contract"><failure>'
+        + escape(text)
+        + "</failure></testcase></testsuite>",
+        ["Parser.Contract"],
+    )
+    assertion = failed_assertions(verification, evidence_root=tmp_path)["assertions"][0]
+    assert assertion["expected"] == assertion["actual"] == ""
+    assert assertion["text"] == text
+
+
 def test_round_robin_group_representatives_do_not_hide_a_later_failure_family(tmp_path):
     cases = []
     failed = []

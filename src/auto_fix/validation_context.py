@@ -124,7 +124,10 @@ def _explicit_values(failures: list[Any], text: str, kind: str) -> str:
         labels = re.findall(rf"(?im)^\s*{kind}\s*:\s*([^\n]+)", text)
         if kind == "actual":
             labels.extend(re.findall(r"(?i)\bactual\s*:\s*([^\n]+)", text))
-            labels.extend(re.findall(r"(?im)^\s*which is\s*:\s*([^\n]+)", text))
+        # GoogleTest's "Which is" describes the immediately preceding operand,
+        # which may be the expected operand. Keep those values with their named
+        # expressions in the original text; assigning them all to actual reverses
+        # contracts such as EXPECT_EQ(expected_status, observed_status).
         values.extend(labels)
     return "\n".join(dict.fromkeys(value for value in values if value))
 

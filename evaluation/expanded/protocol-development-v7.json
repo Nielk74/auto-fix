@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "id": "development-v7-assertion-grounding",
+  "parent": "protocol-development-v6-baseline-trust.json",
+  "model": "gpt-6-luna",
+  "backend": "codex",
+  "holdout_model_outcomes_seen": false,
+  "frozen_corpus_unchanged": true,
+  "inference_not_started_at_declaration": true,
+  "trigger": {
+    "fresh_v6_confirmation_trials": 24,
+    "published": 22,
+    "failed": [
+      "fmt_pre_epoch_fraction_normalization",
+      "absl_integer_bare_prefixes"
+    ],
+    "original_scores_preserved": true,
+    "findings": [
+      "The chrono candidate introduced a floating-duration template compile error on its final allowed repair; compiler feedback arrived after the two-repair budget was exhausted.",
+      "The integer candidate inverted explicit protected-test expected=false/actual=true evidence despite complete current helper/test definitions, then treated its earlier hypothesis as established fact. Its final proposal intentionally used an invalid empty path; the controller rejected it.",
+      "The structured diagnostic adapter incorrectly collected GoogleTest 'Which is' values for both operands under actual. Raw assertion text and complete test source were still correct. Remove that inference; preserve operand/value pairs verbatim without guessing expected/actual roles."
+    ]
+  },
+  "changes": [
+    "Add an assertion-grounded repair prompt as a separate version while preserving all existing repair and investigation prompts byte for byte. Require the explanation to distinguish observed values from expected values and resolve contradictions against current assertions/protected tests before editing.",
+    "Correct the shared diagnostic adapter for ALL three V7 arms: only explicit actual XML/labels populate actual; GoogleTest 'Which is' operands retain their named expressions in raw text. The V7 two-repair control therefore includes this common evidence correction relative to V6; do not attribute that cross-phase difference solely to model variability.",
+    "Measure extra repair capacity independently from the new prompt. No native oracle, case mutation, split, source retrieval or publication-gate change.",
+    "A separate operations-only grading correction distinguishes correct invalid-evidence rejection from stale failure reproduction; it does not alter the repair workflow or original raw operational grades."
+  ],
+  "shared": {
+    "split": "development",
+    "unique_cases_per_arm": 24,
+    "reasoning_effort": "high",
+    "context_chars": 160000,
+    "definition_reads": true,
+    "structured_diagnostics": true,
+    "baseline_repetitions": 2,
+    "inspections_per_attempt": 2,
+    "native_oracle": "Unchanged V6 duration10/fmt12 trusted checks, full original baseline retention, protected tests/configurations, final rebase/retest and tested/pushed/PR head agreement.",
+    "diagnostics": "Corrected explicit-value extraction shared across all three arms; no inferred expected/actual roles from GoogleTest operand order."
+  },
+  "arms": [
+    {
+      "id": "confirmation-budget-v7",
+      "prompt": "contract-v3",
+      "max_attempts": 2,
+      "max_inspections": 4
+    },
+    {
+      "id": "expanded-budget-v7",
+      "prompt": "contract-v3",
+      "max_attempts": 4,
+      "max_inspections": 6
+    },
+    {
+      "id": "assertion-grounded-v7",
+      "prompt": "assertion-v4",
+      "max_attempts": 4,
+      "max_inspections": 6
+    }
+  ],
+  "planned_trials": 72,
+  "max_parallel": 3,
+  "ordering": "Interleave all three arms within fmt, strings and systems groups. Isolated ephemeral model calls; latency remains descriptive under concurrent load.",
+  "independent_review": "Review every native publication against protected tests, current source, complete executed baseline identities and publication receipts; preserve native grades and annotate confirmed semantic regressions separately.",
+  "selection": {
+    "eligible": "Only completed24-case arms in this registered V7 comparison, with no pending independent publication review.",
+    "ranking": [
+      "Most native publications without independently confirmed semantic contract regressions.",
+      "Fewest total actual live Luna investigation plus repair calls across all24 trials, including failures.",
+      "Lowest total measured trial latency; stable lexicographic arm ID only for an exact final tie."
+    ],
+    "cost_limits": "Expanded arms have larger maximum model and native-build budgets; do not attribute gains to prompting alone. Equal-resource comparison is expanded-budget-v7 versus assertion-grounded-v7."
+  },
+  "holdout": {
+    "not_started": true,
+    "prerequisite": "Complete all72 development trials and reviews; freeze selected recipe, source/input hashes and exact held-out execution plan before first holdout call.",
+    "unique_cases": 21,
+    "baseline_rounds": 1,
+    "selected_fresh_rounds": 3,
+    "total_trials": 84,
+    "no_tuning_after_holdout": true,
+    "prior_holdout_plan": "holdout-v6.json remains preserved and was never executed. A V7 plan will be registered after selection.",
+    "baseline": "Original repair-v1, medium,60000 characters,no inspections,unstructured,no definition reads,two repairs,two stable native baselines, same unchanged V6 oracle."
+  },
+  "claim_limits": [
+    "Finite development repetitions do not establish a guaranteed repair rate.",
+    "The45 corpus cases are synthetic injected regressions in two pinned real C++ projects, not historical incident resolutions.",
+    "Only gpt-6-luna is evaluated; Qwen and real on-premise services remain unmeasured.",
+    "Mechanical/native replay controls are zero-inference checks and are not extra live model evaluations."
+  ]
+}
