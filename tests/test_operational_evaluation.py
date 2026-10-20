@@ -16,7 +16,8 @@ from auto_fix import mock_services as mocks
 from auto_fix.config import BitbucketConfig
 from auto_fix.evaluation import _git, _source
 from auto_fix.integrations import Bitbucket, IntegrationError
-from auto_fix.models import FailedTest, Failure, Proposal
+from auto_fix.models import FailedTest, Failure, Proposal, Verification
+from auto_fix.models import TestReport as NativeTestReport
 from auto_fix.operational_evaluation import (
     MODEL,
     SCENARIOS,
@@ -25,6 +26,8 @@ from auto_fix.operational_evaluation import (
     _ModelFaults,
     _native_validated,
     _report_adapter,
+    _run_scenario,
+    _settings,
     judge_outcome,
     omit_report_identity,
     run_operational_evaluation,
@@ -373,4 +376,162 @@ def test_native_gate_reads_actual_report_instead_of_claimed_counts(tmp_path):
 def test_invalid_selection_stops_before_cloning_or_calling_a_model(tmp_path, selected):
     with pytest.raises(ValueError, match="scenario selection"):
         run_operational_evaluation(tmp_path / "output", selected=selected)
+    assert not (tmp_path / "output").exists()
+
+
+@pytest.mark.parametrize("limit", [0, 7, True, "2"])
+def test_invalid_inspection_round_limit_fails_before_native_or_model_work(tmp_path, limit):
+    with pytest.raises(ValueError, match="inspections_per_attempt"):
+        run_operational_evaluation(tmp_path / "output", inspections_per_attempt=limit)
+    assert not (tmp_path / "output").exists()
+
+
+@pytest.mark.parametrize(
+    "configured,expected",
+    [
+        ({}, (6, 60000, False)),
+        (
+            {"inspections_per_attempt": 2, "context_chars": 160000, "definition_reads": True},
+            (2, 160000, True),
+        ),
+    ],
+)
+def test_operational_policy_reaches_scenarios_and_evidence_manifest(
+    tmp_path, monkeypatch, configured, expected
+):
+    from auto_fix import operational_evaluation as operations
+
+    observed = []
+    monkeypatch.setattr(operations, "_upstream", lambda *_args: tmp_path / "unused-cache")
+
+    def run_scenario(_directory, scenario, *_args, **kwargs):
+        observed.append(kwargs)
+        return {
+            "scenario": scenario.id,
+            "operational_pass": True,
+            "repair_completed": False,
+            "status": "blocked",
+        }
+
+    monkeypatch.setattr(operations, "_run_scenario", run_scenario)
+    directory = tmp_path / "output"
+    assert (
+        run_operational_evaluation(
+            directory, max_inspections=4, selected=["stale_teamcity"], **configured
+        )
+        == 0
+    )
+    assert observed[0]["inspections_per_attempt"] == expected[0]
+    assert observed[0]["max_inspections"] == 4
+    assert observed[0]["context_chars"] == expected[1]
+    assert observed[0]["definition_reads"] is expected[2]
+    manifest = json.loads((directory / "manifest.json").read_text())
+    summary = json.loads((directory / "summary.json").read_text())
+    assert manifest["inspections_per_attempt"] == summary["inspections_per_attempt"] == expected[0]
+    assert manifest["max_inspections"] == summary["max_inspections"] == 4
+    assert manifest["context_chars"] == summary["context_chars"] == expected[1]
+    assert manifest["definition_reads"] is summary["definition_reads"] is expected[2]
+    assert manifest["max_attempts"] == 3, "Preserve the separate operational fault budget"
+    assert "validation_context.py" in manifest["source_sha256"]
+    assert (directory / "implementation/validation_context.py").is_file()
+
+
+def test_scenario_passes_the_evidence_policy_into_actual_settings(
+    git_control, tmp_path, monkeypatch
+):
+    from auto_fix import operational_evaluation as operations
+
+    _current, source, case = git_control
+    junit = tmp_path / "synthetic-preflight" / "junit.xml"
+    junit.parent.mkdir()
+    junit.write_text(
+        '<testsuite><testcase classname="AsciiStrTo" name="Lower">'
+        "<failure>Structural fixture only</failure></testcase></testsuite>"
+    )
+    build = {"build": [["unused-native-command"]], "test": ["unused-runner", "{junit}"]}
+
+    class Preflight:
+        def __init__(self, *_args):
+            pass
+
+        def verify(self, *_args):
+            return Verification(
+                build_ok=True,
+                test_ok=False,
+                report=NativeTestReport(failed=["AsciiStrTo.Lower"]),
+                logs=[str(junit)],
+            )
+
+    class ObservedSettings(Exception):
+        pass
+
+    def settings(
+        current,
+        source,
+        build,
+        prompt,
+        inspections,
+        inspections_per_attempt,
+        context_chars,
+        definition_reads,
+    ):
+        actual = _settings(
+            current,
+            source,
+            build,
+            prompt,
+            inspections,
+            inspections_per_attempt,
+            context_chars,
+            definition_reads,
+        )
+        assert actual.max_inspections == 4 and actual.inspections_per_attempt == 2
+        assert actual.llm.context_chars == 160000
+        assert actual.repository.definition_reads is True
+        default = _settings(current, source, build, prompt, inspections)
+        assert default.inspections_per_attempt == 6
+        assert default.llm.context_chars == 60000
+        assert default.repository.definition_reads is False
+        raise ObservedSettings
+
+    monkeypatch.setattr(operations, "_source", lambda *_args: (source, []))
+    monkeypatch.setattr(operations, "_build_config", lambda *_args: build)
+    monkeypatch.setattr(operations, "Builder", Preflight)
+    monkeypatch.setattr(operations, "_settings", settings)
+    monkeypatch.setattr(
+        operations,
+        "CodexRepairModel",
+        lambda *_args, **_kwargs: pytest.fail("No live models in mechanics tests"),
+    )
+    with pytest.raises(ObservedSettings):
+        _run_scenario(
+            tmp_path / "scenario-policy",
+            scenario("lost_model_response"),
+            {},
+            case,
+            source,
+            tmp_path / "unused-googletest",
+            prompt_version="contract-v3",
+            max_inspections=4,
+            inspections_per_attempt=2,
+            context_chars=160000,
+            definition_reads=True,
+            reasoning_effort="medium",
+        )
+
+
+@pytest.mark.parametrize(
+    "settings,field",
+    [
+        ({"context_chars": 3999}, "context_chars"),
+        ({"context_chars": 200001}, "context_chars"),
+        ({"context_chars": True}, "context_chars"),
+        ({"context_chars": "160000"}, "context_chars"),
+        ({"definition_reads": "true"}, "definition_reads"),
+        ({"definition_reads": 1}, "definition_reads"),
+    ],
+)
+def test_invalid_evidence_policy_fails_before_native_or_model_work(tmp_path, settings, field):
+    with pytest.raises(ValueError, match=field):
+        run_operational_evaluation(tmp_path / "output", **settings)
     assert not (tmp_path / "output").exists()
