@@ -1,0 +1,740 @@
+{
+  "scope": "DEVELOPMENT only; read-only diagnosis; no model calls, no holdout, no source changes",
+  "frozen_controller_commit": "93366233a12469f65c7a12e2f6e294da3959327c",
+  "cases": [
+    {
+      "case": "fmt_pre_epoch_fraction_normalization",
+      "case_directory": ".auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization",
+      "score_sha256": "9c99032937f767ccc704ab830bca10e714fd4e3483ebb104f6ad00b3f9614960",
+      "result_path": ".auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/runs/tc-284765-0242878cd5e5/result.json",
+      "result_sha256": "0d87b561268e22bd7aafc74cb21014c17ca43b3d8fc8f3b9c3582014daa67430",
+      "status": "blocked",
+      "success": false,
+      "attempts": 2,
+      "inspections": 4,
+      "baseline_repetitions": 2,
+      "baseline_check_count": 2,
+      "pull_requests_created": 0,
+      "actual_model_calls": [
+        {
+          "call": 1,
+          "kind": "investigation",
+          "request_path": ".auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/model/call-1/request.json",
+          "request_sha256": "110ebd86314b18dc4a3ca238ae9a4759931b752ae9fb82472e9784115f28d51d",
+          "response_sha256": "ff20aaa5d351cc0ce4eeae058a1c10ac5907b4d1cb350c197aea2ed971fd9c76",
+          "model": "gpt-6-luna",
+          "reasoning_effort": "high",
+          "returncode": 0
+        },
+        {
+          "call": 2,
+          "kind": "investigation",
+          "request_path": ".auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/model/call-2/request.json",
+          "request_sha256": "5e60f4a11c020c01c2c42ed029c2d5b21c9ef125f6df26684630ca39c0007036",
+          "response_sha256": "5c3b3071acb94d3403a42dbb0df7a3881e8c3b38bdce4bedea66dfa8a80a744a",
+          "model": "gpt-6-luna",
+          "reasoning_effort": "high",
+          "returncode": 0
+        },
+        {
+          "call": 3,
+          "kind": "repair",
+          "request_path": ".auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/model/call-3/request.json",
+          "request_sha256": "9c946382f56a65f072366a8de1e529d2789d52c0b1acdea6cf11d37ae3100db3",
+          "response_sha256": "90c8730d8bba844571e4dc4b25325d91757327b2b5394ee16007d4465f53118a",
+          "model": "gpt-6-luna",
+          "reasoning_effort": "high",
+          "returncode": 0
+        },
+        {
+          "call": 4,
+          "kind": "investigation",
+          "request_path": ".auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/model/call-4/request.json",
+          "request_sha256": "39d2a374d3bd2feccec39a4fd208bcf89ad7eaec43e0b86f72effb5386c01238",
+          "response_sha256": "6789464ccc4d0f52cc02bda73c48eb008811b8556a26b60ce0a2d15991a7340e",
+          "model": "gpt-6-luna",
+          "reasoning_effort": "high",
+          "returncode": 0
+        },
+        {
+          "call": 5,
+          "kind": "investigation",
+          "request_path": ".auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/model/call-5/request.json",
+          "request_sha256": "129bd76a8eebe9b71e069fdafc089e2f887f45d5e30cd2718e1ab566d2bfccbc",
+          "response_sha256": "66f07c6da94e393b649236c46f7da13a43969169b413320f8ab953f89e6d803e",
+          "model": "gpt-6-luna",
+          "reasoning_effort": "high",
+          "returncode": 0
+        },
+        {
+          "call": 6,
+          "kind": "repair",
+          "request_path": ".auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/model/call-6/request.json",
+          "request_sha256": "3e1176a21f8a3990c95c7cf1fa320a4ee3622533644cbc27c857c50e2ac785e2",
+          "response_sha256": "ec6049a3d0774512d9ee2eafdd544eeaa318ea581106619dd1cded157451e6bd",
+          "model": "gpt-6-luna",
+          "reasoning_effort": "high",
+          "returncode": 0
+        }
+      ],
+      "repair_packets": [
+        {
+          "call": 3,
+          "source_evidence": [
+            {
+              "location": "/context/repository/files/1/excerpts/3",
+              "path": "include/fmt/chrono.h",
+              "start_line": 2195,
+              "end_line": 2245,
+              "content_sha256": "ee41aeba0d671273421df870253e6d7c9ce5a9872feeeec075a2eae6cc65f46a",
+              "content": "        tm = gmtime(val - second);\n        detail::set_tm_zone(tm, detail::utc());\n      }\n      subsecs += second / 2;\n    }\n    return formatter<std::tm, Char>::do_format(tm, ctx, &subsecs);\n  }\n};\n\ntemplate <typename Duration, typename Char>\nstruct formatter<utc_time<Duration>, Char>\n    : formatter<sys_time<Duration>, Char> {\n  template <typename FormatContext>\n  auto format(utc_time<Duration> val, FormatContext& ctx) const\n      -> decltype(ctx.out()) {\n    return formatter<sys_time<Duration>, Char>::format(\n        detail::utc_clock::to_sys(val), ctx);\n  }\n};\n\ntemplate <typename Duration, typename Char>\nstruct formatter<local_time<Duration>, Char>\n    : private formatter<std::tm, Char> {\n  FMT_CONSTEXPR auto parse(parse_context<Char>& ctx) -> const Char* {\n    return this->do_parse(ctx, false);\n  }\n\n  template <typename FormatContext>\n  auto format(local_time<Duration> val, FormatContext& ctx) const\n      -> decltype(ctx.out()) {\n    auto time_since_epoch = val.time_since_epoch();\n    auto seconds_since_epoch =\n        detail::duration_cast<std::chrono::seconds>(time_since_epoch);\n    // Use gmtime to prevent time zone conversion since local_time has an\n    // unspecified time zone.\n    std::tm t = gmtime(seconds_since_epoch.count());\n    using period = typename Duration::period;\n    if (period::num == 1 && period::den == 1 &&\n        !std::is_floating_point<typename Duration::rep>::value) {\n      return formatter<std::tm, Char>::format(t, ctx);\n    }\n    auto subsecs =\n        detail::duration_cast<Duration>(time_since_epoch - seconds_since_epoch);\n    return formatter<std::tm, Char>::do_format(t, ctx, &subsecs);\n  }\n};\n\nFMT_END_EXPORT\nFMT_END_NAMESPACE\n\n#endif  // FMT_CHRONO_H_\n"
+            },
+            {
+              "location": "/context/investigation/evidence/0/excerpts/5",
+              "path": "include/fmt/chrono.h",
+              "start_line": 2161,
+              "end_line": 2245,
+              "content_sha256": "c5d35ca3001f7ec54a2824655349d5742f779c14caf72a54f8bebf7db1d9c8cc",
+              "content": "\n  template <typename FormatContext>\n  auto format(const std::tm& tm, FormatContext& ctx) const\n      -> decltype(ctx.out()) {\n    return do_format<std::chrono::seconds>(tm, ctx, nullptr);\n  }\n};\n\n// DEPRECATED! Reversed order of template parameters.\ntemplate <typename Char, typename Duration>\nstruct formatter<sys_time<Duration>, Char> : private formatter<std::tm, Char> {\n  FMT_CONSTEXPR auto parse(parse_context<Char>& ctx) -> const Char* {\n    return this->do_parse(ctx, true);\n  }\n\n  template <typename FormatContext>\n  auto format(sys_time<Duration> val, FormatContext& ctx) const\n      -> decltype(ctx.out()) {\n    std::tm tm = gmtime(val);\n    using period = typename Duration::period;\n    if FMT_CONSTEXPR20 (period::num == 1 && period::den == 1 &&\n                        !std::is_floating_point<\n                            typename Duration::rep>::value) {\n      detail::set_tm_zone(tm, detail::utc());\n      return formatter<std::tm, Char>::format(tm, ctx);\n    }\n    Duration epoch = val.time_since_epoch();\n    Duration subsecs = detail::duration_cast<Duration>(\n        epoch - detail::duration_cast<std::chrono::seconds>(epoch));\n    if (subsecs.count() <= 0) {\n      auto second = detail::duration_cast<Duration>(std::chrono::seconds(1));\n      if (tm.tm_sec != 0) {\n        --tm.tm_sec;\n      } else {\n        tm = gmtime(val - second);\n        detail::set_tm_zone(tm, detail::utc());\n      }\n      subsecs += second / 2;\n    }\n    return formatter<std::tm, Char>::do_format(tm, ctx, &subsecs);\n  }\n};\n\ntemplate <typename Duration, typename Char>\nstruct formatter<utc_time<Duration>, Char>\n    : formatter<sys_time<Duration>, Char> {\n  template <typename FormatContext>\n  auto format(utc_time<Duration> val, FormatContext& ctx) const\n      -> decltype(ctx.out()) {\n    return formatter<sys_time<Duration>, Char>::format(\n        detail::utc_clock::to_sys(val), ctx);\n  }\n};\n\ntemplate <typename Duration, typename Char>\nstruct formatter<local_time<Duration>, Char>\n    : private formatter<std::tm, Char> {\n  FMT_CONSTEXPR auto parse(parse_context<Char>& ctx) -> const Char* {\n    return this->do_parse(ctx, false);\n  }\n\n  template <typename FormatContext>\n  auto format(local_time<Duration> val, FormatContext& ctx) const\n      -> decltype(ctx.out()) {\n    auto time_since_epoch = val.time_since_epoch();\n    auto seconds_since_epoch =\n        detail::duration_cast<std::chrono::seconds>(time_since_epoch);\n    // Use gmtime to prevent time zone conversion since local_time has an\n    // unspecified time zone.\n    std::tm t = gmtime(seconds_since_epoch.count());\n    using period = typename Duration::period;\n    if (period::num == 1 && period::den == 1 &&\n        !std::is_floating_point<typename Duration::rep>::value) {\n      return formatter<std::tm, Char>::format(t, ctx);\n    }\n    auto subsecs =\n        detail::duration_cast<Duration>(time_since_epoch - seconds_since_epoch);\n    return formatter<std::tm, Char>::do_format(t, ctx, &subsecs);\n  }\n};\n\nFMT_END_EXPORT\nFMT_END_NAMESPACE\n\n#endif  // FMT_CHRONO_H_\n"
+            }
+          ],
+          "latest_validation": {
+            "build_ok": true,
+            "test_ok": false,
+            "failed": [
+              "chrono_test.tp_align",
+              "chrono_test.timestamp_ratios",
+              "chrono_test.timestamp_sub_seconds",
+              "SemanticGuard.FmtContractBoundaries.ChronoNanosecondsMinimum"
+            ],
+            "assertions": {
+              "source": "current_native_junit",
+              "failed_test_count": 4,
+              "group_count": 2,
+              "groups": [
+                {
+                  "classname": "chrono_test",
+                  "failed_test_count": 3
+                },
+                {
+                  "classname": "SemanticGuard.FmtContractBoundaries",
+                  "failed_test_count": 1
+                }
+              ],
+              "assertions": [
+                {
+                  "name": "chrono_test.tp_align",
+                  "classname": "chrono_test",
+                  "message": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:458\nExpected equality of these values:\n  fmt::format(\"{:%M:%S}\", tp)\n    Which is: \"59:59.500000\"\n  \"00:00.000000\"\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono ... confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:467\nExpected equality of these values:\n  fmt::format(\"{:*>15%M:%S}\", tp)\n    Which is: \"***59:59.500000\"\n  \"***00:00.000000\"",
+                  "text": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:458\nExpected equality of these values:\n  fmt::format(\"{:%M:%S}\", tp)\n    Which is: \"59:59.500000\"\n  \"00:00.000000\"\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/developmen ... n_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:467\nExpected equality of these values:\n  fmt::format(\"{:*>15%M:%S}\", tp)\n    Which is: \"***59:59.500000\"\n  \"***00:00.000000\"",
+                  "expected": "",
+                  "actual": "\"59:59.500000\"\n\"59:59.500000   \"\n\" 59:59.500000  \"\n\"   59:59.500000\"\n\"59:59.500000***\"\n\"*59:59.500000**\"\n\"***59:59.500000\"",
+                  "failure_elements": 9,
+                  "truncated": true
+                },
+                {
+                  "name": "SemanticGuard.FmtContractBoundaries.ChronoNanosecondsMinimum",
+                  "classname": "SemanticGuard.FmtContractBoundaries",
+                  "message": "Fmt public formatting contract changed",
+                  "text": "fmt::format(\"{:%Y-%m-%d %H:%M:%S}\", sys_time<nanoseconds>(nanoseconds::min())) must produce \"1677-09-21 00:12:43.145224192\"; actual = \"1677-09-21 00:12:43.18446744073354775808\". Negative dynamic precision is clamped to zero by the pinned fmt API.",
+                  "expected": "",
+                  "actual": "",
+                  "failure_elements": 1,
+                  "truncated": false
+                },
+                {
+                  "name": "chrono_test.timestamp_ratios",
+                  "classname": "chrono_test",
+                  "message": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:831\nExpected equality of these values:\n  fmt::format(\"{:%M:%S}\", t3)\n    Which is: \"01:02\"\n  \"01:03\"\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:835\nExpected equality of these values:\n  fmt::format(\"{:%M:%S}\", t4)\n    Which is: \"01:02\"\n  \"01:03\"\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:840\nExpected equality of these values:\n  fmt::format(\"{:%Y-%m-%d}\", tp)\n    Which is: \"2999-12-31\"\n  \"3000-01-01\"",
+                  "text": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:831\nExpected equality of these values:\n  fmt::format(\"{:%M:%S}\", t3)\n    Which is: \"01:02\"\n  \"01:03\"\n ... /tc-284765-0242878cd5e5/test/chrono-test.cc:840\nExpected equality of these values:\n  fmt::format(\"{:%Y-%m-%d}\", tp)\n    Which is: \"2999-12-31\"\n  \"3000-01-01\"",
+                  "expected": "",
+                  "actual": "\"01:02\"\n\"2999-12-31\"",
+                  "failure_elements": 3,
+                  "truncated": true
+                },
+                {
+                  "name": "chrono_test.timestamp_sub_seconds",
+                  "classname": "chrono_test",
+                  "message": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:869\nExpected equality of these values:\n  fmt::format(\"{:%S}\", t5)\n    Which is: \"08.500000\"\n  \"09\"\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation ... 6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:891\nExpected equality of these values:\n  fmt::format(\"{:%S}\", epoch)\n    Which is: \"59.500\"\n  \"00.000\"",
+                  "text": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:869\nExpected equality of these values:\n  fmt::format(\"{:%S}\", t5)\n    Which is: \"08.500000\"\n  \"09\"\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation ... 6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:891\nExpected equality of these values:\n  fmt::format(\"{:%S}\", epoch)\n    Which is: \"59.500\"\n  \"00.000\"",
+                  "expected": "",
+                  "actual": "\"08.500000\"\n\"01.500\"\n\"59.250\"\n\"59.500\"",
+                  "failure_elements": 4,
+                  "truncated": true
+                }
+              ],
+              "omitted_failed_tests": 0,
+              "truncated": true,
+              "errors": [],
+              "report": "evidence/baseline-repeat-2-18a2edf36ba4/junit.xml"
+            }
+          },
+          "previous_repair": null,
+          "response": {
+            "summary": "Normalize time-point seconds and fractions before formatting",
+            "explanation": "The formatter splits timestamps using a rounded `gmtime(val)` result but derives subseconds from seconds truncated toward zero. That makes calendar seconds and fractional seconds disagree, especially before the epoch; converting a negative fraction to the unsigned formatting type also corrupts the nanoseconds minimum. Split the epoch duration into whole seconds and a normalized nonnegative fraction first, then round half-second fractions consistently and format the matching calendar time. This preserves correct behavior at epoch boundaries and for large positive and negative timestamps.",
+            "edits": [
+              {
+                "path": "include/fmt/chrono.h",
+                "old": "    std::tm tm = gmtime(val);\n    using period = typename Duration::period;\n    if FMT_CONSTEXPR20 (period::num == 1 && period::den == 1 &&\n                        !std::is_floating_point<\n                            typename Duration::rep>::value) {\n      detail::set_tm_zone(tm, detail::utc());\n      return formatter<std::tm, Char>::format(tm, ctx);\n    }\n    Duration epoch = val.time_since_epoch();\n    Duration subsecs = detail::duration_cast<Duration>(\n        epoch - detail::duration_cast<std::chrono::seconds>(epoch));\n    if (subsecs.count() <= 0) {\n      auto second = detail::duration_cast<Duration>(std::chrono::seconds(1));\n      if (tm.tm_sec != 0) {\n        --tm.tm_sec;\n      } else {\n        tm = gmtime(val - second);\n        detail::set_tm_zone(tm, detail::utc());\n      }\n      subsecs += second / 2;\n    }\n    return formatter<std::tm, Char>::do_format(tm, ctx, &subsecs);",
+                "new": "    using period = typename Duration::period;\n    if FMT_CONSTEXPR20 (period::num == 1 && period::den == 1 &&\n                        !std::is_floating_point<\n                            typename Duration::rep>::value) {\n      auto tm = gmtime(val);\n      detail::set_tm_zone(tm, detail::utc());\n      return formatter<std::tm, Char>::format(tm, ctx);\n    }\n    auto epoch = val.time_since_epoch();\n    auto seconds = detail::duration_cast<std::chrono::seconds>(epoch);\n    auto subsecs = detail::duration_cast<Duration>(\n        epoch - detail::duration_cast<Duration>(seconds));\n    auto second = detail::duration_cast<Duration>(std::chrono::seconds(1));\n    if (subsecs.count() < 0) {\n      seconds -= std::chrono::seconds(1);\n      subsecs += second;\n    }\n    if (subsecs >= second / 2) {\n      ++seconds;\n      subsecs -= second;\n    }\n    auto tm = gmtime(seconds.count());\n    detail::set_tm_zone(tm, detail::utc());\n    return formatter<std::tm, Char>::do_format(tm, ctx, &subsecs);"
+              }
+            ]
+          }
+        },
+        {
+          "call": 6,
+          "source_evidence": [
+            {
+              "location": "/context/repository/files/0/excerpts/2",
+              "path": "include/fmt/chrono.h",
+              "start_line": 2156,
+              "end_line": 2247,
+              "content_sha256": "f81d4d42e48c7a49e81c967ff324e44db481db275b28667a534cb4f1121869a9",
+              "content": "\n public:\n  FMT_CONSTEXPR auto parse(parse_context<Char>& ctx) -> const Char* {\n    return do_parse(ctx, detail::has_tm_gmtoff<std::tm>::value);\n  }\n\n  template <typename FormatContext>\n  auto format(const std::tm& tm, FormatContext& ctx) const\n      -> decltype(ctx.out()) {\n    return do_format<std::chrono::seconds>(tm, ctx, nullptr);\n  }\n};\n\n// DEPRECATED! Reversed order of template parameters.\ntemplate <typename Char, typename Duration>\nstruct formatter<sys_time<Duration>, Char> : private formatter<std::tm, Char> {\n  FMT_CONSTEXPR auto parse(parse_context<Char>& ctx) -> const Char* {\n    return this->do_parse(ctx, true);\n  }\n\n  template <typename FormatContext>\n  auto format(sys_time<Duration> val, FormatContext& ctx) const\n      -> decltype(ctx.out()) {\n    using period = typename Duration::period;\n    if FMT_CONSTEXPR20 (period::num == 1 && period::den == 1 &&\n                        !std::is_floating_point<\n                            typename Duration::rep>::value) {\n      auto tm = gmtime(val);\n      detail::set_tm_zone(tm, detail::utc());\n      return formatter<std::tm, Char>::format(tm, ctx);\n    }\n    auto epoch = val.time_since_epoch();\n    auto seconds = detail::duration_cast<std::chrono::seconds>(epoch);\n    auto subsecs = detail::duration_cast<Duration>(\n        epoch - detail::duration_cast<Duration>(seconds));\n    auto second = detail::duration_cast<Duration>(std::chrono::seconds(1));\n    if (subsecs.count() < 0) {\n      seconds -= std::chrono::seconds(1);\n      subsecs += second;\n    }\n    if (subsecs >= second / 2) {\n      ++seconds;\n      subsecs -= second;\n    }\n    auto tm = gmtime(seconds.count());\n    detail::set_tm_zone(tm, detail::utc());\n    return formatter<std::tm, Char>::do_format(tm, ctx, &subsecs);\n  }\n};\n\ntemplate <typename Duration, typename Char>\nstruct formatter<utc_time<Duration>, Char>\n    : formatter<sys_time<Duration>, Char> {\n  template <typename FormatContext>\n  auto format(utc_time<Duration> val, FormatContext& ctx) const\n      -> decltype(ctx.out()) {\n    return formatter<sys_time<Duration>, Char>::format(\n        detail::utc_clock::to_sys(val), ctx);\n  }\n};\n\ntemplate <typename Duration, typename Char>\nstruct formatter<local_time<Duration>, Char>\n    : private formatter<std::tm, Char> {\n  FMT_CONSTEXPR auto parse(parse_context<Char>& ctx) -> const Char* {\n    return this->do_parse(ctx, false);\n  }\n\n  template <typename FormatContext>\n  auto format(local_time<Duration> val, FormatContext& ctx) const\n      -> decltype(ctx.out()) {\n    auto time_since_epoch = val.time_since_epoch();\n    auto seconds_since_epoch =\n        detail::duration_cast<std::chrono::seconds>(time_since_epoch);\n    // Use gmtime to prevent time zone conversion since local_time has an\n    // unspecified time zone.\n    std::tm t = gmtime(seconds_since_epoch.count());\n    using period = typename Duration::period;\n    if (period::num == 1 && period::den == 1 &&\n        !std::is_floating_point<typename Duration::rep>::value) {\n      return formatter<std::tm, Char>::format(t, ctx);\n    }\n    auto subsecs =\n        detail::duration_cast<Duration>(time_since_epoch - seconds_since_epoch);\n    return formatter<std::tm, Char>::do_format(t, ctx, &subsecs);\n  }\n};\n\nFMT_END_EXPORT\nFMT_END_NAMESPACE\n\n#endif  // FMT_CHRONO_H_\n"
+            },
+            {
+              "location": "/context/investigation/evidence/0/excerpts/1",
+              "path": "test/chrono-test.cc",
+              "start_line": 786,
+              "end_line": 856,
+              "content_sha256": "375be123f496e5816fd212e5686de229713933126c12357ea789cbfb8ebe8624",
+              "content": "  EXPECT_EQ(fmt::format(\"{:%S}\",\n                        std::chrono::duration<long long, std::ratio<1, 3>>(1)),\n            \"00.333333\");\n  EXPECT_EQ(fmt::format(\"{:%S}\",\n                        std::chrono::duration<long long, std::ratio<1, 7>>(1)),\n            \"00.142857\");\n\n  EXPECT_EQ(\n      fmt::format(\"{:%S}\",\n                  std::chrono::duration<signed char, std::ratio<1, 100>>(0x80)),\n      \"-01.28\");\n\n  EXPECT_EQ(\n      fmt::format(\"{:%M:%S}\",\n                  std::chrono::duration<short, std::ratio<1, 100>>(0x8000)),\n      \"-05:27.68\");\n\n  // Check that floating point seconds with ratio<1,1> are printed.\n  EXPECT_EQ(fmt::format(\"{:%S}\", std::chrono::duration<double>(1.5)),\n            \"01.500000\");\n  EXPECT_EQ(fmt::format(\"{:%M:%S}\", std::chrono::duration<double>(-61.25)),\n            \"-01:01.250000\");\n}\n\n// Disable the utc_clock test for windows, as the icu.dll used for tzdb\n// (time zone database) is not shipped with many windows versions.\n#if FMT_USE_UTC_TIME && !defined(_WIN32)\nTEST(chrono_test, utc_clock) {\n  auto t1 = std::chrono::system_clock::now();\n  auto t1_utc = std::chrono::utc_clock::from_sys(t1);\n  EXPECT_EQ(fmt::format(\"{:%Y-%m-%d %H:%M:%S}\", t1),\n            fmt::format(\"{:%Y-%m-%d %H:%M:%S}\", t1_utc));\n}\n#endif\n\nTEST(chrono_test, timestamp_ratios) {\n  auto t1 =\n      sys_time<std::chrono::milliseconds>(std::chrono::milliseconds(67890));\n  EXPECT_EQ(fmt::format(\"{:%M:%S}\", t1), \"01:07.890\");\n\n  auto t2 = sys_time<std::chrono::minutes>(std::chrono::minutes(7));\n  EXPECT_EQ(fmt::format(\"{:%M:%S}\", t2), \"07:00\");\n\n  auto t3 = sys_time<std::chrono::duration<int, std::ratio<9>>>(\n      std::chrono::duration<int, std::ratio<9>>(7));\n  EXPECT_EQ(fmt::format(\"{:%M:%S}\", t3), \"01:03\");\n\n  auto t4 = sys_time<std::chrono::duration<int, std::ratio<63>>>(\n      std::chrono::duration<int, std::ratio<63>>(1));\n  EXPECT_EQ(fmt::format(\"{:%M:%S}\", t4), \"01:03\");\n\n  if (sizeof(time_t) > 4) {\n    auto tp =\n        sys_time<std::chrono::milliseconds>(std::chrono::seconds(32503680000));\n    EXPECT_EQ(fmt::format(\"{:%Y-%m-%d}\", tp), \"3000-01-01\");\n  }\n\n  if (FMT_SAFE_DURATION_CAST) {\n    using years = std::chrono::duration<std::int64_t, std::ratio<31556952>>;\n    auto tp = sys_time<years>(years(std::numeric_limits<std::int64_t>::max()));\n    EXPECT_THROW_MSG((void)fmt::format(\"{:%Y-%m-%d}\", tp), fmt::format_error,\n                     \"cannot format duration\");\n  }\n}\n\nTEST(chrono_test, timestamp_sub_seconds) {\n  auto t1 = sys_time<std::chrono::duration<long long, std::ratio<1, 3>>>(\n      std::chrono::duration<long long, std::ratio<1, 3>>(4));\n  EXPECT_EQ(fmt::format(\"{:%S}\", t1), \"01.333333\");\n\n  auto t2 = sys_time<std::chrono::duration<double, std::ratio<1, 3>>>(\n"
+            },
+            {
+              "location": "/context/investigation/evidence/0/excerpts/3",
+              "path": "include/fmt/chrono.h",
+              "start_line": 2161,
+              "end_line": 2222,
+              "content_sha256": "c5dd8968bb591160e309d9d6fb8a61a26ccb45ccefa37127aee11e02fe5b7940",
+              "content": "\n  template <typename FormatContext>\n  auto format(const std::tm& tm, FormatContext& ctx) const\n      -> decltype(ctx.out()) {\n    return do_format<std::chrono::seconds>(tm, ctx, nullptr);\n  }\n};\n\n// DEPRECATED! Reversed order of template parameters.\ntemplate <typename Char, typename Duration>\nstruct formatter<sys_time<Duration>, Char> : private formatter<std::tm, Char> {\n  FMT_CONSTEXPR auto parse(parse_context<Char>& ctx) -> const Char* {\n    return this->do_parse(ctx, true);\n  }\n\n  template <typename FormatContext>\n  auto format(sys_time<Duration> val, FormatContext& ctx) const\n      -> decltype(ctx.out()) {\n    using period = typename Duration::period;\n    if FMT_CONSTEXPR20 (period::num == 1 && period::den == 1 &&\n                        !std::is_floating_point<\n                            typename Duration::rep>::value) {\n      auto tm = gmtime(val);\n      detail::set_tm_zone(tm, detail::utc());\n      return formatter<std::tm, Char>::format(tm, ctx);\n    }\n    auto epoch = val.time_since_epoch();\n    auto seconds = detail::duration_cast<std::chrono::seconds>(epoch);\n    auto subsecs = detail::duration_cast<Duration>(\n        epoch - detail::duration_cast<Duration>(seconds));\n    auto second = detail::duration_cast<Duration>(std::chrono::seconds(1));\n    if (subsecs.count() < 0) {\n      seconds -= std::chrono::seconds(1);\n      subsecs += second;\n    }\n    if (subsecs >= second / 2) {\n      ++seconds;\n      subsecs -= second;\n    }\n    auto tm = gmtime(seconds.count());\n    detail::set_tm_zone(tm, detail::utc());\n    return formatter<std::tm, Char>::do_format(tm, ctx, &subsecs);\n  }\n};\n\ntemplate <typename Duration, typename Char>\nstruct formatter<utc_time<Duration>, Char>\n    : formatter<sys_time<Duration>, Char> {\n  template <typename FormatContext>\n  auto format(utc_time<Duration> val, FormatContext& ctx) const\n      -> decltype(ctx.out()) {\n    return formatter<sys_time<Duration>, Char>::format(\n        detail::utc_clock::to_sys(val), ctx);\n  }\n};\n\ntemplate <typename Duration, typename Char>\nstruct formatter<local_time<Duration>, Char>\n    : private formatter<std::tm, Char> {\n  FMT_CONSTEXPR auto parse(parse_context<Char>& ctx) -> const Char* {\n    return this->do_parse(ctx, false);\n  }\n"
+            }
+          ],
+          "latest_validation": {
+            "build_ok": true,
+            "test_ok": false,
+            "failed": [
+              "chrono_test.timestamp_ratios",
+              "chrono_test.timestamp_sub_seconds",
+              "SemanticGuard.FmtContractBoundaries.ChronoNanosecondsMaximum"
+            ],
+            "assertions": {
+              "source": "current_native_junit",
+              "failed_test_count": 3,
+              "group_count": 2,
+              "groups": [
+                {
+                  "classname": "chrono_test",
+                  "failed_test_count": 2
+                },
+                {
+                  "classname": "SemanticGuard.FmtContractBoundaries",
+                  "failed_test_count": 1
+                }
+              ],
+              "assertions": [
+                {
+                  "name": "chrono_test.timestamp_ratios",
+                  "classname": "chrono_test",
+                  "message": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:824\nExpected equality of these values:\n  fmt::format(\"{:%M:%S}\", t1)\n    Which is: \"01:08.18446744073709551506\"\n  \"01:07.890\"\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:827\nExpected equality of these values:\n  fmt::format(\"{:%M:%S}\", t2)\n    Which is: \"07:01\"\n  \"07:00\"\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:831\nExpected equality of these values:\n  fmt::format(\"{:%M:%S}\", t3)\n    Which is: \"01:04\"\n  \"01:03\"\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:835\nExpected equality of these values:\n  fmt::format(\"{:%M:%S}\", t4)\n    Which is: \"01:04\"\n  \"01:03\"",
+                  "text": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:824\nExpected equality of these values:\n  fmt::format(\"{:%M:%S}\", t1)\n    Which is: \"01:08.18446744073709551506\"\n  \"01:07.890\"\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation- ... ion-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:835\nExpected equality of these values:\n  fmt::format(\"{:%M:%S}\", t4)\n    Which is: \"01:04\"\n  \"01:03\"",
+                  "expected": "",
+                  "actual": "\"01:08.18446744073709551506\"\n\"07:01\"\n\"01:04\"",
+                  "failure_elements": 4,
+                  "truncated": true
+                },
+                {
+                  "name": "SemanticGuard.FmtContractBoundaries.ChronoNanosecondsMaximum",
+                  "classname": "SemanticGuard.FmtContractBoundaries",
+                  "message": "Fmt public formatting contract changed",
+                  "text": "fmt::format(\"{:%Y-%m-%d %H:%M:%S}\", sys_time<nanoseconds>(nanoseconds::max())) must produce \"2262-04-11 23:47:16.854775807\"; actual = \"2262-04-11 23:47:17.18446744073564327423\". Negative dynamic precision is clamped to zero by the pinned fmt API.",
+                  "expected": "",
+                  "actual": "",
+                  "failure_elements": 1,
+                  "truncated": false
+                },
+                {
+                  "name": "chrono_test.timestamp_sub_seconds",
+                  "classname": "chrono_test",
+                  "message": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:854\nExpected equality of these values:\n  fmt::format(\"{:%S}\", t1)\n    Which is: \"02.18446744073708884950\"\n  \"01.333333\"\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:865\nExpected equality of these values:\n  fmt::format(\"{:%S}\", t4)\n    Which is: \"100.500000\"\n  \"09.500000\"\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:890\nExpected equality of these values:\n  fmt::format(\"{:%S}\", epoch - d)\n    Which is: \"00.18446744073709551366\"\n  \"59.750\"",
+                  "text": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:854\nExpected equality of these values:\n  fmt::format(\"{:%S}\", t1)\n    Which is: \"02.18446744073708884950\"\n  \"01.333333\"\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:865\nExpected equality of these values:\n  fmt::format(\"{:%S}\", t4)\n    Which is: \"100.500000\"\n  \"09.500000\"\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/chrono-test.cc:890\nExpected equality of these values:\n  fmt::format(\"{:%S}\", epoch - d)\n    Which is: \"00.18446744073709551366\"\n  \"59.750\"",
+                  "expected": "",
+                  "actual": "\"02.18446744073708884950\"\n\"100.500000\"\n\"00.18446744073709551366\"",
+                  "failure_elements": 3,
+                  "truncated": false
+                }
+              ],
+              "omitted_failed_tests": 0,
+              "truncated": true,
+              "errors": [],
+              "report": "evidence/attempt-1-560b3995b281/junit.xml"
+            }
+          },
+          "previous_repair": {
+            "attempt": 1,
+            "proposal": {
+              "summary": "Normalize time-point seconds and fractions before formatting",
+              "explanation": "The formatter splits timestamps using a rounded `gmtime(val)` result but derives subseconds from seconds truncated toward zero. That makes calendar seconds and fractional seconds disagree, especially before the epoch; converting a negative fraction to the unsigned formatting type also corrupts the nanoseconds minimum. Split the epoch duration into whole seconds and a normalized nonnegative fraction first, then round half-second fractions consistently and format the matching calendar time. This preserves correct behavior at epoch boundaries and for large positive and negative timestamps.",
+              "edits": [
+                {
+                  "path": "include/fmt/chrono.h",
+                  "old": "    std::tm tm = gmtime(val);\n    using period = typename Duration::period;\n    if FMT_CONSTEXPR20 (period::num == 1 && period::den == 1 &&\n                        !std::is_floating_point<\n                            typename Duration::rep>::value) {\n      detail::set_tm_zone(tm, detail::utc());\n      return formatter<std::tm, Char>::format(tm, ctx);\n    }\n    Duration epoch = val.time_since_epoch();\n    Duration subsecs = detail::duration_cast<Duration>(\n        epoch - detail::duration_cast<std::chrono::seconds>(epoch));\n    if (subsecs.count() <= 0) {\n      auto second = detail::duration_cast<Duration>(std::chrono::seconds(1));\n      if (tm.tm_sec != 0) {\n        --tm.tm_sec;\n      } else {\n        tm = gmtime(val - second);\n        detail::set_tm_zone(tm, detail::utc());\n      }\n      subsecs += second / 2;\n    }\n    return formatter<std::tm, Char>::do_format(tm, ctx, &subsecs);",
+                  "new": "    using period = typename Duration::period;\n    if FMT_CONSTEXPR20 (period::num == 1 && period::den == 1 &&\n                        !std::is_floating_point<\n                            typename Duration::rep>::value) {\n      auto tm = gmtime(val);\n      detail::set_tm_zone(tm, detail::utc());\n      return formatter<std::tm, Char>::format(tm, ctx);\n    }\n    auto epoch = val.time_since_epoch();\n    auto seconds = detail::duration_cast<std::chrono::seconds>(epoch);\n    auto subsecs = detail::duration_cast<Duration>(\n        epoch - detail::duration_cast<Duration>(seconds));\n    auto second = detail::duration_cast<Duration>(std::chrono::seconds(1));\n    if (subsecs.count() < 0) {\n      seconds -= std::chrono::seconds(1);\n      subsecs += second;\n    }\n    if (subsecs >= second / 2) {\n      ++seconds;\n      subsecs -= second;\n    }\n    auto tm = gmtime(seconds.count());\n    detail::set_tm_zone(tm, detail::utc());\n    return formatter<std::tm, Char>::do_format(tm, ctx, &subsecs);"
+                }
+              ]
+            },
+            "applied": true
+          },
+          "response": {
+            "summary": "Fix time-point remainder arithmetic before formatting",
+            "explanation": "The formatter converts whole seconds back to the source duration before subtracting them. That conversion can overflow for fine-resolution durations such as nanoseconds and narrow representations, corrupting calendar seconds and producing negative values that the fractional formatter treats as unsigned. Compute the subsecond remainder directly from the epoch count for subsecond periods, normalize negative timestamps to a nonnegative remainder, and remove the half-second adjustment that shifts calendar time while leaving an invalid fractional value. Coarser periods retain the existing duration-cast path.",
+            "edits": [
+              {
+                "path": "include/fmt/chrono.h",
+                "old": "    auto epoch = val.time_since_epoch();\n    auto seconds = detail::duration_cast<std::chrono::seconds>(epoch);\n    auto subsecs = detail::duration_cast<Duration>(\n        epoch - detail::duration_cast<Duration>(seconds));\n    auto second = detail::duration_cast<Duration>(std::chrono::seconds(1));\n    if (subsecs.count() < 0) {\n      seconds -= std::chrono::seconds(1);\n      subsecs += second;\n    }\n    if (subsecs >= second / 2) {\n      ++seconds;\n      subsecs -= second;\n    }\n    auto tm = gmtime(seconds.count());",
+                "new": "    auto epoch = val.time_since_epoch();\n    auto seconds = detail::duration_cast<std::chrono::seconds>(epoch);\n    auto second = detail::duration_cast<Duration>(std::chrono::seconds(1));\n    auto subsecs = [&] {\n      if FMT_CONSTEXPR20 (period::num == 1 && period::den > 1) {\n        return Duration(epoch.count() % period::den);\n      }\n      return detail::duration_cast<Duration>(\n          epoch - detail::duration_cast<Duration>(seconds));\n    }();\n    if (subsecs.count() < 0) {\n      seconds -= std::chrono::seconds(1);\n      subsecs += second;\n    }\n    auto tm = gmtime(seconds.count());"
+              }
+            ]
+          }
+        }
+      ],
+      "reason": "Repair budget exhausted: t/chrono-test.cc:865:18: note: in instantiation of function template specialization 'fmt::format<std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<double>> &>' requested here\n  865 |   EXPECT_EQ(fmt::format(\"{:%S}\", t4), \"09.500000\");\n      |                  ^\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/gtest/./gtest/gtest.h:11948:63: note: expanded from macro 'EXPECT_EQ'\n 11948 |   EXPECT_PRED_FORMAT2(::testing::internal::EqHelper::Compare, val1, val2)\n       |                                                               ^\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/gtest/./gtest/gtest.h:10096:36: note: expanded from macro 'EXPECT_PRED_FORMAT2'\n 10096 |   GTEST_PRED_FORMAT2_(pred_format, v1, v2, GTEST_NONFATAL_FAILURE_)\n       |                                    ^\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/gtest/./gtest/gtest.h:10081:39: note: expanded from macro 'GTEST_PRED_FORMAT2_'\n 10081 |   GTEST_ASSERT_(pred_format(#v1, #v2, v1, v2), \\\n       |                                       ^\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/test/gtest/./gtest/gtest.h:10009:52: note: expanded from macro 'GTEST_ASSERT_'\n 10009 |   if (const ::testing::AssertionResult gtest_ar = (expression)) \\\n       |                                                    ^\n2 errors generated.\nninja: build stopped: subcommand failed.\n\nBuild command failed with exit code 1.",
+      "last_repair": {
+        "attempt": 2,
+        "proposal": {
+          "summary": "Fix time-point remainder arithmetic before formatting",
+          "explanation": "The formatter converts whole seconds back to the source duration before subtracting them. That conversion can overflow for fine-resolution durations such as nanoseconds and narrow representations, corrupting calendar seconds and producing negative values that the fractional formatter treats as unsigned. Compute the subsecond remainder directly from the epoch count for subsecond periods, normalize negative timestamps to a nonnegative remainder, and remove the half-second adjustment that shifts calendar time while leaving an invalid fractional value. Coarser periods retain the existing duration-cast path.",
+          "edits": [
+            {
+              "path": "include/fmt/chrono.h",
+              "old": "    auto epoch = val.time_since_epoch();\n    auto seconds = detail::duration_cast<std::chrono::seconds>(epoch);\n    auto subsecs = detail::duration_cast<Duration>(\n        epoch - detail::duration_cast<Duration>(seconds));\n    auto second = detail::duration_cast<Duration>(std::chrono::seconds(1));\n    if (subsecs.count() < 0) {\n      seconds -= std::chrono::seconds(1);\n      subsecs += second;\n    }\n    if (subsecs >= second / 2) {\n      ++seconds;\n      subsecs -= second;\n    }\n    auto tm = gmtime(seconds.count());",
+              "new": "    auto epoch = val.time_since_epoch();\n    auto seconds = detail::duration_cast<std::chrono::seconds>(epoch);\n    auto second = detail::duration_cast<Duration>(std::chrono::seconds(1));\n    auto subsecs = [&] {\n      if FMT_CONSTEXPR20 (period::num == 1 && period::den > 1) {\n        return Duration(epoch.count() % period::den);\n      }\n      return detail::duration_cast<Duration>(\n          epoch - detail::duration_cast<Duration>(seconds));\n    }();\n    if (subsecs.count() < 0) {\n      seconds -= std::chrono::seconds(1);\n      subsecs += second;\n    }\n    auto tm = gmtime(seconds.count());"
+            }
+          ]
+        },
+        "applied": true
+      },
+      "final_verification_build_ok": false,
+      "final_verification_test_ok": false,
+      "compiler_diagnostic": {
+        "output_sha256": "d139bd4efb80a2385cb7277272cc59a774746645f90219cd58281d373d94a6c7",
+        "diagnostic_excerpt": "chrono.h:2192:39: error: invalid operands to binary expression ('rep' (aka 'double') and 'const intmax_t' (aka 'const long'))\n 2192 |         return Duration(epoch.count() % period::den);\n      |                         ~~~~~~~~~~~~~ ^ ~~~~~~~~~~~\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/worktrees/tc-284765-0242878cd5e5/include/fmt/chrono.h:2190:24: note: while substituting into a lambda expression here\n 2190 |     auto subsecs = [&] {\n      |                        ^\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-f",
+        "build_log_paths": [
+          ".auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/runs/tc-284765-0242878cd5e5/evidence/attempt-2-07b03d8fa2ed/build-0.log",
+          ".auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-fmt/run/fmt_pre_epoch_fraction_normalization/state/runs/tc-284765-0242878cd5e5/evidence/attempt-2-07b03d8fa2ed/build-1.log"
+        ],
+        "base_header_sha256": "888315df369b34360880a89998ce24191e7c1b2b0606666ec8fddb31f0cae2fb",
+        "base_macro_lines": "#elif defined(__apple_build_version__) && __apple_build_version__ < 14000029L\n#  define FMT_USE_CONSTEVAL 0  // consteval is broken in Apple clang < 14.\n#elif FMT_MSC_VERSION && FMT_MSC_VERSION < 1940\n#  define FMT_USE_CONSTEVAL 0  // consteval is broken in some MSVC2022 versions.\n#elif defined(__cpp_consteval)\n#  define FMT_USE_CONSTEVAL 1\n#elif FMT_GCC_VERSION >= 1002 || FMT_CLANG_VERSION >= 1101\n#  define FMT_USE_CONSTEVAL 1\n#else\n#  define FMT_USE_CONSTEVAL 0\n#endif\n#if FMT_USE_CONSTEVAL\n#  define FMT_CONSTEVAL consteval\n#  define FMT_CONSTEXPR20 constexpr\n#else\n#  define FMT_CONSTEVAL\n#  define FMT_CONSTEXPR20\n#endif\n",
+        "failing_test_instantiation_lines": "  auto t2 = sys_time<std::chrono::duration<double, std::ratio<1, 3>>>(\n      std::chrono::duration<double, std::ratio<1, 3>>(4));\n  EXPECT_EQ(fmt::format(\"{:%S}\", t2), \"01.333333\");\n\n  auto t3 = sys_time<std::chrono::seconds>(std::chrono::seconds(2));\n  EXPECT_EQ(fmt::format(\"{:%S}\", t3), \"02\");\n\n  auto t4 = sys_time<std::chrono::duration<double>>(\n      std::chrono::duration<double, std::ratio<1, 1>>(9.5));\n  EXPECT_EQ(fmt::format(\"{:%S}\", t4), \"09.500000\");\n\n  auto t5 = sys_time<std::chrono::duration<double>>("
+      },
+      "diagnosis": {
+        "primary": "Final model proposal introduces integral modulo on a floating-point duration representation; native compiler rejects it.",
+        "source_missing": "Current formatter was present. The retrieved timestamp test excerpt ended at line856, before the duration<double> instantiation at line865; macro definition was not in repair packet. This is missing compatibility context, not stale or wrong current source.",
+        "repair_1": "Compiles, but half-second round-up changes timestamp_ratios/sub_seconds and violates the maximum nanosecond boundary guard.",
+        "repair_2": "Attempts fractional remainder with epoch.count()%period::den. FMT_CONSTEXPR20 is empty in this observed C++17 build, so a normal if compiles both branches; floating duration rep cannot use %. A period-only guard also does not establish integral rep.",
+        "compiler_feedback_available_to_model": false,
+        "why_feedback_unseen": "The invalid template is introduced by the second/final allowed repair; no later model request exists. Final native compile diagnostic is retained in verification output and feedback.",
+        "controller_safety": "Native build failure correctly blocks publication; no PR created.",
+        "budget_only_assessment": "Additional repair budget naturally exposes this new compile error plus the applied proposal to a subsequent repair. Two additional global inspections could retrieve floating duration test/macro context. Recovery is plausible but not presumed."
+      }
+    },
+    {
+      "case": "absl_integer_bare_prefixes",
+      "case_directory": ".auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes",
+      "score_sha256": "54dc2b750027d51f7963812e3c14f5279d13e942c829b145a23aae7eb62a7966",
+      "result_path": ".auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/runs/tc-284765-61c8e45a5f80/result.json",
+      "result_sha256": "fdb7dce29775963c06ff74eb8f98a0bb536be3a30baf8f93a1d3ffacf926e885",
+      "status": "blocked",
+      "success": false,
+      "attempts": 2,
+      "inspections": 4,
+      "baseline_repetitions": 2,
+      "baseline_check_count": 2,
+      "pull_requests_created": 0,
+      "actual_model_calls": [
+        {
+          "call": 1,
+          "kind": "investigation",
+          "request_path": ".auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/model/call-1/request.json",
+          "request_sha256": "f57082c96bad1adec25f3380a47c0a8a888156cedc2f5d214f80d5ba74cdd80c",
+          "response_sha256": "e191bdf3cfdc3fe7de99a509d2f6a43e04df242d3f342ddbb1ca7244770f9fa4",
+          "model": "gpt-6-luna",
+          "reasoning_effort": "high",
+          "returncode": 0
+        },
+        {
+          "call": 2,
+          "kind": "investigation",
+          "request_path": ".auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/model/call-2/request.json",
+          "request_sha256": "408f3e15ba6bd8b8a9ca3c219ee3ae45784ff9a0f1cc02f056f1403a8dfd8c25",
+          "response_sha256": "243e9b91c04de4c5a9de85ed532f36e1aa60c57c4d93f05084a1ec12e17b2a97",
+          "model": "gpt-6-luna",
+          "reasoning_effort": "high",
+          "returncode": 0
+        },
+        {
+          "call": 3,
+          "kind": "repair",
+          "request_path": ".auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/model/call-3/request.json",
+          "request_sha256": "2de6932afa59e26d6d216eab4884bb40027919b82720d3061deae0b0074c1617",
+          "response_sha256": "a7b7e30eed2b7b84347e48fe5e356d9aa28b8fdd5db14aa6a97dcb3047b0a033",
+          "model": "gpt-6-luna",
+          "reasoning_effort": "high",
+          "returncode": 0
+        },
+        {
+          "call": 4,
+          "kind": "investigation",
+          "request_path": ".auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/model/call-4/request.json",
+          "request_sha256": "c1b6c019c40cc73fd4906c93b7a88b9082eb689c1931abecad5fdd1d34f51180",
+          "response_sha256": "39d71ba7667fc33b0aef49561e6ef44b4e8ef8ee1e1d507b7647d661c5d4f9cb",
+          "model": "gpt-6-luna",
+          "reasoning_effort": "high",
+          "returncode": 0
+        },
+        {
+          "call": 5,
+          "kind": "investigation",
+          "request_path": ".auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/model/call-5/request.json",
+          "request_sha256": "c9f401a948f05b5d6baf6ae690b53e79a5dec6dc795b083039f7bf8539ea2771",
+          "response_sha256": "48aea5ffe58e54fb4d2c40b1de04d30c69fc111cec2c9dad452c66a585539429",
+          "model": "gpt-6-luna",
+          "reasoning_effort": "high",
+          "returncode": 0
+        },
+        {
+          "call": 6,
+          "kind": "repair",
+          "request_path": ".auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/model/call-6/request.json",
+          "request_sha256": "3ec89c4c7373a025181d9a7ccc6cf00923f6abd898538ac3a2b4d400e90e5d1f",
+          "response_sha256": "2abe318e293ed00a3a182db30df28685265c6cb36f69a7ad34132e917eec200f",
+          "model": "gpt-6-luna",
+          "reasoning_effort": "high",
+          "returncode": 0
+        }
+      ],
+      "repair_packets": [
+        {
+          "call": 3,
+          "source_evidence": [
+            {
+              "location": "/context/investigation/evidence/0/excerpts/1",
+              "path": "absl/strings/numbers.cc",
+              "start_line": 749,
+              "end_line": 821,
+              "content_sha256": "1adccfab26368c5d164f683cd893b9c51975ea0d6ddfd05f1450e29a50f11792",
+              "content": "    24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 36, 36, 36, 36, 36, 36,\n    36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36,\n    36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36,\n    36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36,\n    36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36,\n    36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36,\n    36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36,\n    36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36};\n\n// Parse the sign and optional hex or oct prefix in text.\ninline bool safe_parse_sign_and_base(\n    absl::string_view* absl_nonnull text /*inout*/,\n    int* absl_nonnull base_ptr /*inout*/,\n    bool* absl_nonnull negative_ptr /*output*/) {\n  if (text->data() == nullptr) {\n    return false;\n  }\n\n  const char* start = text->data();\n  const char* end = start + text->size();\n  int base = *base_ptr;\n\n  // Consume whitespace.\n  while (start < end &&\n         absl::ascii_isspace(static_cast<unsigned char>(start[0]))) {\n    ++start;\n  }\n  while (start < end &&\n         absl::ascii_isspace(static_cast<unsigned char>(end[-1]))) {\n    --end;\n  }\n  if (start >= end) {\n    return false;\n  }\n\n  // Consume sign.\n  *negative_ptr = (start[0] == '-');\n  if (*negative_ptr || start[0] == '+') {\n    ++start;\n    if (start >= end) {\n      return false;\n    }\n  }\n\n  // Consume base-dependent prefix.\n  //  base 0: \"0x\" -> base 16, \"0\" -> base 8, default -> base 10\n  //  base 16: \"0x\" -> base 16\n  // Also validate the base.\n  if (base == 0) {\n    if (end - start >= 2 && start[0] == '0' &&\n        (start[1] == 'x' || start[1] == 'X')) {\n      base = 16;\n      start += 2;\n    } else if (end - start >= 1 && start[0] == '0') {\n      base = 8;\n      start += 1;\n    } else {\n      base = 10;\n    }\n  } else if (base == 16) {\n    if (end - start >= 2 && start[0] == '0' &&\n        (start[1] == 'x' || start[1] == 'X')) {\n      start += 2;\n    }\n  } else if (base >= 2 && base <= 36) {\n    // okay\n  } else {\n    return false;\n  }\n  *text = absl::string_view(start, static_cast<size_t>(end - start));\n  *base_ptr = base;\n  return true;\n}\n"
+            },
+            {
+              "location": "/context/investigation/evidence/0/excerpts/2",
+              "path": "absl/strings/numbers_test.cc",
+              "start_line": 2110,
+              "end_line": 2180,
+              "content_sha256": "3a9765eb97599227f33bddbae8e2612241eb28b4d381933bdf208db6e7b188fe",
+              "content": "    EXPECT_EQ(test_line.value, value) << test_line.input;\n  }\n}\n\nTEST(StrToUint64, Partial) {\n  struct Uint64TestLine {\n    std::string input;\n    bool status;\n    uint64_t value;\n  };\n  const uint64_t uint64_max = std::numeric_limits<uint64_t>::max();\n  Uint64TestLine uint64_test_line[] = {\n      {\"\", false, 0},\n      {\" \", false, 0},\n      {\"-\", false, 0},\n      {\"123@@@\", false, 123},\n      {absl::StrCat(uint64_max, uint64_max), false, uint64_max},\n  };\n\n  for (const Uint64TestLine& test_line : uint64_test_line) {\n    uint64_t value = 2;\n    bool status = safe_strtou64_base(test_line.input, &value, 10);\n    EXPECT_EQ(test_line.status, status) << test_line.input;\n    EXPECT_EQ(test_line.value, value) << test_line.input;\n    value = 2;\n    status = safe_strtou64_base(test_line.input, &value, 10);\n    EXPECT_EQ(test_line.status, status) << test_line.input;\n    EXPECT_EQ(test_line.value, value) << test_line.input;\n    value = 2;\n    status = safe_strtou64_base(absl::string_view(test_line.input), &value, 10);\n    EXPECT_EQ(test_line.status, status) << test_line.input;\n    EXPECT_EQ(test_line.value, value) << test_line.input;\n  }\n}\n\nTEST(StrToInt32Base, PrefixOnly) {\n  struct Int32TestLine {\n    std::string input;\n    bool status;\n    int32_t value;\n  };\n  Int32TestLine int32_test_line[] = {\n    { \"\", false, 0 },\n    { \"-\", false, 0 },\n    { \"-0\", true, 0 },\n    { \"0\", true, 0 },\n    { \"0x\", false, 0 },\n    { \"-0x\", false, 0 },\n  };\n  const int base_array[] = { 0, 2, 8, 10, 16 };\n\n  for (const Int32TestLine& line : int32_test_line) {\n    for (const int base : base_array) {\n      int32_t value = 2;\n      bool status = safe_strto32_base(line.input.c_str(), &value, base);\n      EXPECT_EQ(line.status, status) << line.input << \" \" << base;\n      EXPECT_EQ(line.value, value) << line.input << \" \" << base;\n      value = 2;\n      status = safe_strto32_base(line.input, &value, base);\n      EXPECT_EQ(line.status, status) << line.input << \" \" << base;\n      EXPECT_EQ(line.value, value) << line.input << \" \" << base;\n      value = 2;\n      status = safe_strto32_base(absl::string_view(line.input), &value, base);\n      EXPECT_EQ(line.status, status) << line.input << \" \" << base;\n      EXPECT_EQ(line.value, value) << line.input << \" \" << base;\n    }\n  }\n}\n\nTEST(StrToUint32Base, PrefixOnly) {\n  struct Uint32TestLine {\n"
+            },
+            {
+              "location": "/context/investigation/evidence/0/excerpts/5",
+              "path": "absl/strings/numbers.cc",
+              "start_line": 1110,
+              "end_line": 1152,
+              "content_sha256": "cf4ab9430674d06f08c237a2b7b720521d84ec7369f16f29e4ae8c0300f5faf7",
+              "content": "    }\n    value -= digit;\n  }\n  *value_p = value;\n  return true;\n}\n\n// Input format based on POSIX.1-2008 strtol\n// http://pubs.opengroup.org/onlinepubs/9699919799/functions/strtol.html\ntemplate <typename IntType>\ninline bool safe_int_internal(absl::string_view text,\n                              IntType* absl_nonnull value_p, int base) {\n  *value_p = 0;\n  bool negative;\n  if (!safe_parse_sign_and_base(&text, &base, &negative)) {\n    return false;\n  }\n  if (!negative) {\n    return safe_parse_positive_int(text, base, value_p);\n  } else {\n    return safe_parse_negative_int(text, base, value_p);\n  }\n}\n\ntemplate <typename IntType>\ninline bool safe_uint_internal(absl::string_view text,\n                               IntType* absl_nonnull value_p, int base) {\n  *value_p = 0;\n  bool negative;\n  if (!safe_parse_sign_and_base(&text, &base, &negative) || negative) {\n    return false;\n  }\n  return safe_parse_positive_int(text, base, value_p);\n}\n}  // anonymous namespace\n\nnamespace numbers_internal {\n\n// Digit conversion.\nABSL_CONST_INIT ABSL_DLL const char kHexChar[] =\n    \"0123456789abcdef\";\n\nABSL_CONST_INIT ABSL_DLL const char kHexTable[513] =\n"
+            },
+            {
+              "location": "/context/investigation/evidence/0/excerpts/20",
+              "path": "absl/strings/numbers.cc",
+              "start_line": 850,
+              "end_line": 870,
+              "content_sha256": "6538e193b847b7d5ce2ab9e9b6ac5f0d3af9b64e9b61663af442cf8de30e05a8",
+              "content": "// struct of arrays) would probably be better in terms of d-cache for the most\n// commonly used bases.\ntemplate <typename IntType>\nstruct LookupTables {\n  ABSL_CONST_INIT static const IntType kVmaxOverBase[];\n  ABSL_CONST_INIT static const IntType kVminOverBase[];\n};\n\n// An array initializer macro for X/base where base in [0, 36].\n// However, note that lookups for base in [0, 1] should never happen because\n// base has been validated to be in [2, 36] by safe_parse_sign_and_base().\n#define X_OVER_BASE_INITIALIZER(X)                                        \\\n  {                                                                       \\\n    0, 0, X / 2, X / 3, X / 4, X / 5, X / 6, X / 7, X / 8, X / 9, X / 10, \\\n        X / 11, X / 12, X / 13, X / 14, X / 15, X / 16, X / 17, X / 18,   \\\n        X / 19, X / 20, X / 21, X / 22, X / 23, X / 24, X / 25, X / 26,   \\\n        X / 27, X / 28, X / 29, X / 30, X / 31, X / 32, X / 33, X / 34,   \\\n        X / 35, X / 36,                                                   \\\n  }\n\n// This kVmaxOverBase is generated with\n"
+            }
+          ],
+          "latest_validation": {
+            "build_ok": true,
+            "test_ok": false,
+            "failed": [
+              "StrToInt32Base.PrefixOnly",
+              "StrToUint32Base.PrefixOnly",
+              "StrToInt64Base.PrefixOnly",
+              "StrToUint64Base.PrefixOnly"
+            ],
+            "assertions": {
+              "source": "current_native_junit",
+              "failed_test_count": 4,
+              "group_count": 4,
+              "groups": [
+                {
+                  "classname": "StrToInt32Base",
+                  "failed_test_count": 1
+                },
+                {
+                  "classname": "StrToUint32Base",
+                  "failed_test_count": 1
+                },
+                {
+                  "classname": "StrToInt64Base",
+                  "failed_test_count": 1
+                },
+                {
+                  "classname": "StrToUint64Base",
+                  "failed_test_count": 1
+                }
+              ],
+              "assertions": [
+                {
+                  "name": "StrToInt32Base.PrefixOnly",
+                  "classname": "StrToInt32Base",
+                  "message": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2165\nExpected equality of these values:\n  line.s ... trings/numbers_test.cc:2173\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n-0x 16\n",
+                  "text": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2165\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n0x 0\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-con ... _integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2173\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n-0x 16",
+                  "expected": "",
+                  "actual": "false\ntrue",
+                  "failure_elements": 12,
+                  "truncated": true
+                },
+                {
+                  "name": "StrToUint32Base.PrefixOnly",
+                  "classname": "StrToUint32Base",
+                  "message": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2196\nExpected equality of these values:\n  line.s ... strings/numbers_test.cc:2204\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n0x 16\n",
+                  "text": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2196\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n0 ... /tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2204\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n0x 16",
+                  "expected": "",
+                  "actual": "false\ntrue",
+                  "failure_elements": 6,
+                  "truncated": true
+                },
+                {
+                  "name": "StrToInt64Base.PrefixOnly",
+                  "classname": "StrToInt64Base",
+                  "message": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2230\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n0x 0\n\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_ ... development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2238\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n-0x 16\n",
+                  "text": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2230\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n0x 0\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-con ... _integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2238\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n-0x 16",
+                  "expected": "",
+                  "actual": "false\ntrue",
+                  "failure_elements": 12,
+                  "truncated": true
+                },
+                {
+                  "name": "StrToUint64Base.PrefixOnly",
+                  "classname": "StrToUint64Base",
+                  "message": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2261\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n0x 0\n\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_ ... /development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2269\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n0x 16\n",
+                  "text": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2261\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n0 ... /tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2269\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n0x 16",
+                  "expected": "",
+                  "actual": "false\ntrue",
+                  "failure_elements": 6,
+                  "truncated": true
+                }
+              ],
+              "omitted_failed_tests": 0,
+              "truncated": true,
+              "errors": [],
+              "report": "evidence/baseline-repeat-2-d2d16fe32675/junit.xml"
+            }
+          },
+          "previous_repair": null,
+          "response": {
+            "summary": "Accept a consumed hexadecimal prefix with no digits as a successful zero parse.",
+            "explanation": "The shared sign/base parser consumes `0x` before the numeric parser runs. An explicit empty-payload case makes that prefix-only input succeed with value zero for signed and unsigned parsers of every supported width. The unsigned path still rejects a negative sign before applying this case.",
+            "edits": [
+              {
+                "path": "absl/strings/numbers.cc",
+                "old": "  if (!safe_parse_sign_and_base(&text, &base, &negative)) {\n    return false;\n  }\n  if (!negative) {",
+                "new": "  if (!safe_parse_sign_and_base(&text, &base, &negative)) {\n    return false;\n  }\n  if (text.empty()) {\n    *value_p = 0;\n    return true;\n  }\n  if (!negative) {"
+              },
+              {
+                "path": "absl/strings/numbers.cc",
+                "old": "  if (!safe_parse_sign_and_base(&text, &base, &negative) || negative) {\n    return false;\n  }\n  return safe_parse_positive_int(text, base, value_p);",
+                "new": "  if (!safe_parse_sign_and_base(&text, &base, &negative) || negative) {\n    return false;\n  }\n  if (text.empty()) {\n    *value_p = 0;\n    return true;\n  }\n  return safe_parse_positive_int(text, base, value_p);"
+              }
+            ]
+          }
+        },
+        {
+          "call": 6,
+          "source_evidence": [
+            {
+              "location": "/context/repository/files/1/excerpts/2",
+              "path": "absl/strings/numbers.cc",
+              "start_line": 1092,
+              "end_line": 1182,
+              "content_sha256": "3dfb3efbc3f3e6c018a95620cb604d1e0c6e1a05127dba3a4c515437948abd8e",
+              "content": "  const char* start = text.data();\n  const char* end = start + text.size();\n  // loop over digits\n  for (; start < end; ++start) {\n    unsigned char c = static_cast<unsigned char>(start[0]);\n    int digit = kAsciiToInt[c];\n    if (digit >= base) {\n      *value_p = value;\n      return false;\n    }\n    if (value < vmin_over_base) {\n      *value_p = vmin;\n      return false;\n    }\n    value *= base;\n    if (value < vmin + digit) {\n      *value_p = vmin;\n      return false;\n    }\n    value -= digit;\n  }\n  *value_p = value;\n  return true;\n}\n\n// Input format based on POSIX.1-2008 strtol\n// http://pubs.opengroup.org/onlinepubs/9699919799/functions/strtol.html\ntemplate <typename IntType>\ninline bool safe_int_internal(absl::string_view text,\n                              IntType* absl_nonnull value_p, int base) {\n  *value_p = 0;\n  bool negative;\n  if (!safe_parse_sign_and_base(&text, &base, &negative)) {\n    return false;\n  }\n  if (text.empty()) {\n    *value_p = 0;\n    return true;\n  }\n  if (!negative) {\n    return safe_parse_positive_int(text, base, value_p);\n  } else {\n    return safe_parse_negative_int(text, base, value_p);\n  }\n}\n\ntemplate <typename IntType>\ninline bool safe_uint_internal(absl::string_view text,\n                               IntType* absl_nonnull value_p, int base) {\n  *value_p = 0;\n  bool negative;\n  if (!safe_parse_sign_and_base(&text, &base, &negative) || negative) {\n    return false;\n  }\n  if (text.empty()) {\n    *value_p = 0;\n    return true;\n  }\n  return safe_parse_positive_int(text, base, value_p);\n}\n}  // anonymous namespace\n\nnamespace numbers_internal {\n\n// Digit conversion.\nABSL_CONST_INIT ABSL_DLL const char kHexChar[] =\n    \"0123456789abcdef\";\n\nABSL_CONST_INIT ABSL_DLL const char kHexTable[513] =\n    \"000102030405060708090a0b0c0d0e0f\"\n    \"101112131415161718191a1b1c1d1e1f\"\n    \"202122232425262728292a2b2c2d2e2f\"\n    \"303132333435363738393a3b3c3d3e3f\"\n    \"404142434445464748494a4b4c4d4e4f\"\n    \"505152535455565758595a5b5c5d5e5f\"\n    \"606162636465666768696a6b6c6d6e6f\"\n    \"707172737475767778797a7b7c7d7e7f\"\n    \"808182838485868788898a8b8c8d8e8f\"\n    \"909192939495969798999a9b9c9d9e9f\"\n    \"a0a1a2a3a4a5a6a7a8a9aaabacadaeaf\"\n    \"b0b1b2b3b4b5b6b7b8b9babbbcbdbebf\"\n    \"c0c1c2c3c4c5c6c7c8c9cacbcccdcecf\"\n    \"d0d1d2d3d4d5d6d7d8d9dadbdcdddedf\"\n    \"e0e1e2e3e4e5e6e7e8e9eaebecedeeef\"\n    \"f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff\";\n\nbool safe_strto8_base(absl::string_view text, int8_t* absl_nonnull value,\n                      int base) {\n  return safe_int_internal<int8_t>(text, value, base);\n}\n\n"
+            },
+            {
+              "location": "/context/investigation/evidence/0/excerpts/0",
+              "path": "absl/strings/numbers.cc",
+              "start_line": 749,
+              "end_line": 821,
+              "content_sha256": "1adccfab26368c5d164f683cd893b9c51975ea0d6ddfd05f1450e29a50f11792",
+              "content": "    24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 36, 36, 36, 36, 36, 36,\n    36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36,\n    36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36,\n    36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36,\n    36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36,\n    36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36,\n    36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36,\n    36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36, 36};\n\n// Parse the sign and optional hex or oct prefix in text.\ninline bool safe_parse_sign_and_base(\n    absl::string_view* absl_nonnull text /*inout*/,\n    int* absl_nonnull base_ptr /*inout*/,\n    bool* absl_nonnull negative_ptr /*output*/) {\n  if (text->data() == nullptr) {\n    return false;\n  }\n\n  const char* start = text->data();\n  const char* end = start + text->size();\n  int base = *base_ptr;\n\n  // Consume whitespace.\n  while (start < end &&\n         absl::ascii_isspace(static_cast<unsigned char>(start[0]))) {\n    ++start;\n  }\n  while (start < end &&\n         absl::ascii_isspace(static_cast<unsigned char>(end[-1]))) {\n    --end;\n  }\n  if (start >= end) {\n    return false;\n  }\n\n  // Consume sign.\n  *negative_ptr = (start[0] == '-');\n  if (*negative_ptr || start[0] == '+') {\n    ++start;\n    if (start >= end) {\n      return false;\n    }\n  }\n\n  // Consume base-dependent prefix.\n  //  base 0: \"0x\" -> base 16, \"0\" -> base 8, default -> base 10\n  //  base 16: \"0x\" -> base 16\n  // Also validate the base.\n  if (base == 0) {\n    if (end - start >= 2 && start[0] == '0' &&\n        (start[1] == 'x' || start[1] == 'X')) {\n      base = 16;\n      start += 2;\n    } else if (end - start >= 1 && start[0] == '0') {\n      base = 8;\n      start += 1;\n    } else {\n      base = 10;\n    }\n  } else if (base == 16) {\n    if (end - start >= 2 && start[0] == '0' &&\n        (start[1] == 'x' || start[1] == 'X')) {\n      start += 2;\n    }\n  } else if (base >= 2 && base <= 36) {\n    // okay\n  } else {\n    return false;\n  }\n  *text = absl::string_view(start, static_cast<size_t>(end - start));\n  *base_ptr = base;\n  return true;\n}\n"
+            },
+            {
+              "location": "/context/investigation/evidence/0/excerpts/1",
+              "path": "absl/strings/numbers_test.cc",
+              "start_line": 2110,
+              "end_line": 2254,
+              "content_sha256": "274c77a416239b2cc986344fd7ff709305144d469c7fba00baf0b490175fcac3",
+              "content": "    EXPECT_EQ(test_line.value, value) << test_line.input;\n  }\n}\n\nTEST(StrToUint64, Partial) {\n  struct Uint64TestLine {\n    std::string input;\n    bool status;\n    uint64_t value;\n  };\n  const uint64_t uint64_max = std::numeric_limits<uint64_t>::max();\n  Uint64TestLine uint64_test_line[] = {\n      {\"\", false, 0},\n      {\" \", false, 0},\n      {\"-\", false, 0},\n      {\"123@@@\", false, 123},\n      {absl::StrCat(uint64_max, uint64_max), false, uint64_max},\n  };\n\n  for (const Uint64TestLine& test_line : uint64_test_line) {\n    uint64_t value = 2;\n    bool status = safe_strtou64_base(test_line.input, &value, 10);\n    EXPECT_EQ(test_line.status, status) << test_line.input;\n    EXPECT_EQ(test_line.value, value) << test_line.input;\n    value = 2;\n    status = safe_strtou64_base(test_line.input, &value, 10);\n    EXPECT_EQ(test_line.status, status) << test_line.input;\n    EXPECT_EQ(test_line.value, value) << test_line.input;\n    value = 2;\n    status = safe_strtou64_base(absl::string_view(test_line.input), &value, 10);\n    EXPECT_EQ(test_line.status, status) << test_line.input;\n    EXPECT_EQ(test_line.value, value) << test_line.input;\n  }\n}\n\nTEST(StrToInt32Base, PrefixOnly) {\n  struct Int32TestLine {\n    std::string input;\n    bool status;\n    int32_t value;\n  };\n  Int32TestLine int32_test_line[] = {\n    { \"\", false, 0 },\n    { \"-\", false, 0 },\n    { \"-0\", true, 0 },\n    { \"0\", true, 0 },\n    { \"0x\", false, 0 },\n    { \"-0x\", false, 0 },\n  };\n  const int base_array[] = { 0, 2, 8, 10, 16 };\n\n  for (const Int32TestLine& line : int32_test_line) {\n    for (const int base : base_array) {\n      int32_t value = 2;\n      bool status = safe_strto32_base(line.input.c_str(), &value, base);\n      EXPECT_EQ(line.status, status) << line.input << \" \" << base;\n      EXPECT_EQ(line.value, value) << line.input << \" \" << base;\n      value = 2;\n      status = safe_strto32_base(line.input, &value, base);\n      EXPECT_EQ(line.status, status) << line.input << \" \" << base;\n      EXPECT_EQ(line.value, value) << line.input << \" \" << base;\n      value = 2;\n      status = safe_strto32_base(absl::string_view(line.input), &value, base);\n      EXPECT_EQ(line.status, status) << line.input << \" \" << base;\n      EXPECT_EQ(line.value, value) << line.input << \" \" << base;\n    }\n  }\n}\n\nTEST(StrToUint32Base, PrefixOnly) {\n  struct Uint32TestLine {\n    std::string input;\n    bool status;\n    uint32_t value;\n  };\n  Uint32TestLine uint32_test_line[] = {\n    { \"\", false, 0 },\n    { \"0\", true, 0 },\n    { \"0x\", false, 0 },\n  };\n  const int base_array[] = { 0, 2, 8, 10, 16 };\n\n  for (const Uint32TestLine& line : uint32_test_line) {\n    for (const int base : base_array) {\n      uint32_t value = 2;\n      bool status = safe_strtou32_base(line.input.c_str(), &value, base);\n      EXPECT_EQ(line.status, status) << line.input << \" \" << base;\n      EXPECT_EQ(line.value, value) << line.input << \" \" << base;\n      value = 2;\n      status = safe_strtou32_base(line.input, &value, base);\n      EXPECT_EQ(line.status, status) << line.input << \" \" << base;\n      EXPECT_EQ(line.value, value) << line.input << \" \" << base;\n      value = 2;\n      status = safe_strtou32_base(absl::string_view(line.input), &value, base);\n      EXPECT_EQ(line.status, status) << line.input << \" \" << base;\n      EXPECT_EQ(line.value, value) << line.input << \" \" << base;\n    }\n  }\n}\n\nTEST(StrToInt64Base, PrefixOnly) {\n  struct Int64TestLine {\n    std::string input;\n    bool status;\n    int64_t value;\n  };\n  Int64TestLine int64_test_line[] = {\n    { \"\", false, 0 },\n    { \"-\", false, 0 },\n    { \"-0\", true, 0 },\n    { \"0\", true, 0 },\n    { \"0x\", false, 0 },\n    { \"-0x\", false, 0 },\n  };\n  const int base_array[] = { 0, 2, 8, 10, 16 };\n\n  for (const Int64TestLine& line : int64_test_line) {\n    for (const int base : base_array) {\n      int64_t value = 2;\n      bool status = safe_strto64_base(line.input.c_str(), &value, base);\n      EXPECT_EQ(line.status, status) << line.input << \" \" << base;\n      EXPECT_EQ(line.value, value) << line.input << \" \" << base;\n      value = 2;\n      status = safe_strto64_base(line.input, &value, base);\n      EXPECT_EQ(line.status, status) << line.input << \" \" << base;\n      EXPECT_EQ(line.value, value) << line.input << \" \" << base;\n      value = 2;\n      status = safe_strto64_base(absl::string_view(line.input), &value, base);\n      EXPECT_EQ(line.status, status) << line.input << \" \" << base;\n      EXPECT_EQ(line.value, value) << line.input << \" \" << base;\n    }\n  }\n}\n\nTEST(StrToUint64Base, PrefixOnly) {\n  struct Uint64TestLine {\n    std::string input;\n    bool status;\n    uint64_t value;\n  };\n  Uint64TestLine uint64_test_line[] = {\n    { \"\", false, 0 },\n    { \"0\", true, 0 },\n    { \"0x\", false, 0 },\n  };\n"
+            },
+            {
+              "location": "/context/investigation/evidence/0/excerpts/3",
+              "path": "absl/strings/numbers.cc",
+              "start_line": 1110,
+              "end_line": 1153,
+              "content_sha256": "c15e8063dc19026fdd1213d158e2c01a45054c8454fecf5a0914b611996b5950",
+              "content": "    }\n    value -= digit;\n  }\n  *value_p = value;\n  return true;\n}\n\n// Input format based on POSIX.1-2008 strtol\n// http://pubs.opengroup.org/onlinepubs/9699919799/functions/strtol.html\ntemplate <typename IntType>\ninline bool safe_int_internal(absl::string_view text,\n                              IntType* absl_nonnull value_p, int base) {\n  *value_p = 0;\n  bool negative;\n  if (!safe_parse_sign_and_base(&text, &base, &negative)) {\n    return false;\n  }\n  if (text.empty()) {\n    *value_p = 0;\n    return true;\n  }\n  if (!negative) {\n    return safe_parse_positive_int(text, base, value_p);\n  } else {\n    return safe_parse_negative_int(text, base, value_p);\n  }\n}\n\ntemplate <typename IntType>\ninline bool safe_uint_internal(absl::string_view text,\n                               IntType* absl_nonnull value_p, int base) {\n  *value_p = 0;\n  bool negative;\n  if (!safe_parse_sign_and_base(&text, &base, &negative) || negative) {\n    return false;\n  }\n  if (text.empty()) {\n    *value_p = 0;\n    return true;\n  }\n  return safe_parse_positive_int(text, base, value_p);\n}\n}  // anonymous namespace\n\n"
+            },
+            {
+              "location": "/context/investigation/evidence/0/excerpts/17",
+              "path": "absl/strings/numbers.cc",
+              "start_line": 850,
+              "end_line": 870,
+              "content_sha256": "6538e193b847b7d5ce2ab9e9b6ac5f0d3af9b64e9b61663af442cf8de30e05a8",
+              "content": "// struct of arrays) would probably be better in terms of d-cache for the most\n// commonly used bases.\ntemplate <typename IntType>\nstruct LookupTables {\n  ABSL_CONST_INIT static const IntType kVmaxOverBase[];\n  ABSL_CONST_INIT static const IntType kVminOverBase[];\n};\n\n// An array initializer macro for X/base where base in [0, 36].\n// However, note that lookups for base in [0, 1] should never happen because\n// base has been validated to be in [2, 36] by safe_parse_sign_and_base().\n#define X_OVER_BASE_INITIALIZER(X)                                        \\\n  {                                                                       \\\n    0, 0, X / 2, X / 3, X / 4, X / 5, X / 6, X / 7, X / 8, X / 9, X / 10, \\\n        X / 11, X / 12, X / 13, X / 14, X / 15, X / 16, X / 17, X / 18,   \\\n        X / 19, X / 20, X / 21, X / 22, X / 23, X / 24, X / 25, X / 26,   \\\n        X / 27, X / 28, X / 29, X / 30, X / 31, X / 32, X / 33, X / 34,   \\\n        X / 35, X / 36,                                                   \\\n  }\n\n// This kVmaxOverBase is generated with\n"
+            }
+          ],
+          "latest_validation": {
+            "build_ok": true,
+            "test_ok": false,
+            "failed": [
+              "StrToInt32Base.PrefixOnly",
+              "StrToUint32Base.PrefixOnly",
+              "StrToInt64Base.PrefixOnly",
+              "StrToUint64Base.PrefixOnly"
+            ],
+            "assertions": {
+              "source": "current_native_junit",
+              "failed_test_count": 4,
+              "group_count": 4,
+              "groups": [
+                {
+                  "classname": "StrToInt32Base",
+                  "failed_test_count": 1
+                },
+                {
+                  "classname": "StrToUint32Base",
+                  "failed_test_count": 1
+                },
+                {
+                  "classname": "StrToInt64Base",
+                  "failed_test_count": 1
+                },
+                {
+                  "classname": "StrToUint64Base",
+                  "failed_test_count": 1
+                }
+              ],
+              "assertions": [
+                {
+                  "name": "StrToInt32Base.PrefixOnly",
+                  "classname": "StrToInt32Base",
+                  "message": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2165\nExpected equality of these values:\n  line.s ... trings/numbers_test.cc:2173\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n-0x 16\n",
+                  "text": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2165\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n0x 0\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-con ... _integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2173\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n-0x 16",
+                  "expected": "",
+                  "actual": "false\ntrue",
+                  "failure_elements": 12,
+                  "truncated": true
+                },
+                {
+                  "name": "StrToUint32Base.PrefixOnly",
+                  "classname": "StrToUint32Base",
+                  "message": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2196\nExpected equality of these values:\n  line.s ... strings/numbers_test.cc:2204\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n0x 16\n",
+                  "text": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2196\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n0 ... /tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2204\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n0x 16",
+                  "expected": "",
+                  "actual": "false\ntrue",
+                  "failure_elements": 6,
+                  "truncated": true
+                },
+                {
+                  "name": "StrToInt64Base.PrefixOnly",
+                  "classname": "StrToInt64Base",
+                  "message": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2230\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n0x 0\n\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_ ... development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2238\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n-0x 16\n",
+                  "text": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2230\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n0x 0\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-con ... _integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2238\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n-0x 16",
+                  "expected": "",
+                  "actual": "false\ntrue",
+                  "failure_elements": 12,
+                  "truncated": true
+                },
+                {
+                  "name": "StrToUint64Base.PrefixOnly",
+                  "classname": "StrToUint64Base",
+                  "message": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2261\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n0x 0\n\n/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_ ... /development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2269\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n0x 16\n",
+                  "text": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/development-confirmation-v6/jobs/confirmation-v6-strings/run/absl_integer_bare_prefixes/state/worktrees/tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2261\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n0 ... /tc-284765-61c8e45a5f80/absl/strings/numbers_test.cc:2269\nExpected equality of these values:\n  line.status\n    Which is: false\n  status\n    Which is: true\n0x 16",
+                  "expected": "",
+                  "actual": "false\ntrue",
+                  "failure_elements": 6,
+                  "truncated": true
+                }
+              ],
+              "omitted_failed_tests": 0,
+              "truncated": true,
+              "errors": [],
+              "report": "evidence/attempt-1-747b5ef53ea5/junit.xml"
+            }
+          },
+          "previous_repair": {
+            "attempt": 1,
+            "proposal": {
+              "summary": "Accept a consumed hexadecimal prefix with no digits as a successful zero parse.",
+              "explanation": "The shared sign/base parser consumes `0x` before the numeric parser runs. An explicit empty-payload case makes that prefix-only input succeed with value zero for signed and unsigned parsers of every supported width. The unsigned path still rejects a negative sign before applying this case.",
+              "edits": [
+                {
+                  "path": "absl/strings/numbers.cc",
+                  "old": "  if (!safe_parse_sign_and_base(&text, &base, &negative)) {\n    return false;\n  }\n  if (!negative) {",
+                  "new": "  if (!safe_parse_sign_and_base(&text, &base, &negative)) {\n    return false;\n  }\n  if (text.empty()) {\n    *value_p = 0;\n    return true;\n  }\n  if (!negative) {"
+                },
+                {
+                  "path": "absl/strings/numbers.cc",
+                  "old": "  if (!safe_parse_sign_and_base(&text, &base, &negative) || negative) {\n    return false;\n  }\n  return safe_parse_positive_int(text, base, value_p);",
+                  "new": "  if (!safe_parse_sign_and_base(&text, &base, &negative) || negative) {\n    return false;\n  }\n  if (text.empty()) {\n    *value_p = 0;\n    return true;\n  }\n  return safe_parse_positive_int(text, base, value_p);"
+                }
+              ]
+            },
+            "applied": true
+          },
+          "response": {
+            "summary": "No safe production edit can be derived from the supplied evidence.",
+            "explanation": "The supplied current-source excerpts already accept an empty payload after sign/base parsing in both signed and unsigned paths. The hexadecimal-prefix parser consumes `0x` and returns successfully with an empty payload, after which those paths set the value to zero and return true. The latest failures therefore conflict with the supplied source behavior, and the context does not provide a distinct current-source defect or a reliable replacement anchor. Proposing another edit would be redundant or speculative.",
+            "edits": [
+              {
+                "path": "",
+                "old": "x",
+                "new": "y"
+              }
+            ]
+          }
+        }
+      ],
+      "reason": "Repair budget exhausted: Unsafe repository-relative path: ''",
+      "last_repair": {
+        "attempt": 2,
+        "proposal": {
+          "summary": "No safe production edit can be derived from the supplied evidence.",
+          "explanation": "The supplied current-source excerpts already accept an empty payload after sign/base parsing in both signed and unsigned paths. The hexadecimal-prefix parser consumes `0x` and returns successfully with an empty payload, after which those paths set the value to zero and return true. The latest failures therefore conflict with the supplied source behavior, and the context does not provide a distinct current-source defect or a reliable replacement anchor. Proposing another edit would be redundant or speculative.",
+          "edits": [
+            {
+              "path": "",
+              "old": "x",
+              "new": "y"
+            }
+          ]
+        },
+        "applied": false
+      },
+      "final_verification_build_ok": true,
+      "final_verification_test_ok": false,
+      "diagnosis": {
+        "primary": "Model inverted the expected bool contract despite complete current source and raw assertion evidence, then emitted an intentionally invalid dummy path to abstain.",
+        "source_missing": false,
+        "helper_closure_present": true,
+        "test_table_and_assertion_present_before_both_repairs": true,
+        "raw_assertions_contract": "line.status is false; status is true; input 0x or -0x with base 0 or 16.",
+        "structured_assertion_limitation": "expected is empty; actual concatenates false and true from both GoogleTest Which-is operand displays. This loses operand roles; it does not explicitly reverse expected and actual. The unchanged test table and raw failure text disambiguate them.",
+        "repair_1": "Adds redundant empty-digit success in signed/unsigned wrappers; original digit loops already accept an empty span after a consumed prefix. Four native failures remain.",
+        "repair_2": "Model explains no safe edit can be derived and proposes path=\"\",old=\"x\",new=\"y\". Repository path guard rejects it; no second edit applied.",
+        "controller_safety": "Correctly rejected unsafe/empty path, retained last proposal with applied=false, blocked and created no PR.",
+        "budget_only_assessment": "An additional repair would receive rejected proposal evidence and the same native failures, so recovery is mechanically possible. Additional attempts do not automatically fix the initial false premise. A fresh preregistered budget-only comparison is needed; no success is inferred.",
+        "separate_future_controller_improvement": "Retain neutral GoogleTest operand labels instead of flattening both values into actual; any parser/schema revision must be versioned independently from a budget-only experiment."
+      }
+    }
+  ],
+  "recommendation": "Preserve all 24 original fresh-confirmation results. If pursued, preregister a configuration-only max4repair/max6globalinspection comparison; do not silently add assertion parsing or semantic runtime changes to that arm."
+}
