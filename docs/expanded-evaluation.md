@@ -2,17 +2,17 @@
 
 This benchmark tests the complete path from a reported C++ test failure to a verified pull request. Compilation, Git history, native test execution, and model inference are real. TeamCity, Bitbucket, and Jira are temporary, fictional on-premise services implemented with an HTTP mock transport. The benchmark never contacts company services or publishes a real repair PR.
 
-The frozen corpus and original procedure are [complex-cpp-v2](../evaluation/expanded/protocol.json). The [dataset index](../evaluation/expanded/dataset-index.json) records case IDs, development/holdout assignments, upstream pins, manifest hashes, complexity labels, and native proof hashes. The [development v3 addendum](../evaluation/expanded/protocol-development-v3.json) registers stronger validation and the next experiment without changing that corpus. The initial [pure-prompt selection](../evaluation/expanded/pure-prompt-selection.json) is complete; **enriched-workflow and holdout results remain pending**.
+The frozen corpus and original procedure are [complex-cpp-v2](../evaluation/expanded/protocol.json). The [dataset index](../evaluation/expanded/dataset-index.json) records case IDs, development/holdout assignments, upstream pins, manifest hashes, complexity labels, and native proof hashes. Development addenda preserve that corpus while registering workflow changes and stronger validation. The pure-prompt and v3 investigation comparisons are complete; **later development arms and holdout results remain pending**.
 
 ## What the workflow does
 
 The LangGraph workflow keeps deterministic validation around model decisions. Its steps are:
 
 1. Collect today's relevant TeamCity builds and failing test identities, log excerpts, exact VCS revisions, recent Git changes, associated Bitbucket PRs, and Jira context. Pagination, successful builds, older builds, and unrelated changes are represented in the fixtures.
-2. Prepare an isolated Git worktree at the reported revision, rebase on master, compile, and reproduce the original failures. A stale report or a missing original test identity stops the workflow before proposing a fix.
+2. Prepare an isolated Git worktree at the reported revision, rebase on master, compile, and reproduce the original failures. With `baseline_repetitions: 2`, repeat unchanged-source verification and require identical passed, failed and skipped identities. Stale reports, missing identities, invalid evidence and observed instability stop the workflow before inference.
 3. Build a bounded source context packet. The recent-change context is deliberately indirect: it does not contain the synthetic mutation diff or its inverse. Jira text and other service content remain untrusted evidence.
-4. Optionally investigate: Luna proposes hypotheses, literal source searches, or source excerpts. The runner permits only bounded reads of tracked, configured source files. It rejects traversal, symlinks, protected files, and evaluator oracle files. Three inspections means a total workflow budget, shared across repair retries.
-5. Ask Luna for a structured repair and apply exact source replacements. Tests, build configuration, and files outside the configured source allowlist are protected. Native build/test results feed the next repair attempt; the repair budget is two attempts. Structured v3 retries also receive the preceding proposal, its attempt number, and whether it was applied; rejected proposals are saved before edit validation.
+4. Optionally investigate: Luna proposes hypotheses, literal source searches, or source excerpts. The runner permits only bounded reads of tracked, configured source files. It rejects traversal, symlinks, protected files, and evaluator oracle files. C++ definition reads can retrieve bounded complete functions and templates. A total inspection budget is shared across retries; `inspections_per_attempt` reserves capacity for later attempts. Applied edits invalidate evidence for every edited path.
+5. Ask Luna for a structured repair and apply exact source replacements. Tests, build configuration, and files outside the configured source allowlist are protected. Fresh native assertions and compiler feedback reach the next attempt. `max_attempts` sets the repair budget, default two. Retries receive the preceding proposal, its attempt number, and whether it was applied; rejected proposals are saved before edit validation.
 6. Require the complete configured upstream and trusted additional suites to pass. Every baseline test that previously passed or failed must remain present and passing. Commit, fetch and rebase onto the latest master, then rebuild and rerun the suites on the resulting commit.
 7. Push the exact tested commit and create one mock Bitbucket PR with TeamCity/Jira links and verification context. Require the complete verified commit ID and matching source/destination refs in the PR receipt. A lost publication response triggers reconciliation against the verified publication journal rather than a blind second creation request; production CLI recovery uses the same receipt checks.
 
@@ -59,7 +59,7 @@ Case manifests, clean-source oracles, injected-edit descriptions, proof metadata
 
 ## Compare changes without tuning on holdout
 
-The model is fixed to `gpt-6-luna`, with `medium` reasoning effort and at most two repair attempts. [The official model reference](https://developers.openai.com/api/docs/models/gpt-6-luna) documents that reasoning setting. Different models, endpoint inference, and recorded replay are excluded from this live comparison.
+The evaluated model is fixed to `gpt-6-luna`. [The official model reference](https://developers.openai.com/api/docs/models/gpt-6-luna) documents its reasoning settings. Each registered arm records effort, context, inspection and repair budgets explicitly. Different models, endpoint inference, and recorded replay are excluded from these live comparisons.
 
 The first phase measured three pure prompt arms on the same 24 development cases, with no inspections or structured diagnostics:
 
@@ -92,7 +92,28 @@ The frozen [development-enriched-v3 plan](../evaluation/expanded/plans/developme
 | `investigation-evidence-v3` | `evidence-v2` | 3 |
 | `investigation-contract-v3` | `contract-v3` | 3 |
 
-Measuring all three prompts with investigation checks whether the best pure prompt also works best with the added mechanism. The original native-only phase and v3 guarded phase have different validation rules and implementation versions; report them separately. Keep the 7/8/8 native results and explicit false-green findings, rather than rewriting old scores as if the new guard had always run. Compare the four v3 arms with each other under their shared grader. Enriched-arm results are pending.
+All 96 v3 trials finished, with 340 actual Luna calls. Independent review covered all 54 publications:
+
+| Guarded arm | Original guarded native publications / 24 | Actual Luna calls | Confirmed additional semantic regressions |
+| --- | ---: | ---: | ---: |
+| `structured-v3` | 7 | 42 | 0 |
+| `investigation-baseline-v3` | 13 | 106 | 0 |
+| `investigation-evidence-v3` | 16 | 92 | 1 |
+| `investigation-contract-v3` | 18 | 100 | 1 |
+
+The evidence-prompt duration candidate special-cased minimum duration for every unit, failing six independently compiled non-divisor/infinite-unit checks. The contract-prompt chrono candidate overflowed signed arithmetic when formatting the minimum nanosecond timestamp; a native undefined-behavior sanitizer exposed the overflow while pinned clean code passed. The original native grades remain unchanged. A broad string-substitution rewrite also has unmeasured performance characteristics.
+
+These results show why successful native tests need independent patch review. The original pure-prompt and v3 guarded phases have different validation rules and implementation versions; compare arms within their own phase and retain known false positives explicitly.
+
+## Later development changes
+
+The [v4 protocol](../evaluation/expanded/protocol-development-v4.json) and [plan](../evaluation/expanded/plans/development-evidence-lifecycle-v4.json) compare medium/high effort with retained source evidence, fresh assertion feedback and two inspections reserved per repair attempt. Both arms have a four-inspection total budget and two repairs. The medium arm completed 15/24 native publications with 107 live calls. The high arm remains in progress; independent review has already found two additional precision-boundary false positives, preserved separately from its original grades.
+
+The [v5 protocol](../evaluation/expanded/protocol-development-v5.json) and [plan](../evaluation/expanded/plans/development-source-context-v5.json) compare three high-effort arms: a 160,000-character source budget with fixed excerpts; the same budget with C++ definition reads; and definition reads with an adaptive four-repair/six-inspection total budget. The first two retain two repairs/four inspections. All reserve at most two inspections per repair attempt. These resource differences are explicit; the adaptive arm is not an equal-budget comparison. Results remain pending until every arm completes all 24 cases and every publication is reviewed.
+
+The [v6 baseline-trust protocol](../evaluation/expanded/protocol-development-v6-baseline-trust.json) registers two repeated unchanged baselines, explicit evidence validity and stronger versioned development-derived guards. Real native mechanical controls demonstrated that a single flaky FAIL/PASS/PASS sequence and malformed additional baseline evidence could otherwise permit publication. These controls use scripted proposals and contribute zero live model evaluations.
+
+After all eligible development arms finish, select the registered recipe, freeze its source/input hashes, and run a fresh 24-case development confirmation on the safer v6 graph. Then freeze the exact implementation before any holdout inference. The registered holdout experiment has 21 baseline trials and three fresh 21-case winner rounds, 84 trials total. Each repeated round covers the same 21 unique cases; it does not add independent defects. The baseline and winner share the v6 validation rules and two-baseline requirement. Holdout outcomes cannot tune the workflow.
 
 Register any further development change as a new arm/version before its calls. Investigate failures from development results only.
 
@@ -132,7 +153,7 @@ For a coordinated experiment, save a JSON plan such as:
 }
 ```
 
-Add separate jobs for the two Abseil groups and the registered arms. An optional `case` selects one case within a group. The runner fixes the backend to Codex, the model to Luna, and the repair budget to two; model/backend overrides are rejected. It freezes the plan and complete input snapshots with SHA-256 hashes before calls, then runs one to three isolated CLI subprocesses. Default concurrency is two.
+Add separate jobs for the two Abseil groups and the registered arms. An optional `case` selects one case within a group. The runner fixes the backend to Codex and the model to Luna; model/backend overrides are rejected. Each job can record `context_chars`, `definition_reads`, `max_attempts`, `inspections_per_attempt` and `baseline_repetitions`. It freezes the plan and complete input snapshots with SHA-256 hashes before calls, then runs one to three isolated CLI subprocesses. Default concurrency is two.
 
 ```sh
 uv run --no-sync python scripts/run-expanded-evaluations.py run --plan development-plan.json --directory .auto-fix/experiments/formal-dev --workdir .

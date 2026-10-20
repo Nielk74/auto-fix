@@ -23,7 +23,8 @@
     "Require identical passed/failed/skipped identities and all original TeamCity failures in every baseline repetition. Stop varying outcomes as unstable before repair.",
     "Retain every fresh baseline report, native log and observed repetition count; maintain final full-test retention, final rebase/retest, protected upstream tests and tested/pushed/PR head agreement.",
     "Use new versioned duration-rounding-boundaries validation in abseil-validation-v6.json for fresh V6 trials: preserve the old four duration-min-unit checks and add six confirmed non-divisor/infinite-unit boundary assertions. Preserve the original four-check probe/project and all old raw native scores.",
-    "Trusted native adapter infrastructure or report errors return127, distinct from completed assertion failures (exit1), so a diagnostic Execution XML error cannot masquerade as valid baseline assertions."
+    "Trusted native adapter infrastructure or report errors return127, distinct from completed assertion failures (exit1), so a diagnostic Execution XML error cannot masquerade as valid baseline assertions.",
+    "Fresh V6 fmt uses fmt-contract-boundaries:10 precision assertions plus nanosecond minimum/maximum formatting, with nonrecovering UBSan on supported GNU/Clang compilers. MSVC checks native output and the pinned minimum-time out-of-range exception; no Windows UBSan claim."
   ],
   "default_compatibility": {
     "baseline_repetitions": 1,
@@ -119,5 +120,25 @@
       "candidate_failed": 6,
       "live_model_calls": 0
     }
+  },
+  "versioned_fmt_validation": {
+    "old_project": "evaluation/expanded/fmt.json",
+    "old_project_sha256": "dea521fdb850999f84967219ea1cbe1047089b5fbfa2583b678df0793487957d",
+    "new_project": "evaluation/expanded/fmt-validation-v6.json",
+    "new_project_sha256": "bef80755fa8165b71c0fd3c7b3d419ce84620fdc1fd98bb588ae9b91a017004f",
+    "new_probe": "fmt-contract-boundaries",
+    "native_assertions": 12,
+    "precision_assertions": 10,
+    "chrono_assertions": 2,
+    "development_native_proof_sha256": "2bbc2edc7cc72fdb85dcbe99124d0f4b7c674a703f6be790e7226d41aea854ef",
+    "independent_byte_hash_verification_sha256": "fb08d5b9b9e90ebc4c59ef46b1f665d49de544239cfaa563c8d4de7184ea8007",
+    "clean_passed": 12,
+    "accepted_v4_integer_candidate_failures": 2,
+    "accepted_v4_dynamic_candidate_failures": 2,
+    "accepted_v3_chrono_candidate": "nonrecovering UBSan abort;127 invalid/incomplete evidence",
+    "all_six_original_development_injections_execute_all_twelve_assertions": true,
+    "original_grades_and_corpus_unchanged": true,
+    "scope": "Fresh V6 confirmation and BOTH baseline/winner holdout arms only. No holdout model outcomes observed.",
+    "platform_limit": "POSIX GNU/Clang UBSan plus output checks. MSVC output checks only; minimum nanosecond timestamp must throw pinned time_t out-of-range exception, matching upstream platform support."
   }
 }
