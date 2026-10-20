@@ -197,13 +197,15 @@ def test_query_metadata_alone_obeys_final_json_budget(workspace):
     assert len(json.dumps(evidence)) <= 300
 
 
-def test_definition_reads_return_the_body_beyond_a_forward_declaration(workspace):
+@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+def test_definition_reads_return_the_body_beyond_a_forward_declaration(workspace, newline):
     workspace.config.definition_reads = True
     definition = (
         "int LongContract(int value) {\n" + "  // body context\n" * 90 + "  return value + 7;\n}\n"
     )
     content = "int LongContract(int value);\n" + "\n" * 100 + definition + "int unrelated = 9;\n"
-    (workspace.path / "src/format.cc").write_text(content)
+    content, definition = content.replace("\n", newline), definition.replace("\n", newline)
+    (workspace.path / "src/format.cc").write_bytes(content.encode("utf-8"))
     evidence = gather_evidence(
         workspace,
         request(reads=[SourceRead(path="src/format.cc", line=0, symbol="LongContract")]),
@@ -224,7 +226,7 @@ def test_definition_reads_can_find_enclosing_function_at_an_interior_line(worksp
     definition = (
         "int InteriorContract(int value) {\n" + "  // interior\n" * 85 + "  return value;\n}\n"
     )
-    (workspace.path / "src/format.cc").write_text("\n" * 20 + definition)
+    (workspace.path / "src/format.cc").write_bytes(("\n" * 20 + definition).encode("utf-8"))
     evidence = gather_evidence(
         workspace,
         request(reads=[SourceRead(path="src/format.cc", line=80, symbol="")]),
@@ -240,7 +242,7 @@ def test_oversized_definition_falls_back_with_exact_bounds_and_explicit_warning(
         + "  // bounded evidence still has to fit\n" * 250
         + "  return value;\n}\n"
     )
-    (workspace.path / "src/format.cc").write_text(content)
+    (workspace.path / "src/format.cc").write_bytes(content.encode("utf-8"))
     evidence = gather_evidence(
         workspace,
         request(reads=[SourceRead(path="src/format.cc", line=140, symbol="")]),
@@ -276,7 +278,9 @@ def test_parser_uncertainty_survives_actual_evidence_retention(workspace):
     from auto_fix.investigation import merge_evidence
 
     workspace.config.definition_reads = True
-    (workspace.path / "src/format.cc").write_text("int Malformed(int value) { return value + ; }\n")
+    (workspace.path / "src/format.cc").write_bytes(
+        b"int Malformed(int value) { return value + ; }\n"
+    )
     evidence = gather_evidence(
         workspace,
         request(
