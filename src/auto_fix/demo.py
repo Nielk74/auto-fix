@@ -224,8 +224,17 @@ def run_demo(directory: Path) -> int:
             if request.method == "GET":
                 return httpx.Response(200, json={"values": created_prs, "isLastPage": True})
             payload = json.loads(request.content)
+            posted_head = _git(
+                directory,
+                "--git-dir",
+                str(directory / "remote.git"),
+                "rev-parse",
+                "--verify",
+                payload["fromRef"]["id"],
+            )
             record = {
                 **payload,
+                "fromRef": {**payload["fromRef"], "latestCommit": posted_head},
                 "id": 42,
                 "links": {"self": [{"href": "http://demo.invalid/pull-requests/42"}]},
             }
@@ -258,6 +267,8 @@ def run_demo(directory: Path) -> int:
             )
             if remote_sha != result["head"]:
                 raise RuntimeError("Remote branch is not the tested commit")
+            if created_prs[0]["fromRef"]["latestCommit"] != remote_sha:
+                raise RuntimeError("Demo PR receipt does not identify the tested remote commit")
             if "return a - b;" not in (source / "src/add.cpp").read_text():
                 raise RuntimeError("Demo modified source checkout")
             # Simulate re-entering publisher after uncertain delivery: look up the existing PR.
@@ -271,6 +282,7 @@ def run_demo(directory: Path) -> int:
                 "final_passed": result["verification"]["report"]["passed"],
                 "master_advanced_during_repair": advanced_master,
                 "verified_pushed_sha": remote_sha,
+                "verified_pull_request_sha": created_prs[0]["fromRef"]["latestCommit"],
                 "pull_requests_created": len(created_prs),
                 "result": str(flow.directory / "result.json"),
                 "requests": requests,

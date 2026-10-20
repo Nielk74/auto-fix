@@ -1,0 +1,643 @@
+{
+  "schema_version": 1,
+  "id": "original-development-artifact-inputs-v1",
+  "created_at": "2026-10-20T21:54:15.291844+00:00",
+  "scope": "Completed original native-only pure prompt comparison and separate prototypes; enriched and holdout model outcomes excluded.",
+  "model": "gpt-6-luna",
+  "live_inference_transport": "codex-cli",
+  "holdout_model_outputs_read": false,
+  "groups": {
+    "formal_pure_prompt": {
+      "runs": 9,
+      "trials": 72,
+      "unique_cases": 24,
+      "raw_native_publications": 23,
+      "confirmed_semantic_false_greens": 3,
+      "published_without_known_semantic_regression": 20,
+      "warning": "Retain original raw scores. Passing selected upstream native suites is not proof of semantic completeness; one duration boundary regression occurred in each arm."
+    },
+    "prototypes": {
+      "runs": 4,
+      "trials": 24,
+      "raw_native_publications": 4,
+      "role": "Packaging/prototype evidence only, excluded from formal arm comparison. Strings prototype uses frozen v1 cases including subsequently removed unobserved hunks."
+    }
+  },
+  "runs": [
+    {
+      "id": "formal-pure-baseline-fmt",
+      "group": "formal_pure_prompt",
+      "directory": ".auto-fix/expanded-formal/development-prompts/jobs/baseline-fmt/run",
+      "project_file": "evaluation/expanded/fmt.json",
+      "project_sha256": "dea521fdb850999f84967219ea1cbe1047089b5fbfa2583b678df0793487957d",
+      "cases_file": "evaluation/expanded/cases_fmt.json",
+      "cases_sha256": "c4e332f46478c11b9566b82809c3a127cc7008d3f55eb47822fe9b4ea34bf330",
+      "manifest_sha256": "93291275a438bed48aef54fc3b2ee5faf943baef64f81aba925852b169e7b1ef",
+      "summary_sha256": "f6f86490a1f125ed62c5caf7848803ccb0833a4921724303e7b4f8177c4af439",
+      "case_ids": [
+        "fmt_utf8_validation_boundaries",
+        "fmt_debug_control_escapes",
+        "fmt_printf_dynamic_field_sign",
+        "fmt_integer_precision_padding",
+        "fmt_pre_epoch_fraction_normalization",
+        "fmt_diagnostic_fallback_capacity"
+      ],
+      "prompt": "repair-v1",
+      "max_inspections": 0,
+      "structured_diagnostics": false,
+      "reasoning_effort": "medium",
+      "max_attempts": 2,
+      "native_trials": 6,
+      "raw_native_publications": 0,
+      "known_semantic_false_green_cases": [],
+      "published_without_known_semantic_regression": 0,
+      "model_calls": 10,
+      "calls_by_kind": {
+        "repair": 10
+      },
+      "call_returncodes": {
+        "0": 10
+      },
+      "usage": {
+        "input_tokens": 303107,
+        "cached_input_tokens": 125568,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 1986,
+        "reasoning_output_tokens": 202
+      }
+    },
+    {
+      "id": "formal-pure-baseline-strings",
+      "group": "formal_pure_prompt",
+      "directory": ".auto-fix/expanded-formal/development-prompts/jobs/baseline-strings/run",
+      "project_file": "evaluation/project.json",
+      "project_sha256": "d18ac42a32ca5b2e9672094ce68a01d6ed7f453b27c1d674ff551ceefe3f3b9a",
+      "cases_file": "evaluation/expanded/abseil_strings.json",
+      "cases_sha256": "cb92bcda96467037072b534e3d8c57df66bc7197ccd5b4b9688fe85ba1209d50",
+      "manifest_sha256": "b14ad9ebb711a72a3e3e12ee1c7990abd19c6117d7ebb36e99e8572f627e9812",
+      "summary_sha256": "3a3dbb82f719022045cc196a1f2c836ecf1bc4790aeff8f1ebe77a08ab1f4104",
+      "case_ids": [
+        "absl_escape_byte_overflow",
+        "absl_escape_hex_continuation",
+        "absl_base64_tail_codec",
+        "absl_base64_optional_padding_whitespace",
+        "absl_integer_bare_prefixes",
+        "absl_integer_partial_results",
+        "absl_integer_signed_boundaries",
+        "absl_replace_overlap_and_progress",
+        "absl_split_literal_and_chunk_boundaries",
+        "absl_base64_alphabet_contract"
+      ],
+      "prompt": "repair-v1",
+      "max_inspections": 0,
+      "structured_diagnostics": false,
+      "reasoning_effort": "medium",
+      "max_attempts": 2,
+      "native_trials": 10,
+      "raw_native_publications": 2,
+      "known_semantic_false_green_cases": [],
+      "published_without_known_semantic_regression": 2,
+      "model_calls": 11,
+      "calls_by_kind": {
+        "repair": 11
+      },
+      "call_returncodes": {
+        "0": 11
+      },
+      "usage": {
+        "input_tokens": 340449,
+        "cached_input_tokens": 153472,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 2594,
+        "reasoning_output_tokens": 798
+      }
+    },
+    {
+      "id": "formal-pure-baseline-systems",
+      "group": "formal_pure_prompt",
+      "directory": ".auto-fix/expanded-formal/development-prompts/jobs/baseline-systems/run",
+      "project_file": "evaluation/project.json",
+      "project_sha256": "d18ac42a32ca5b2e9672094ce68a01d6ed7f453b27c1d674ff551ceefe3f3b9a",
+      "cases_file": "evaluation/expanded/abseil_systems.json",
+      "cases_sha256": "ebf862f3135ece78c683fdb64066f59b277a3f05b87208e1ff6813a533c5e744",
+      "manifest_sha256": "04a0315278e09318ac52930478ff7c87ea4e519d9623623a874e0ca79711b4bb",
+      "summary_sha256": "dfbd081141b6b3abcb9f1007df956778ef60a66faa02fe825d11d7bfbebdb62c",
+      "case_ids": [
+        "duration_negative_unit_rounding",
+        "duration_composite_parse_accumulator",
+        "duration_posix_negative_fraction_rounding",
+        "time_negative_unix_precision_floor",
+        "status_update_first_failure_contract",
+        "status_payload_clone_write_retention",
+        "status_lookup_conflict_dispatch",
+        "status_copy_on_write_mutation_boundary"
+      ],
+      "prompt": "repair-v1",
+      "max_inspections": 0,
+      "structured_diagnostics": false,
+      "reasoning_effort": "medium",
+      "max_attempts": 2,
+      "native_trials": 8,
+      "raw_native_publications": 5,
+      "known_semantic_false_green_cases": [
+        "duration_negative_unit_rounding"
+      ],
+      "published_without_known_semantic_regression": 4,
+      "model_calls": 12,
+      "calls_by_kind": {
+        "repair": 12
+      },
+      "call_returncodes": {
+        "0": 12
+      },
+      "usage": {
+        "input_tokens": 363166,
+        "cached_input_tokens": 132608,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 2763,
+        "reasoning_output_tokens": 397
+      }
+    },
+    {
+      "id": "formal-pure-contract-fmt",
+      "group": "formal_pure_prompt",
+      "directory": ".auto-fix/expanded-formal/development-prompts/jobs/contract-fmt/run",
+      "project_file": "evaluation/expanded/fmt.json",
+      "project_sha256": "dea521fdb850999f84967219ea1cbe1047089b5fbfa2583b678df0793487957d",
+      "cases_file": "evaluation/expanded/cases_fmt.json",
+      "cases_sha256": "c4e332f46478c11b9566b82809c3a127cc7008d3f55eb47822fe9b4ea34bf330",
+      "manifest_sha256": "bdf6e3c955b2cc737d5bd2732233689ce1de28b92823057876383f2836837e51",
+      "summary_sha256": "276b91d7287fc80862917f3c2088f3cf3b11c5afd72c1f8208de19728b523267",
+      "case_ids": [
+        "fmt_utf8_validation_boundaries",
+        "fmt_debug_control_escapes",
+        "fmt_printf_dynamic_field_sign",
+        "fmt_integer_precision_padding",
+        "fmt_pre_epoch_fraction_normalization",
+        "fmt_diagnostic_fallback_capacity"
+      ],
+      "prompt": "contract-v3",
+      "max_inspections": 0,
+      "structured_diagnostics": false,
+      "reasoning_effort": "medium",
+      "max_attempts": 2,
+      "native_trials": 6,
+      "raw_native_publications": 1,
+      "known_semantic_false_green_cases": [],
+      "published_without_known_semantic_regression": 1,
+      "model_calls": 10,
+      "calls_by_kind": {
+        "repair": 10
+      },
+      "call_returncodes": {
+        "0": 10
+      },
+      "usage": {
+        "input_tokens": 298479,
+        "cached_input_tokens": 139008,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 2828,
+        "reasoning_output_tokens": 294
+      }
+    },
+    {
+      "id": "formal-pure-contract-strings",
+      "group": "formal_pure_prompt",
+      "directory": ".auto-fix/expanded-formal/development-prompts/jobs/contract-strings/run",
+      "project_file": "evaluation/project.json",
+      "project_sha256": "d18ac42a32ca5b2e9672094ce68a01d6ed7f453b27c1d674ff551ceefe3f3b9a",
+      "cases_file": "evaluation/expanded/abseil_strings.json",
+      "cases_sha256": "cb92bcda96467037072b534e3d8c57df66bc7197ccd5b4b9688fe85ba1209d50",
+      "manifest_sha256": "ff6b1ca6b4458d6ff785ac8cc7c260dc42c2b03f8395ccfbb7adb47702c59e47",
+      "summary_sha256": "927cc9690dfcfc8cbaca1ff0d7803197eaeea0baa02470c4cbf6e285423d2ec7",
+      "case_ids": [
+        "absl_escape_byte_overflow",
+        "absl_escape_hex_continuation",
+        "absl_base64_tail_codec",
+        "absl_base64_optional_padding_whitespace",
+        "absl_integer_bare_prefixes",
+        "absl_integer_partial_results",
+        "absl_integer_signed_boundaries",
+        "absl_replace_overlap_and_progress",
+        "absl_split_literal_and_chunk_boundaries",
+        "absl_base64_alphabet_contract"
+      ],
+      "prompt": "contract-v3",
+      "max_inspections": 0,
+      "structured_diagnostics": false,
+      "reasoning_effort": "medium",
+      "max_attempts": 2,
+      "native_trials": 10,
+      "raw_native_publications": 3,
+      "known_semantic_false_green_cases": [],
+      "published_without_known_semantic_regression": 3,
+      "model_calls": 10,
+      "calls_by_kind": {
+        "repair": 10
+      },
+      "call_returncodes": {
+        "0": 10
+      },
+      "usage": {
+        "input_tokens": 312076,
+        "cached_input_tokens": 109312,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 3105,
+        "reasoning_output_tokens": 870
+      }
+    },
+    {
+      "id": "formal-pure-contract-systems",
+      "group": "formal_pure_prompt",
+      "directory": ".auto-fix/expanded-formal/development-prompts/jobs/contract-systems/run",
+      "project_file": "evaluation/project.json",
+      "project_sha256": "d18ac42a32ca5b2e9672094ce68a01d6ed7f453b27c1d674ff551ceefe3f3b9a",
+      "cases_file": "evaluation/expanded/abseil_systems.json",
+      "cases_sha256": "ebf862f3135ece78c683fdb64066f59b277a3f05b87208e1ff6813a533c5e744",
+      "manifest_sha256": "cea2c96a7fec59764f5cb5664d9025b604c8811bea1ec891e9ef3856a9766b9e",
+      "summary_sha256": "38665e88e2ae317855a51f8910c0a0194f2066254737f602bd65bbbb4b6c3343",
+      "case_ids": [
+        "duration_negative_unit_rounding",
+        "duration_composite_parse_accumulator",
+        "duration_posix_negative_fraction_rounding",
+        "time_negative_unix_precision_floor",
+        "status_update_first_failure_contract",
+        "status_payload_clone_write_retention",
+        "status_lookup_conflict_dispatch",
+        "status_copy_on_write_mutation_boundary"
+      ],
+      "prompt": "contract-v3",
+      "max_inspections": 0,
+      "structured_diagnostics": false,
+      "reasoning_effort": "medium",
+      "max_attempts": 2,
+      "native_trials": 8,
+      "raw_native_publications": 4,
+      "known_semantic_false_green_cases": [
+        "duration_negative_unit_rounding"
+      ],
+      "published_without_known_semantic_regression": 3,
+      "model_calls": 12,
+      "calls_by_kind": {
+        "repair": 12
+      },
+      "call_returncodes": {
+        "0": 12
+      },
+      "usage": {
+        "input_tokens": 365902,
+        "cached_input_tokens": 153216,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 3441,
+        "reasoning_output_tokens": 620
+      }
+    },
+    {
+      "id": "formal-pure-evidence-fmt",
+      "group": "formal_pure_prompt",
+      "directory": ".auto-fix/expanded-formal/development-prompts/jobs/evidence-fmt/run",
+      "project_file": "evaluation/expanded/fmt.json",
+      "project_sha256": "dea521fdb850999f84967219ea1cbe1047089b5fbfa2583b678df0793487957d",
+      "cases_file": "evaluation/expanded/cases_fmt.json",
+      "cases_sha256": "c4e332f46478c11b9566b82809c3a127cc7008d3f55eb47822fe9b4ea34bf330",
+      "manifest_sha256": "9ecaaecf417a8bdab502c2d96dd35451f41857641827ed94a66064d5b01ed9d5",
+      "summary_sha256": "0c5142ea117bd6ffee23d82e2d7535d4c2b1f4f423b2332c05e65bf91b8c7170",
+      "case_ids": [
+        "fmt_utf8_validation_boundaries",
+        "fmt_debug_control_escapes",
+        "fmt_printf_dynamic_field_sign",
+        "fmt_integer_precision_padding",
+        "fmt_pre_epoch_fraction_normalization",
+        "fmt_diagnostic_fallback_capacity"
+      ],
+      "prompt": "evidence-v2",
+      "max_inspections": 0,
+      "structured_diagnostics": false,
+      "reasoning_effort": "medium",
+      "max_attempts": 2,
+      "native_trials": 6,
+      "raw_native_publications": 1,
+      "known_semantic_false_green_cases": [],
+      "published_without_known_semantic_regression": 1,
+      "model_calls": 10,
+      "calls_by_kind": {
+        "repair": 10
+      },
+      "call_returncodes": {
+        "0": 10
+      },
+      "usage": {
+        "input_tokens": 301731,
+        "cached_input_tokens": 123264,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 3195,
+        "reasoning_output_tokens": 492
+      }
+    },
+    {
+      "id": "formal-pure-evidence-strings",
+      "group": "formal_pure_prompt",
+      "directory": ".auto-fix/expanded-formal/development-prompts/jobs/evidence-strings/run",
+      "project_file": "evaluation/project.json",
+      "project_sha256": "d18ac42a32ca5b2e9672094ce68a01d6ed7f453b27c1d674ff551ceefe3f3b9a",
+      "cases_file": "evaluation/expanded/abseil_strings.json",
+      "cases_sha256": "cb92bcda96467037072b534e3d8c57df66bc7197ccd5b4b9688fe85ba1209d50",
+      "manifest_sha256": "fc2e57835c289a6bdefdd10f94d0b59dedbc53e6082a9f2f32740086eb555cc9",
+      "summary_sha256": "2a2b38a7eaaeeeb7ec126955b3ef6248ea8ecb9ce960ed844b1be745222a5573",
+      "case_ids": [
+        "absl_escape_byte_overflow",
+        "absl_escape_hex_continuation",
+        "absl_base64_tail_codec",
+        "absl_base64_optional_padding_whitespace",
+        "absl_integer_bare_prefixes",
+        "absl_integer_partial_results",
+        "absl_integer_signed_boundaries",
+        "absl_replace_overlap_and_progress",
+        "absl_split_literal_and_chunk_boundaries",
+        "absl_base64_alphabet_contract"
+      ],
+      "prompt": "evidence-v2",
+      "max_inspections": 0,
+      "structured_diagnostics": false,
+      "reasoning_effort": "medium",
+      "max_attempts": 2,
+      "native_trials": 10,
+      "raw_native_publications": 2,
+      "known_semantic_false_green_cases": [],
+      "published_without_known_semantic_regression": 2,
+      "model_calls": 10,
+      "calls_by_kind": {
+        "repair": 10
+      },
+      "call_returncodes": {
+        "0": 10
+      },
+      "usage": {
+        "input_tokens": 312722,
+        "cached_input_tokens": 139520,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 2297,
+        "reasoning_output_tokens": 0
+      }
+    },
+    {
+      "id": "formal-pure-evidence-systems",
+      "group": "formal_pure_prompt",
+      "directory": ".auto-fix/expanded-formal/development-prompts/jobs/evidence-systems/run",
+      "project_file": "evaluation/project.json",
+      "project_sha256": "d18ac42a32ca5b2e9672094ce68a01d6ed7f453b27c1d674ff551ceefe3f3b9a",
+      "cases_file": "evaluation/expanded/abseil_systems.json",
+      "cases_sha256": "ebf862f3135ece78c683fdb64066f59b277a3f05b87208e1ff6813a533c5e744",
+      "manifest_sha256": "72e5068d117432313332eb1f9355d0fdd255ff16aa9b136fd5fcee9ed2b0ed66",
+      "summary_sha256": "91a300d6dcc5a0e65864d046c185ae03b4794d4e653036c26841bf6c32212425",
+      "case_ids": [
+        "duration_negative_unit_rounding",
+        "duration_composite_parse_accumulator",
+        "duration_posix_negative_fraction_rounding",
+        "time_negative_unix_precision_floor",
+        "status_update_first_failure_contract",
+        "status_payload_clone_write_retention",
+        "status_lookup_conflict_dispatch",
+        "status_copy_on_write_mutation_boundary"
+      ],
+      "prompt": "evidence-v2",
+      "max_inspections": 0,
+      "structured_diagnostics": false,
+      "reasoning_effort": "medium",
+      "max_attempts": 2,
+      "native_trials": 8,
+      "raw_native_publications": 5,
+      "known_semantic_false_green_cases": [
+        "duration_negative_unit_rounding"
+      ],
+      "published_without_known_semantic_regression": 4,
+      "model_calls": 14,
+      "calls_by_kind": {
+        "repair": 14
+      },
+      "call_returncodes": {
+        "0": 14
+      },
+      "usage": {
+        "input_tokens": 430822,
+        "cached_input_tokens": 195328,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 3905,
+        "reasoning_output_tokens": 232
+      }
+    },
+    {
+      "id": "prototype-baseline-fmt",
+      "group": "prototypes",
+      "directory": ".auto-fix/expanded-runs/development-baseline-fmt",
+      "project_file": "evaluation/expanded/fmt.json",
+      "project_sha256": "dea521fdb850999f84967219ea1cbe1047089b5fbfa2583b678df0793487957d",
+      "cases_file": "evaluation/expanded/cases_fmt.json",
+      "cases_sha256": "c4e332f46478c11b9566b82809c3a127cc7008d3f55eb47822fe9b4ea34bf330",
+      "manifest_sha256": "799487557567a4cd6f8083df8ee60a0641678079caf286ffb29d5ae1249225a2",
+      "summary_sha256": "197d3e4c3c5c2ccb9d59bfb6983e2fbd980801c8c465945dd03d19aff08f9d58",
+      "case_ids": [
+        "fmt_utf8_validation_boundaries",
+        "fmt_debug_control_escapes",
+        "fmt_printf_dynamic_field_sign",
+        "fmt_integer_precision_padding",
+        "fmt_pre_epoch_fraction_normalization",
+        "fmt_diagnostic_fallback_capacity"
+      ],
+      "prompt": "repair-v1",
+      "max_inspections": 0,
+      "structured_diagnostics": false,
+      "reasoning_effort": "medium",
+      "max_attempts": 2,
+      "native_trials": 6,
+      "raw_native_publications": 0,
+      "known_semantic_false_green_cases": [],
+      "published_without_known_semantic_regression": null,
+      "model_calls": 10,
+      "calls_by_kind": {
+        "repair": 10
+      },
+      "call_returncodes": {
+        "0": 10
+      },
+      "usage": {
+        "input_tokens": 299657,
+        "cached_input_tokens": 27904,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 1990,
+        "reasoning_output_tokens": 0
+      },
+      "unattested_legacy_configuration_defaults": {
+        "structured_diagnostics": false
+      }
+    },
+    {
+      "id": "prototype-baseline-strings",
+      "group": "prototypes",
+      "directory": ".auto-fix/expanded-runs/development-baseline-strings",
+      "project_file": "evaluation/project.json",
+      "project_sha256": "d18ac42a32ca5b2e9672094ce68a01d6ed7f453b27c1d674ff551ceefe3f3b9a",
+      "cases_file": "evaluation/expanded/prototypes/v1/abseil_strings.json",
+      "cases_sha256": "0060d1181bf00fd6653319b94d603fbc985082455920f01131bc3e4ce5306902",
+      "manifest_sha256": "deb5ad6c25e86d2adc9b09f5e97f28058d589e4790939b6cc5d22fe8a2ca4033",
+      "summary_sha256": "5cb7593ebadbea775b3f27ac18d59d78e5e929eae3e861ff74abc807e787a6bc",
+      "case_ids": [
+        "absl_escape_byte_overflow",
+        "absl_escape_hex_continuation",
+        "absl_base64_tail_codec",
+        "absl_base64_optional_padding_whitespace",
+        "absl_integer_bare_prefixes",
+        "absl_integer_partial_results",
+        "absl_integer_signed_boundaries",
+        "absl_replace_overlap_and_progress",
+        "absl_split_literal_and_chunk_boundaries",
+        "absl_base64_alphabet_contract"
+      ],
+      "prompt": "repair-v1",
+      "max_inspections": 0,
+      "structured_diagnostics": false,
+      "reasoning_effort": "medium",
+      "max_attempts": 2,
+      "native_trials": 10,
+      "raw_native_publications": 2,
+      "known_semantic_false_green_cases": [],
+      "published_without_known_semantic_regression": null,
+      "model_calls": 11,
+      "calls_by_kind": {
+        "repair": 11
+      },
+      "call_returncodes": {
+        "0": 11
+      },
+      "usage": {
+        "input_tokens": 340098,
+        "cached_input_tokens": 41856,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 3976,
+        "reasoning_output_tokens": 1207
+      },
+      "unattested_legacy_configuration_defaults": {
+        "structured_diagnostics": false
+      }
+    },
+    {
+      "id": "prototype-evidence-fmt",
+      "group": "prototypes",
+      "directory": ".auto-fix/expanded-runs/development-evidence-fmt",
+      "project_file": "evaluation/expanded/fmt.json",
+      "project_sha256": "dea521fdb850999f84967219ea1cbe1047089b5fbfa2583b678df0793487957d",
+      "cases_file": "evaluation/expanded/cases_fmt.json",
+      "cases_sha256": "c4e332f46478c11b9566b82809c3a127cc7008d3f55eb47822fe9b4ea34bf330",
+      "manifest_sha256": "9ecaaecf417a8bdab502c2d96dd35451f41857641827ed94a66064d5b01ed9d5",
+      "summary_sha256": "fb0e5ada960e3ca73a55adefd58a9e46aa01ac4cd4a490b4148c3e3e0683794c",
+      "case_ids": [
+        "fmt_utf8_validation_boundaries",
+        "fmt_debug_control_escapes",
+        "fmt_printf_dynamic_field_sign",
+        "fmt_integer_precision_padding",
+        "fmt_pre_epoch_fraction_normalization",
+        "fmt_diagnostic_fallback_capacity"
+      ],
+      "prompt": "evidence-v2",
+      "max_inspections": 0,
+      "structured_diagnostics": false,
+      "reasoning_effort": "medium",
+      "max_attempts": 2,
+      "native_trials": 6,
+      "raw_native_publications": 0,
+      "known_semantic_false_green_cases": [],
+      "published_without_known_semantic_regression": null,
+      "model_calls": 10,
+      "calls_by_kind": {
+        "repair": 10
+      },
+      "call_returncodes": {
+        "0": 10
+      },
+      "usage": {
+        "input_tokens": 301130,
+        "cached_input_tokens": 97664,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 2611,
+        "reasoning_output_tokens": 0
+      }
+    },
+    {
+      "id": "prototype-investigation-pilot-fmt",
+      "group": "prototypes",
+      "directory": ".auto-fix/expanded-runs/development-investigation-pilot-fmt",
+      "project_file": "evaluation/expanded/fmt.json",
+      "project_sha256": "dea521fdb850999f84967219ea1cbe1047089b5fbfa2583b678df0793487957d",
+      "cases_file": "evaluation/expanded/cases_fmt.json",
+      "cases_sha256": "c4e332f46478c11b9566b82809c3a127cc7008d3f55eb47822fe9b4ea34bf330",
+      "manifest_sha256": "c3f3e2becd52ecb2e1ee1e7d0cc53b35842bca6a47899b7d3456d78ca08c1f30",
+      "summary_sha256": "0795b6606b39abb12eef945022c196ed2ffb8d665ed3c33f034e80fafe499cf3",
+      "case_ids": [
+        "fmt_utf8_validation_boundaries",
+        "fmt_debug_control_escapes"
+      ],
+      "prompt": "evidence-v2",
+      "max_inspections": 3,
+      "structured_diagnostics": true,
+      "reasoning_effort": "medium",
+      "max_attempts": 2,
+      "native_trials": 2,
+      "raw_native_publications": 2,
+      "known_semantic_false_green_cases": [],
+      "published_without_known_semantic_regression": null,
+      "model_calls": 6,
+      "calls_by_kind": {
+        "investigation": 4,
+        "repair": 2
+      },
+      "call_returncodes": {
+        "0": 6
+      },
+      "usage": {
+        "input_tokens": 191774,
+        "cached_input_tokens": 13952,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 1507,
+        "reasoning_output_tokens": 257
+      }
+    }
+  ],
+  "native_fixture_registry": {
+    "path": "evaluation/expanded/dataset-index.json",
+    "sha256": "09f464ebe2e310c3afa28c4f90ffd85d19bcf6e7b9291d3d436b2c18c96630d1"
+  },
+  "supplemental_native_semantic_proofs": [
+    {
+      "id": "original_semantic_review",
+      "path": ".auto-fix/development-semantic-audit.json",
+      "sha256": "ec8125c921456673035d76a9a6eb384d8350df888580baceab004a95de0c8163"
+    },
+    {
+      "id": "independent_native_counterexample",
+      "path": ".auto-fix/development-semantic-audit/duration-negative-unit/proof.json",
+      "sha256": "6569a9420de53fd38be4f70582807a91ba9c4fe836bfe73cee68481d6d7ad6c6"
+    },
+    {
+      "id": "trusted_guard_native_integration",
+      "path": ".auto-fix/development-semantic-audit/trusted-probe-integration/proof-final.json",
+      "sha256": "0bd8693ee50dcd08b052d546d4a90bd2427e76a543f6e38760c7c0d0402a6360"
+    }
+  ],
+  "trusted_probe_source": {
+    "path": "src/auto_fix/semantic_probes.py",
+    "sha256": "19d3f88a1c236a433a57d95452d96d729b24a9f315043559aa308a0a66aea2b7"
+  },
+  "call_audit": {
+    "path": ".auto-fix/artifact-verification/development-call-audit.json",
+    "sha256": "268252c2c10c7e0f8d0447309aa77a572fdb962a973a5917f4b445ae2b290845",
+    "total_live_cli_calls": 136,
+    "outside_CLI_tool_events": 0
+  },
+  "limitations": [
+    "Prototype outcomes are not combined with the formal 72-trial comparison.",
+    "Published without a known semantic regression means independent review found none; it is not proof over every input.",
+    "Replay recordings must be selected only after semantic review; this manifest exports raw evidence without selecting a final winner.",
+    "Native semantic counterexamples and guards add coverage; they do not add unique source defects."
+  ],
+  "native_authoring_proof_scope": "The linked frozen fixture registry includes native authoring proofs for both development and holdout fixtures. These are not holdout model outcomes."
+}
