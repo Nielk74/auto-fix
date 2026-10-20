@@ -137,12 +137,13 @@ def _build_config(project: dict, case: dict, googletest: Path | None) -> dict:
         "timeout_seconds": 600,
     }
     for suite in project.get("additional_test_suites", []):
-        if suite.get("probe") != "duration-min-unit":
+        probe = suite.get("probe")
+        if probe not in ("duration-min-unit", "duration-rounding-boundaries"):
             raise ValueError("Unknown trusted additional test suite")
         if set(suite.get("targets_any", [])) & set(case["build_targets"]):
             from auto_fix.semantic_probes import duration_min_unit_command
 
-            config.setdefault("additional_tests", []).append(duration_min_unit_command())
+            config.setdefault("additional_tests", []).append(duration_min_unit_command(probe=probe))
     return config
 
 

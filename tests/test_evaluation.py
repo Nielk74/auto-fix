@@ -32,6 +32,37 @@ ORIGINAL = "return 0xA17F;"
 REGRESSION = "return 0xA16F;"
 
 
+@pytest.mark.parametrize("probe", ["duration-min-unit", "duration-rounding-boundaries"])
+def test_versioned_duration_guards_are_selected_explicitly_for_matching_targets(monkeypatch, probe):
+    from auto_fix import semantic_probes
+
+    observed = []
+
+    def command(probe="duration-min-unit"):
+        observed.append(probe)
+        return ["synthetic-guard-command", "--probe", probe, "--junit", "{junit}"]
+
+    monkeypatch.setattr(semantic_probes, "duration_min_unit_command", command)
+    project = {
+        "cmake_options": [],
+        "additional_test_suites": [{"targets_any": ["absl_time_test"], "probe": probe}],
+    }
+    build = _build_config(project, {"build_targets": ["absl_time_test"]}, None)
+    assert observed == [probe]
+    assert build["additional_tests"] == [command(probe)]
+    other = _build_config(project, {"build_targets": ["absl_status_test"]}, None)
+    assert "additional_tests" not in other
+
+
+def test_unknown_versioned_guard_is_rejected_instead_of_silently_skipped():
+    project = {
+        "cmake_options": [],
+        "additional_test_suites": [{"targets_any": ["absl_time_test"], "probe": "invented-guard"}],
+    }
+    with pytest.raises(ValueError, match="Unknown trusted"):
+        _build_config(project, {"build_targets": ["absl_time_test"]}, None)
+
+
 @pytest.mark.parametrize("platform_name", ["nt", "posix"])
 def test_build_targets_remain_cmake_arguments_and_native_rebuild_is_scoped(
     tmp_path, monkeypatch, platform_name
