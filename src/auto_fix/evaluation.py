@@ -139,7 +139,9 @@ def _build_config(project: dict, case: dict, googletest: Path | None) -> dict:
     for suite in project.get("additional_test_suites", []):
         probe = suite.get("probe")
         if probe not in (
-            "duration-min-unit", "duration-rounding-boundaries", "fmt-contract-boundaries"
+            "duration-min-unit",
+            "duration-rounding-boundaries",
+            "fmt-contract-boundaries",
         ):
             raise ValueError("Unknown trusted additional test suite")
         if set(suite.get("targets_any", [])) & set(case["build_targets"]):
