@@ -38,6 +38,7 @@ class ExperimentJob(BaseModel):
     context_chars: int = Field(default=60000, ge=4000, le=200000)
     definition_reads: bool = False
     max_attempts: int = Field(default=2, ge=1, le=5, strict=True)
+    baseline_repetitions: int = Field(default=1, ge=1, le=3, strict=True)
     case: str | None = None
 
     @field_validator("id", "case")
@@ -106,6 +107,8 @@ def job_command(job: ExperimentJob, directory: Path, project: Path, cases: Path)
         str(job.inspections_per_attempt),
         "--max-attempts",
         str(job.max_attempts),
+        "--baseline-repetitions",
+        str(job.baseline_repetitions),
         "--reasoning-effort",
         job.reasoning_effort,
         "--context-chars",
@@ -147,6 +150,12 @@ def failure_stage(score: dict, state: dict, calls: list[dict]) -> str:
         return "investigation" if calls else "investigation_before_model"
     if "baseline build" in reason:
         return "baseline_build"
+    if "baseline test evidence" in reason:
+        return "baseline_evidence"
+    if "baseline outcomes varied" in reason or "baseline verification changed" in reason:
+        return "baseline_stability"
+    if "fewer baseline checks" in reason:
+        return "baseline_stability"
     if "not reproduced" in reason:
         return "baseline_reproduction"
     if "final rebase" in reason or "rebase failed" in reason:
@@ -238,6 +247,10 @@ def _run_trials(run: dict) -> tuple[list[dict], dict]:
                 "first_attempt_success": success and score.get("attempts") == 1,
                 "attempts": score.get("attempts", state.get("attempt", 0)),
                 "inspections": score.get("inspections", state.get("inspections", 0)),
+                "baseline_repetitions": manifest.get("baseline_repetitions", 1),
+                "baseline_check_count": score.get(
+                    "baseline_check_count", len(state.get("baseline_checks", []))
+                ),
                 "failure_stage": failure_stage(score, state, calls),
                 "reason": score.get("reason", state.get("reason", "")),
                 "elapsed_seconds": score.get("elapsed_seconds", 0),
@@ -278,6 +291,7 @@ def _group(trials: list[dict], arm: str, split: str, project: str) -> dict:
         "incomplete_trials": len(trials) - len(completed),
         "successful_trials": sum(trial["success"] for trial in completed),
         "first_attempt_successes": sum(trial["first_attempt_success"] for trial in completed),
+        "observed_baseline_checks": sum(trial["baseline_check_count"] for trial in trials),
         "unique_cases": len(by_case),
         "unique_case_first_trial_successes": first_successes,
         "wilson95_unique_first_trial": wilson_interval(first_successes, len(by_case)),
@@ -367,20 +381,25 @@ def summarize_runs(runs: list[dict], output: Path, *, report_split: str | None =
                 f"Tokens: `{json.dumps(group['tokens'])}`. "
                 f"Wilson 95%: `{group['wilson95_unique_first_trial']}`. "
                 f"Failure stages: `{json.dumps(group['failure_stages'])}`.",
+                f"Observed baseline checks: {group['observed_baseline_checks']}.",
             ]
         )
     lines.extend(
         [
             "",
-            "| Run | Arm | Split | Case | Outcome | Attempts | Failed stage |",
-            "| --- | --- | --- | --- | --- | --- | --- |",
+            "| Run | Arm | Split | Case | Outcome | Attempts | "
+            "Baselines observed/requested | Failed stage |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- |",
         ]
     )
     for trial in trials:
-        cells = [
-            trial[key]
-            for key in ("run_id", "arm", "split", "case", "status", "attempts", "failure_stage")
-        ]
+        cells = [trial[key] for key in ("run_id", "arm", "split", "case", "status", "attempts")]
+        cells.extend(
+            [
+                f"{trial['baseline_check_count']}/{trial['baseline_repetitions']}",
+                trial["failure_stage"],
+            ]
+        )
         lines.append("| " + " | ".join(str(cell) for cell in cells) + " |")
     (output / "report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     return report

@@ -389,10 +389,15 @@ def test_invalid_inspection_round_limit_fails_before_native_or_model_work(tmp_pa
 @pytest.mark.parametrize(
     "configured,expected",
     [
-        ({}, (6, 60000, False)),
+        ({}, (6, 60000, False, 1)),
         (
-            {"inspections_per_attempt": 2, "context_chars": 160000, "definition_reads": True},
-            (2, 160000, True),
+            {
+                "inspections_per_attempt": 2,
+                "context_chars": 160000,
+                "definition_reads": True,
+                "baseline_repetitions": 3,
+            },
+            (2, 160000, True, 3),
         ),
     ],
 )
@@ -425,19 +430,22 @@ def test_operational_policy_reaches_scenarios_and_evidence_manifest(
     assert observed[0]["max_inspections"] == 4
     assert observed[0]["context_chars"] == expected[1]
     assert observed[0]["definition_reads"] is expected[2]
+    assert observed[0]["baseline_repetitions"] == expected[3]
     manifest = json.loads((directory / "manifest.json").read_text())
     summary = json.loads((directory / "summary.json").read_text())
     assert manifest["inspections_per_attempt"] == summary["inspections_per_attempt"] == expected[0]
     assert manifest["max_inspections"] == summary["max_inspections"] == 4
     assert manifest["context_chars"] == summary["context_chars"] == expected[1]
     assert manifest["definition_reads"] is summary["definition_reads"] is expected[2]
+    assert manifest["baseline_repetitions"] == summary["baseline_repetitions"] == expected[3]
     assert manifest["max_attempts"] == 3, "Preserve the separate operational fault budget"
     assert "validation_context.py" in manifest["source_sha256"]
     assert (directory / "implementation/validation_context.py").is_file()
 
 
-def test_scenario_passes_the_evidence_policy_into_actual_settings(
-    git_control, tmp_path, monkeypatch
+@pytest.mark.parametrize("evidence_valid", [True, False])
+def test_scenario_passes_only_trusted_preflight_evidence_into_actual_settings(
+    git_control, tmp_path, monkeypatch, evidence_valid
 ):
     from auto_fix import operational_evaluation as operations
 
@@ -458,8 +466,9 @@ def test_scenario_passes_the_evidence_policy_into_actual_settings(
             return Verification(
                 build_ok=True,
                 test_ok=False,
+                evidence_valid=evidence_valid,
                 report=NativeTestReport(failed=["AsciiStrTo.Lower"]),
-                logs=[str(junit)],
+                logs=[str(junit)] if evidence_valid else [],
             )
 
     class ObservedSettings(Exception):
@@ -474,6 +483,7 @@ def test_scenario_passes_the_evidence_policy_into_actual_settings(
         inspections_per_attempt,
         context_chars,
         definition_reads,
+        baseline_repetitions,
     ):
         actual = _settings(
             current,
@@ -484,14 +494,17 @@ def test_scenario_passes_the_evidence_policy_into_actual_settings(
             inspections_per_attempt,
             context_chars,
             definition_reads,
+            baseline_repetitions,
         )
         assert actual.max_inspections == 4 and actual.inspections_per_attempt == 2
         assert actual.llm.context_chars == 160000
         assert actual.repository.definition_reads is True
+        assert actual.baseline_repetitions == 3
         default = _settings(current, source, build, prompt, inspections)
         assert default.inspections_per_attempt == 6
         assert default.llm.context_chars == 60000
         assert default.repository.definition_reads is False
+        assert default.baseline_repetitions == 1
         raise ObservedSettings
 
     monkeypatch.setattr(operations, "_source", lambda *_args: (source, []))
@@ -503,7 +516,9 @@ def test_scenario_passes_the_evidence_policy_into_actual_settings(
         "CodexRepairModel",
         lambda *_args, **_kwargs: pytest.fail("No live models in mechanics tests"),
     )
-    with pytest.raises(ObservedSettings):
+    expected = ObservedSettings if evidence_valid else RuntimeError
+    message = None if evidence_valid else "preflight returned malformed native evidence"
+    with pytest.raises(expected, match=message):
         _run_scenario(
             tmp_path / "scenario-policy",
             scenario("lost_model_response"),
@@ -516,6 +531,7 @@ def test_scenario_passes_the_evidence_policy_into_actual_settings(
             inspections_per_attempt=2,
             context_chars=160000,
             definition_reads=True,
+            baseline_repetitions=3,
             reasoning_effort="medium",
         )
 
@@ -534,4 +550,11 @@ def test_scenario_passes_the_evidence_policy_into_actual_settings(
 def test_invalid_evidence_policy_fails_before_native_or_model_work(tmp_path, settings, field):
     with pytest.raises(ValueError, match=field):
         run_operational_evaluation(tmp_path / "output", **settings)
+    assert not (tmp_path / "output").exists()
+
+
+@pytest.mark.parametrize("value", [0, 4, True, "3", 1.5])
+def test_invalid_baseline_repetitions_fail_before_native_or_model_work(tmp_path, value):
+    with pytest.raises(ValueError, match="baseline_repetitions"):
+        run_operational_evaluation(tmp_path / "output", baseline_repetitions=value)
     assert not (tmp_path / "output").exists()

@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "id": "development-v6-baseline-trust",
+  "parents": [
+    "protocol-development-v3.json",
+    "protocol-development-v4.json",
+    "protocol-development-v5.json"
+  ],
+  "frozen_corpus_unchanged": true,
+  "holdout_model_outcomes_seen": false,
+  "model": "gpt-6-luna",
+  "backend": "codex",
+  "source_isolation": "New evaluation-v6 worktree from 8539ede; frozen V4/V5 sources and prior scores remain unchanged.",
+  "native_mechanical_findings": [
+    "Unchanged native C++ source produced FAIL/PASS/PASS; an equivalent source edit followed the same schedule and passed the V5 publication gate.",
+    "A matching primary native failure plus malformed additional-suite baseline XML still reached the V5 repair path; later valid reports allowed publication."
+  ],
+  "mechanical_evidence_is_not_live_model_evaluation": true,
+  "changes": [
+    "Separate evidence_valid from test_ok so expected failed assertions remain usable while invalid/missing/malformed/duplicate/empty evidence, incomplete timeout/launch-error execution and failed commands without failing assertions block baseline before inference.",
+    "Add baseline_repetitions default1, bounded to integers1..3; the measured delivery preset uses2 unchanged-source native checks.",
+    "Require identical passed/failed/skipped identities and all original TeamCity failures in every baseline repetition. Stop varying outcomes as unstable before repair.",
+    "Retain every fresh baseline report, native log and observed repetition count; maintain final full-test retention, final rebase/retest, protected upstream tests and tested/pushed/PR head agreement."
+  ],
+  "default_compatibility": {
+    "baseline_repetitions": 1,
+    "max_attempts": 2,
+    "note": "Existing repair/inspection defaults and all prior frozen evidence remain unchanged. The explicitly selected V6 confirmation preset uses baseline_repetitions2."
+  },
+  "selection": {
+    "status": "pending_completed_development_arms",
+    "eligible_cohorts": [
+      "development-enriched-v3",
+      "development-evidence-lifecycle-v4",
+      "development-source-context-v5"
+    ],
+    "eligibility": "All24 unique development cases completed with the guarded native oracle and independent successful-patch review. Partial arms, prototypes, raw pre-guard false greens and holdout outcomes cannot select the recipe.",
+    "ranking": [
+      "Most verified publications among the24 development cases under each completed cohort's ORIGINAL frozen guarded native oracle. Report confirmed semantic false greens separately; never rewrite prior native scores.",
+      "Fewest actual live Luna repair plus investigation calls over all24 trials, including failed repairs.",
+      "Lowest measured total trial latency over all24 trials, then stable lexicographic arm ID only on an exact final tie. Latency remains descriptive and confounded by native compilation, scheduling and cache state."
+    ],
+    "recipe_record_before_confirmation": "Freeze selected arm ID, complete source/input hashes, all prompt/context/definition-read/inspection/repair/reasoning settings and development score evidence before any V6 live call. Preserve adaptive resource differences explicitly."
+  },
+  "confirmation": {
+    "split": "development",
+    "unique_cases": 24,
+    "fresh_trials": 24,
+    "baseline_repetitions": 2,
+    "other_settings": "Port the selected completed guarded development RECIPE PARAMETERS onto the safer current V6 graph. Preserve prompt, context, definition-read, reasoning, inspection and repair parameters; do not claim the prior implementation is identical. The fresh24 trials verify the upgraded path before final freeze. Corpus mutations/splits remain unchanged.",
+    "selection_without_holdout": true
+  },
+  "holdout_after_confirmation": {
+    "prerequisite": "Freeze the exact selected V6 implementation and recipe after development confirmation, with all failed/partial trials retained.",
+    "unique_cases": 21,
+    "baseline_rounds": 1,
+    "winner_fresh_rounds": 3,
+    "total_trials": 84,
+    "baseline_recipe": {
+      "prompt": "repair-v1",
+      "max_inspections": 0,
+      "structured_diagnostics": false,
+      "reasoning_effort": "medium",
+      "context_chars": 60000,
+      "definition_reads": false,
+      "max_attempts": 2,
+      "baseline_repetitions": 2,
+      "native_guard_rules": "Same current V6 evidence-validity, stability and trusted native oracle rules as the selected winner."
+    },
+    "no_holdout_tuning": true,
+    "repeats_are_not_independent_unique_cases": true
+  },
+  "mechanical_controls": [
+    "Two baseline checks reject unchanged native FAIL/PASS before a scripted proposal is invoked.",
+    "Malformed additional native baseline evidence blocks a matching primary failure before a scripted proposal is invoked.",
+    "Stable repeated native failures plus a real source repair still reach a tested local bare-Git/PR receipt.",
+    "Explicit default1 compatibility control retains the original single-baseline flake risk; it is not live Luna evidence."
+  ],
+  "metrics": [
+    "Guarded native completion and first-repair completion on unique cases.",
+    "Actual Luna calls by kind, tokens, wall time and failure stage, separating baseline evidence/stability safe stops from model failures.",
+    "Requested/observed baseline repetitions, complete original executed-test retention and exact candidate/pushed/PR heads.",
+    "Wilson95 interval by unique case using the first listed completed trial; all repeated holdout trials remain separate outcomes."
+  ],
+  "claim_limits": [
+    "Finite repeated observations reduce exposure to flaky failures; they do not prove a test is deterministic or prove causal correctness of every fix.",
+    "V6 adds native execution cost. Do not claim equal wall-time/native-build budgets to V3/V4/V5.",
+    "No live-model completion claim follows from the zero-inference mechanical controls."
+  ],
+  "inference_not_started_at_declaration": true
+}

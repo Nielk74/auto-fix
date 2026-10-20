@@ -135,3 +135,25 @@ def test_operations_cli_preserves_or_selects_the_evidence_policy(
     assert observed[0][1]["context_chars"] == expected[1]
     assert observed[0][1]["definition_reads"] is expected[2]
     assert not output.exists(), "This mechanics check must not run native suites or inference"
+
+
+@pytest.mark.parametrize("command", ["evaluate", "evaluate-operations"])
+@pytest.mark.parametrize("options,expected", [([], 1), (["--baseline-repetitions", "3"], 3)])
+def test_evaluation_commands_forward_baseline_repetitions(
+    tmp_path, monkeypatch, command, options, expected
+):
+    from auto_fix import evaluation, operational_evaluation
+
+    observed = []
+
+    def evaluate(directory, **settings):
+        observed.append(settings["baseline_repetitions"])
+        return 0
+
+    module = evaluation if command == "evaluate" else operational_evaluation
+    name = "run_evaluation" if command == "evaluate" else "run_operational_evaluation"
+    monkeypatch.setattr(module, name, evaluate)
+    output = tmp_path / "output"
+    assert main([command, "--directory", str(output), *options]) == 0
+    assert observed == [expected]
+    assert not output.exists()

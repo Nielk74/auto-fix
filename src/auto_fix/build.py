@@ -145,6 +145,7 @@ class Builder:
                 return Verification(
                     build_ok=False,
                     test_ok=False,
+                    evidence_valid=False,
                     output="\n".join(outputs)[-OUTPUT_LIMIT:],
                     logs=logs,
                 )
@@ -167,6 +168,7 @@ class Builder:
             )
             logs.append(result.log_path)
             outputs.append(f"Validation suite: {label}\n{result.output}")
+            suite_report = None
             try:
                 if not suite_junit.is_file() or suite_junit.is_symlink():
                     raise ValueError("Test command did not produce a fresh JUnit report")
@@ -199,12 +201,25 @@ class Builder:
             if result.returncode:
                 outputs.append(f"Test command ({label}) failed with exit code {result.returncode}.")
                 test_ok = False
+                if result.returncode in {124, 127}:
+                    outputs.append(
+                        f"Invalid test evidence ({label}): command did not complete; "
+                        "reported assertions may be partial."
+                    )
+                    evidence_ok = False
+                elif suite_report is None or not suite_report.failed:
+                    outputs.append(
+                        f"Invalid test evidence ({label}): "
+                        "command failed without failing assertions."
+                    )
+                    evidence_ok = False
         if len(commands) > 1 and evidence_ok:
             XML.ElementTree(merged).write(junit, encoding="utf-8", xml_declaration=True)
             logs.append(str(junit))
         return Verification(
             build_ok=True,
             test_ok=evidence_ok and test_ok and not report.failed,
+            evidence_valid=evidence_ok,
             report=report,
             output="\n".join(outputs)[-OUTPUT_LIMIT:],
             logs=logs,
