@@ -1,0 +1,76 @@
+# Copy to config.local.yaml at the repository root and replace company-specific values.
+# Commands run inside an isolated worktree of repository.path.
+timezone: Europe/Paris
+state_dir: .auto-fix
+max_attempts: 2
+
+teamcity:
+  url: https://teamcity.company.example
+  token_env: AUTO_FIX_TEAMCITY_TOKEN
+  build_types:
+    - Company_Cpp_UnitTests
+  # Required if the TeamCity build contains multiple VCS roots:
+  # vcs_root_id: Company_Cpp_Git
+  # Existing artifact paths relative to the TeamCity build's artifacts root.
+  evidence_artifact_paths: []
+  # ca_bundle: C:/Company/pki/root-ca.pem
+
+bitbucket:
+  url: https://bitbucket.company.example
+  token_env: AUTO_FIX_BITBUCKET_TOKEN
+  project: CPP
+  repo: company-cpp
+  # ca_bundle: C:/Company/pki/root-ca.pem
+
+# Remove this section if Jira enrichment is not available.
+jira:
+  url: https://jira.company.example
+  token_env: AUTO_FIX_JIRA_TOKEN
+  # ca_bundle: C:/Company/pki/root-ca.pem
+
+llm:
+  url: https://qwen.company.example/v1
+  token_env: AUTO_FIX_LLM_TOKEN
+  model: qwen3.8-27b # Replace with the exact served model identifier.
+  max_tokens: 6000
+  context_chars: 60000
+  temperature: 0.1
+  # Optional endpoint-specific request fields. Leave empty until verified.
+  extra_body: {}
+  # ca_bundle: C:/Company/pki/root-ca.pem
+
+repository:
+  path: C:/work/company-cpp
+  remote: origin
+  base_branch: master
+  author_name: Auto Fix
+  author_email: auto-fix@company.example
+  allowed_paths:
+    - src/**
+    - include/**
+  context_paths:
+    - src/**
+    - include/**
+    - tests/**
+  max_edit_bytes: 80000
+
+build:
+  configure:
+    - [cmake, -S, ., -B, .auto-fix-build, -G, Visual Studio 17 2022, -A, x64]
+  build:
+    - [cmake, --build, .auto-fix-build, --config, Debug, --clean-first, --parallel, '4']
+  test:
+    - ctest
+    - --test-dir
+    - .auto-fix-build
+    - -C
+    - Debug
+    - --output-on-failure
+    - --no-tests=error
+    - --output-junit
+    - '{junit}'
+  timeout_seconds: 1800
+  # Exact TeamCity name -> canonical XML identity. Unmapped names must match exactly.
+  # Identity is classname.name when classname is nonempty and differs from name;
+  # otherwise name alone (including CTest's identical classname/name values).
+  test_name_map: {}

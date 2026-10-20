@@ -1,0 +1,56 @@
+# Use a Developer PowerShell environment where MSBuild.exe and required DLLs resolve.
+# Replace the solution, executable, model and server settings with your own values.
+timezone: Europe/Paris
+state_dir: .auto-fix
+max_attempts: 2
+
+teamcity:
+  url: https://teamcity.company.example
+  token_env: AUTO_FIX_TEAMCITY_TOKEN
+  build_types: [Company_Cpp_UnitTests]
+  # vcs_root_id: Company_Cpp_Git
+  evidence_artifact_paths: []
+
+bitbucket:
+  url: https://bitbucket.company.example
+  token_env: AUTO_FIX_BITBUCKET_TOKEN
+  project: CPP
+  repo: company-cpp
+
+jira:
+  url: https://jira.company.example
+  token_env: AUTO_FIX_JIRA_TOKEN
+
+llm:
+  url: https://qwen.company.example/v1
+  token_env: AUTO_FIX_LLM_TOKEN
+  model: qwen3.8-27b
+  max_tokens: 6000
+  context_chars: 60000
+  temperature: 0.1
+  extra_body: {}
+
+repository:
+  path: C:/work/company-cpp
+  remote: origin
+  base_branch: master
+  author_name: Auto Fix
+  author_email: auto-fix@company.example
+  allowed_paths: [src/**, include/**]
+  context_paths: [src/**, include/**, tests/**]
+  max_edit_bytes: 80000
+
+build:
+  configure: []
+  build:
+    - [MSBuild.exe, Company.sln, /t:Rebuild, /nr:false, /m:4, /p:Configuration=Debug, /p:Platform=x64, /verbosity:minimal]
+  # GoogleTest writes testcase XML. This must run the full configured test suite.
+  test:
+    - artifacts/bin/Debug/Company.UnitTests.exe
+    - '--gtest_output=xml:{junit}'
+  timeout_seconds: 1800
+  # GoogleTest identity includes the fixture: classname.name, e.g. Arithmetic.AddsIntegers.
+  # If TeamCity uses another label, map it to that exact identity, for example:
+  # test_name_map:
+  #   'Company.UnitTests.Arithmetic.AddsIntegers': Arithmetic.AddsIntegers
+  test_name_map: {}

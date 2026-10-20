@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "auto-fix-workflows"
+version = "0.1.0"
+description = "Local LangGraph workflows for TeamCity C++ failures and Bitbucket fix PRs"
+requires-python = ">=3.11"
+dependencies = [
+  "langgraph>=1.2.16,<2",
+  "langgraph-checkpoint-sqlite>=3.1.2,<4",
+  "httpx>=0.28,<1",
+  "pydantic>=2.12,<3",
+  "PyYAML>=6.0.2,<7",
+  "python-dotenv>=1.1,<2",
+  "defusedxml>=0.7.1,<1",
+  "tzdata>=2025.2",
+  "filelock>=3.20,<4",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3,<10", "ruff>=0.12,<1"]
+
+[project.scripts]
+auto-fix = "auto_fix.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/auto_fix"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
