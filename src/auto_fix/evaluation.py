@@ -138,12 +138,20 @@ def _build_config(project: dict, case: dict, googletest: Path | None) -> dict:
     }
     for suite in project.get("additional_test_suites", []):
         probe = suite.get("probe")
-        if probe not in ("duration-min-unit", "duration-rounding-boundaries"):
+        if probe not in (
+            "duration-min-unit", "duration-rounding-boundaries", "fmt-contract-boundaries"
+        ):
             raise ValueError("Unknown trusted additional test suite")
         if set(suite.get("targets_any", [])) & set(case["build_targets"]):
-            from auto_fix.semantic_probes import duration_min_unit_command
+            if probe == "fmt-contract-boundaries":
+                from auto_fix.fmt_semantic_probes import fmt_contract_command
 
-            config.setdefault("additional_tests", []).append(duration_min_unit_command(probe=probe))
+                command = fmt_contract_command(probe=probe)
+            else:
+                from auto_fix.semantic_probes import duration_min_unit_command
+
+                command = duration_min_unit_command(probe=probe)
+            config.setdefault("additional_tests", []).append(command)
     return config
 
 
