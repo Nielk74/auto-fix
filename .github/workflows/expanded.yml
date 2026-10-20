@@ -1,0 +1,154 @@
+name: Expanded native replay
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: expanded-replay-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  index:
+    name: Validate recorded Luna index
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      linux: ${{ steps.matrix.outputs.linux }}
+      windows: ${{ steps.matrix.outputs.windows }}
+      windows_count: ${{ steps.matrix.outputs.windows_count }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          python-version: '3.12'
+          enable-cache: true
+      - name: Install locked dependencies
+        run: uv sync --locked --extra dev
+      - name: Validate genuine exported recordings and frozen input hashes
+        run: uv run --no-sync python scripts/replay-expanded.py validate
+      - name: Generate Linux and Windows case matrices
+        id: matrix
+        shell: bash
+        run: |
+          uv run --no-sync python - <<'PY'
+          import json
+          import os
+          import subprocess
+
+          matrices = {}
+          for platform in ("linux", "windows"):
+              result = subprocess.run(
+                  [
+                      "uv", "run", "--no-sync", "python",
+                      "scripts/replay-expanded.py", "matrix", "--platform", platform,
+                  ],
+                  check=True,
+                  capture_output=True,
+                  text=True,
+              )
+              matrices[platform] = json.loads(result.stdout)
+          if not matrices["linux"]["include"]:
+              raise ValueError("The accepted replay index must contain Linux cases")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              for platform, matrix in matrices.items():
+                  output.write(f"{platform}={json.dumps(matrix, separators=(',', ':'))}\n")
+              output.write(f"windows_count={len(matrices['windows']['include'])}\n")
+          PY
+
+  linux:
+    name: Linux / ${{ matrix.case }}
+    needs: index
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix: ${{ fromJSON(needs.index.outputs.linux) }}
+    env:
+      REPLAY_CASE_ID: ${{ matrix.case }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          python-version: '3.12'
+          enable-cache: true
+      - name: Install locked dependencies
+        run: uv sync --locked --extra dev
+      - name: Replay accepted Luna actions through native validation
+        shell: bash
+        env:
+          AF_REPLAY_DIRECTORY: ${{ runner.temp }}/af
+        run: >-
+          uv run --no-sync python scripts/replay-expanded.py run
+          --case "$REPLAY_CASE_ID" --directory "$AF_REPLAY_DIRECTORY"
+      - name: Upload native replay evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: expanded-linux-${{ matrix.case }}
+          path: |
+            ${{ runner.temp }}/af/
+            !${{ runner.temp }}/af/**/.auto-fix-build/**
+            !${{ runner.temp }}/af/**/source/**
+            !${{ runner.temp }}/af/**/remote.git/**
+            !${{ runner.temp }}/af/**/worktrees/**
+            !${{ runner.temp }}/af/upstream-cache/**
+            !${{ runner.temp }}/af/**/upstream-cache/**
+            !${{ runner.temp }}/af/**/.cache/**
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
+
+  windows:
+    name: Windows / ${{ matrix.case }}
+    needs: index
+    if: needs.index.outputs.windows_count != '0'
+    runs-on: windows-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix: ${{ fromJSON(needs.index.outputs.windows) }}
+    env:
+      REPLAY_CASE_ID: ${{ matrix.case }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          python-version: '3.12'
+          enable-cache: true
+      - name: Install locked dependencies
+        run: uv sync --locked --extra dev
+      - name: Replay representative Luna actions through native validation
+        shell: pwsh
+        env:
+          AF_REPLAY_DIRECTORY: ${{ runner.temp }}/af
+        run: >-
+          uv run --no-sync python scripts/replay-expanded.py run
+          --case "$env:REPLAY_CASE_ID" --directory "$env:AF_REPLAY_DIRECTORY"
+      - name: Upload native replay evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: expanded-windows-${{ matrix.case }}
+          path: |
+            ${{ runner.temp }}/af/
+            !${{ runner.temp }}/af/**/.auto-fix-build/**
+            !${{ runner.temp }}/af/**/source/**
+            !${{ runner.temp }}/af/**/remote.git/**
+            !${{ runner.temp }}/af/**/worktrees/**
+            !${{ runner.temp }}/af/upstream-cache/**
+            !${{ runner.temp }}/af/**/upstream-cache/**
+            !${{ runner.temp }}/af/**/.cache/**
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
