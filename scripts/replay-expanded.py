@@ -45,9 +45,12 @@ class ReplayCase(BaseModel):
     recordings_directory: str
     prompt: Literal["repair-v1", "evidence-v2", "contract-v3"]
     max_inspections: int = Field(ge=0, le=6, strict=True)
+    inspections_per_attempt: int = Field(default=6, ge=1, le=6, strict=True)
+    context_chars: int = Field(default=60000, ge=4000, le=200000, strict=True)
+    definition_reads: bool = Field(default=False, strict=True)
     structured_diagnostics: bool = Field(strict=True)
     reasoning_effort: Literal["medium", "high"]
-    max_attempts: int = Field(ge=1, le=2, strict=True)
+    max_attempts: int = Field(ge=1, le=5, strict=True)
     expected_completion: Literal[True]
     expected_test_names: list[str] = Field(min_length=1)
     ci_tags: list[Literal["windows-representative"]] = Field(default_factory=list)
@@ -189,6 +192,8 @@ def replay_command(case: ReplayCase, root: Path, directory: Path) -> list[str]:
         case.prompt,
         "--max-inspections",
         str(case.max_inspections),
+        "--inspections-per-attempt",
+        str(case.inspections_per_attempt),
         "--max-attempts",
         str(case.max_attempts),
         "--reasoning-effort",
@@ -198,6 +203,9 @@ def replay_command(case: ReplayCase, root: Path, directory: Path) -> list[str]:
     ]
     if case.structured_diagnostics:
         command.append("--structured-diagnostics")
+    command.extend(["--context-chars", str(case.context_chars)])
+    if case.definition_reads:
+        command.append("--definition-reads")
     return command
 
 
@@ -226,6 +234,9 @@ def verify_result(case: ReplayCase, root: Path, directory: Path) -> dict:
         and manifest.get("case_ids") == [case.id]
         and manifest.get("prompt_version") == case.prompt
         and manifest.get("max_inspections") == case.max_inspections
+        and manifest.get("inspections_per_attempt", 6) == case.inspections_per_attempt
+        and manifest.get("context_chars", 60000) == case.context_chars
+        and manifest.get("definition_reads", False) is case.definition_reads
         and manifest.get("max_attempts") == case.max_attempts
         and manifest.get("structured_diagnostics") is case.structured_diagnostics
         and manifest.get("reasoning_effort") == case.reasoning_effort

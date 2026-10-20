@@ -116,8 +116,11 @@ def main(argv: list[str] | None = None) -> int:
         "--prompt", choices=["repair-v1", "evidence-v2", "contract-v3"], default="repair-v1"
     )
     evaluation.add_argument("--max-inspections", type=int, default=0)
+    evaluation.add_argument("--inspections-per-attempt", type=int, default=6)
     evaluation.add_argument("--max-attempts", type=int, default=2)
     evaluation.add_argument("--structured-diagnostics", action="store_true")
+    evaluation.add_argument("--context-chars", type=int, default=60000)
+    evaluation.add_argument("--definition-reads", action="store_true")
     evaluation.add_argument("--reasoning-effort", choices=["medium", "high"], default="medium")
     operations = commands.add_parser(
         "evaluate-operations", help="Exercise real Git/native workflow fault scenarios with Luna"
@@ -127,6 +130,9 @@ def main(argv: list[str] | None = None) -> int:
         "--prompt", choices=["repair-v1", "evidence-v2", "contract-v3"], default="contract-v3"
     )
     operations.add_argument("--max-inspections", type=int, default=1)
+    operations.add_argument("--inspections-per-attempt", type=int, default=6)
+    operations.add_argument("--context-chars", type=int, default=60000)
+    operations.add_argument("--definition-reads", action="store_true")
     operations.add_argument("--reasoning-effort", choices=["medium", "high"], default="medium")
     operations.add_argument("--upstream-cache", type=Path)
     operations.add_argument("--case", action="append", dest="cases")
@@ -146,6 +152,9 @@ def main(argv: list[str] | None = None) -> int:
             args.directory,
             prompt_version=args.prompt,
             max_inspections=args.max_inspections,
+            inspections_per_attempt=args.inspections_per_attempt,
+            context_chars=args.context_chars,
+            definition_reads=args.definition_reads,
             reasoning_effort=args.reasoning_effort,
             upstream_cache=args.upstream_cache,
             selected=args.cases,
@@ -167,9 +176,12 @@ def main(argv: list[str] | None = None) -> int:
             split=args.split,
             prompt_version=args.prompt,
             max_inspections=args.max_inspections,
+            inspections_per_attempt=args.inspections_per_attempt,
             max_attempts=args.max_attempts,
             reasoning_effort=args.reasoning_effort,
             structured_diagnostics=args.structured_diagnostics,
+            context_chars=args.context_chars,
+            definition_reads=args.definition_reads,
         )
     # Configuration-adjacent secrets work independently of Task Scheduler's working directory.
     load_dotenv(args.config.resolve().parent / ".env", override=False)

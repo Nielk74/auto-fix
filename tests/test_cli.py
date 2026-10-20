@@ -100,3 +100,38 @@ def test_unknown_publication_reconciles_without_creating_new_pr(config_file, mon
 def test_graph_needs_no_credentials(capsys):
     assert main(["graph"]) == 0
     assert "Qwen" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "option,expected",
+    [
+        ([], (6, 60000, False)),
+        (
+            ["--inspections-per-attempt", "2", "--context-chars", "160000", "--definition-reads"],
+            (2, 160000, True),
+        ),
+    ],
+)
+def test_operations_cli_preserves_or_selects_the_evidence_policy(
+    tmp_path, monkeypatch, option, expected
+):
+    from auto_fix import operational_evaluation
+
+    observed = []
+
+    def evaluate(directory, **settings):
+        observed.append((directory, settings))
+        return 0
+
+    monkeypatch.setattr(operational_evaluation, "run_operational_evaluation", evaluate)
+    output = tmp_path / "operations"
+    assert (
+        main(["evaluate-operations", "--directory", str(output), "--max-inspections", "4", *option])
+        == 0
+    )
+    assert observed[0][0] == output
+    assert observed[0][1]["max_inspections"] == 4
+    assert observed[0][1]["inspections_per_attempt"] == expected[0]
+    assert observed[0][1]["context_chars"] == expected[1]
+    assert observed[0][1]["definition_reads"] is expected[2]
+    assert not output.exists(), "This mechanics check must not run native suites or inference"

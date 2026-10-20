@@ -1,6 +1,17 @@
 from auto_fix.diagnostics import failure_diagnostics
 
 
+def test_passing_only_output_does_not_displace_fresh_structured_assertions():
+    assert failure_diagnostics("[       OK ] OtherTest.Works (0 ms)\n" * 9000) == ""
+
+
+def test_unrecognized_output_keeps_head_and_tail_within_exact_budget():
+    evidence = failure_diagnostics("BEGIN " + "x" * 20000 + " END", max_chars=1024)
+    assert len(evidence) == 1024
+    assert evidence.startswith("BEGIN ")
+    assert evidence.endswith(" END")
+
+
 def test_failed_assertion_survives_thousands_of_later_passing_tests():
     text = (
         "codec_test.cc:87: Failure\nExpected equality of these values:\n"

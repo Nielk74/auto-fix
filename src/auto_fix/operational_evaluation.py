@@ -407,7 +407,10 @@ def judge_outcome(
     elif scenario.id == "incorrect_pr_head":
         checks.update(
             head_mismatch_rejected=state.get("status") == "publication_unknown"
-            and "head differs" in state.get("reason", ""),
+            and bool(head)
+            and remote_head == head
+            and len(created_prs) == 1
+            and created_prs[0].get("fromRef", {}).get("latestCommit") != head,
             exactly_one_uncertain_write=post_count == 1 and len(created_prs) == 1,
             wrong_head_fault_observed="incorrect_pr_head" in actions,
             candidate_was_natively_verified=native_validated,
@@ -422,13 +425,23 @@ def judge_outcome(
     return checks
 
 
-def _settings(current: Path, source: Path, build: dict, prompt: str, inspections: int) -> Settings:
+def _settings(
+    current: Path,
+    source: Path,
+    build: dict,
+    prompt: str,
+    inspections: int,
+    inspections_per_attempt: int = 6,
+    context_chars: int = 60000,
+    definition_reads: bool = False,
+) -> Settings:
     service = {"token_env": mocks.TOKEN_ENV}
     return Settings.model_validate(
         {
             "state_dir": current / "state",
             "max_attempts": 3,
             "max_inspections": inspections,
+            "inspections_per_attempt": inspections_per_attempt,
             "structured_diagnostics": True,
             "teamcity": {
                 **service,
@@ -449,11 +462,13 @@ def _settings(current: Path, source: Path, build: dict, prompt: str, inspections
                 "url": "https://model.meridian.invalid/v1",
                 "model": MODEL,
                 "prompt_version": prompt,
+                "context_chars": context_chars,
             },
             "repository": {
                 "path": source,
                 "allowed_paths": ["absl/**"],
                 "context_paths": ["absl/**"],
+                "definition_reads": definition_reads,
             },
             "build": build,
         }
@@ -470,6 +485,9 @@ def _run_scenario(
     *,
     prompt_version: str,
     max_inspections: int,
+    inspections_per_attempt: int = 6,
+    context_chars: int = 60000,
+    definition_reads: bool = False,
     reasoning_effort: str,
 ) -> dict:
     started = time.monotonic()
@@ -513,7 +531,16 @@ def _run_scenario(
             "--",
             *build["test"],
         ]
-    settings = _settings(current, source, build, prompt_version, max_inspections)
+    settings = _settings(
+        current,
+        source,
+        build,
+        prompt_version,
+        max_inspections,
+        inspections_per_attempt,
+        context_chars,
+        definition_reads,
+    )
     now = datetime.now(ZoneInfo("Europe/Paris"))
     issue_description = case["description"]
     if scenario.id == "jira_prompt_injection":
@@ -728,6 +755,9 @@ def run_operational_evaluation(
     *,
     prompt_version: str = "contract-v3",
     max_inspections: int = 1,
+    inspections_per_attempt: int = 6,
+    context_chars: int = 60000,
+    definition_reads: bool = False,
     reasoning_effort: str = "medium",
     upstream_cache: Path | None = None,
     selected: list[str] | None = None,
@@ -736,6 +766,12 @@ def run_operational_evaluation(
     repair_prompt(prompt_version)
     if not 0 <= max_inspections <= 6:
         raise ValueError("max_inspections must be between zero and six")
+    if type(inspections_per_attempt) is not int or not 1 <= inspections_per_attempt <= 6:
+        raise ValueError("inspections_per_attempt must be between one and six")
+    if type(context_chars) is not int or not 4000 <= context_chars <= 200000:
+        raise ValueError("context_chars must be between 4000 and 200000")
+    if type(definition_reads) is not bool:
+        raise ValueError("definition_reads must be a boolean")
     scenarios = [scenario for scenario in SCENARIOS if selected is None or scenario.id in selected]
     if not scenarios or (
         selected is not None and {scenario.id for scenario in scenarios} != set(selected)
@@ -775,6 +811,8 @@ def run_operational_evaluation(
         "models.py",
         "cli.py",
         "publication.py",
+        "validation_context.py",
+        "cpp_symbols.py",
     ]
     for source in sources:
         (snapshot / source).write_bytes(Path(__file__).with_name(source).read_bytes())
@@ -788,6 +826,9 @@ def run_operational_evaluation(
             "prompt_sha256": hashlib.sha256(repair_prompt(prompt_version).encode()).hexdigest(),
             "max_attempts": 3,
             "max_inspections": max_inspections,
+            "inspections_per_attempt": inspections_per_attempt,
+            "context_chars": context_chars,
+            "definition_reads": definition_reads,
             "reasoning_effort": reasoning_effort,
             "platform": platform.platform(),
             "control_case": case["id"],
@@ -828,6 +869,9 @@ def run_operational_evaluation(
                     googletest,
                     prompt_version=prompt_version,
                     max_inspections=max_inspections,
+                    inspections_per_attempt=inspections_per_attempt,
+                    context_chars=context_chars,
+                    definition_reads=definition_reads,
                     reasoning_effort=reasoning_effort,
                 )
             except Exception as exc:
@@ -847,6 +891,10 @@ def run_operational_evaluation(
                     "model": MODEL,
                     "kind": "operational_workflow_evaluation",
                     "control_is_not_new_unique_defect": True,
+                    "max_inspections": max_inspections,
+                    "inspections_per_attempt": inspections_per_attempt,
+                    "context_chars": context_chars,
+                    "definition_reads": definition_reads,
                     "total": len(results),
                     "operational_passes": sum(result["operational_pass"] for result in results),
                     "completed_repairs": sum(result["repair_completed"] for result in results),

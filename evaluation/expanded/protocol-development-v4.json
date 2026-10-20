@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "id": "development-v4-evidence-lifecycle",
+  "frozen_corpus_unchanged": true,
+  "holdout_model_outcomes_seen": false,
+  "parent": "protocol-development-v3.json",
+  "source_isolation": "A separate Git worktree at da25f4f was created while v3 ran; v3 evaluated modules remain unchanged.",
+  "measured_development_findings": [
+    "Stateless repair lost the width-handler evidence that had been gathered in an earlier inspection because the 12k budget evicted complete batches.",
+    "All inspection calls could be consumed before the first repair; no read remained after a rejected anchor or newly failing assertion.",
+    "The structured retry packet omitted fresh JUnit failure text specifying the actual finite-minimum input and expectation; raw validation text retained passing/build noise."
+  ],
+  "changes": [
+    "Coalesce and deduplicate exact source excerpts under an 18k escaped-JSON budget, retaining distinct explicit reads and source regions.",
+    "Invalidate source evidence for all applied-edit paths to prevent stale anchors on retries.",
+    "Extract fresh canonical JUnit assertion messages/text/expected/actual using bounded safe XML parsing with a trusted evidence directory.",
+    "Limit inspections to two per repair attempt, four total, reserving calls after native or anchor feedback.",
+    "Use the previous proposal as a source-retrieval signal; reserve packet space for gathered evidence.",
+    "Remove passing progress from diagnostic fallback text, and enforce its exact size bound."
+  ],
+  "unchanged_prompt": "contract-v3",
+  "unchanged_repair_budget": 2,
+  "max_inspections": 4,
+  "inspections_per_attempt": 2,
+  "arms": [
+    {
+      "id": "evidence-lifecycle-v4-medium",
+      "reasoning_effort": "medium"
+    },
+    {
+      "id": "evidence-lifecycle-v4-high",
+      "reasoning_effort": "high"
+    }
+  ],
+  "cases_per_arm": 24,
+  "model": "gpt-6-luna",
+  "backend": "codex",
+  "inference_not_started_at_declaration": true,
+  "grading": "Same guarded native completion, full baseline identity retention, unchanged tests/config, final rebase/retest, tested+pushed+PR commit agreement.",
+  "claim_limit": "This compares the evidence-lifecycle bundle and reasoning settings; it does not claim each bundled change has an isolated statistical effect.",
+  "operations_judge_correction": "Derive wrong-PR-head rejection from actual receipts/status instead of matching an obsolete error substring. Preserve original operations-v2 score and run a fresh live correction trial."
+}

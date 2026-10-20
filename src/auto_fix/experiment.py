@@ -32,8 +32,12 @@ class ExperimentJob(BaseModel):
     cases_file: Path
     prompt: Literal["repair-v1", "evidence-v2", "contract-v3"] = "repair-v1"
     max_inspections: int = Field(default=0, ge=0, le=6)
+    inspections_per_attempt: int = Field(default=6, ge=1, le=6)
     structured_diagnostics: bool = False
     reasoning_effort: Literal["medium", "high"] = "medium"
+    context_chars: int = Field(default=60000, ge=4000, le=200000)
+    definition_reads: bool = False
+    max_attempts: int = Field(default=2, ge=1, le=5, strict=True)
     case: str | None = None
 
     @field_validator("id", "case")
@@ -98,15 +102,21 @@ def job_command(job: ExperimentJob, directory: Path, project: Path, cases: Path)
         job.prompt,
         "--max-inspections",
         str(job.max_inspections),
+        "--inspections-per-attempt",
+        str(job.inspections_per_attempt),
         "--max-attempts",
-        "2",
+        str(job.max_attempts),
         "--reasoning-effort",
         job.reasoning_effort,
+        "--context-chars",
+        str(job.context_chars),
         "--upstream-cache",
         str(directory.parent / "upstream-cache"),
     ]
     if job.structured_diagnostics:
         command.append("--structured-diagnostics")
+    if job.definition_reads:
+        command.append("--definition-reads")
     if job.case:
         command.extend(["--case", job.case])
     return command

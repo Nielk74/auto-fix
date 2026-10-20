@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "development-v5-source-definitions",
+  "parent": "protocol-development-v4.json",
+  "frozen_corpus_unchanged": true,
+  "holdout_model_outcomes_seen": false,
+  "model": "gpt-6-luna",
+  "backend": "codex",
+  "unchanged_prompt": "contract-v3",
+  "max_inspections": 4,
+  "inspections_per_attempt": 2,
+  "context_chars": 160000,
+  "inspection_chars": 24000,
+  "retained_evidence_chars": 48000,
+  "reasoning_effort": "high",
+  "measured_development_findings": [
+    "V4 explicit reads can return a forward declaration or only the first 35 lines of a larger function, despite the agent requesting that function.",
+    "Actual V4 base64 tail and printf integer-precision trials exhausted their repair budgets on nonexistent anchors; dynamic-field handling fixed width but introduced a new zero-precision regression.",
+    "Increasing overall context is a separate candidate from selecting full definitions; measure both with the same resource limits."
+  ],
+  "changes": [
+    "Make the existing model context character budget explicit in plans, CLI, manifests, exports and replay, preserving 60000 by default.",
+    "Scale per-inspection and retained-evidence limits with the configured packet budget; 60000 preserves V4 10000/18000 limits.",
+    "Optionally resolve model-requested C++ symbols to actual function/template/operator definitions or small exact-named classes using a pinned native syntax parser. Preserve all tracked-path/allowlist/scan limits.",
+    "Use exact original source lines, bounded complete definitions where they fit, and an explicit partial-neighborhood fallback when they do not. Never use evaluator mutation locations.",
+    "Measure an explicitly more expensive adaptive arm with four repair attempts and six total inspections, still two inspections per repair round; do not claim equal inference budgets."
+  ],
+  "parser_pins": {
+    "tree-sitter": "0.25.2",
+    "tree-sitter-cpp": "0.23.4"
+  },
+  "parser_selection": "Latest core0.26.0 reproducibly crashed in an isolated real-header API probe; core0.25.2 passed480 repeated parses. Research, raw errors and official wheel references are retained separately.",
+  "arms": [
+    {
+      "id": "source-budget-v5-high",
+      "definition_reads": false
+    },
+    {
+      "id": "source-definitions-v5-high",
+      "definition_reads": true
+    },
+    {
+      "id": "source-definitions-v5-adaptive-high",
+      "definition_reads": true,
+      "max_attempts": 4,
+      "max_inspections": 6
+    }
+  ],
+  "cases_per_arm": 24,
+  "inference_not_started_at_declaration": true,
+  "grading": "Unchanged guarded native suites, complete baseline-test retention, protected upstream tests/config, final rebase/retest and actual tested/pushed/PR head agreement.",
+  "claim_limit": "Compare the two V5 arms to isolate definition lookup at a common larger budget. V4 versus V5 combines context/evidence budgets, so do not attribute the difference solely to a parser.",
+  "repair_budgets": {
+    "two controlled arms": 2,
+    "adaptive larger-budget arm": 4
+  },
+  "planned_trials": 72,
+  "max_parallel": 3,
+  "ordering": "Interleave the three arms by project group to share comparable development execution conditions; each CLI and model call is isolated/ephemeral. Latency is descriptive under concurrent load."
+}

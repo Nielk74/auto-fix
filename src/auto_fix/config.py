@@ -64,6 +64,7 @@ class RepositoryConfig(Model):
     allowed_paths: list[str] = Field(default_factory=lambda: ["src/**", "include/**"])
     context_paths: list[str] = Field(default_factory=lambda: ["src/**", "include/**", "tests/**"])
     context_strategy: Literal["legacy", "focused"] = "focused"
+    definition_reads: bool = False
     max_edit_bytes: int = Field(default=80000, ge=100, le=500000)
 
     @field_validator("remote", "base_branch")
@@ -110,6 +111,7 @@ class Settings(Model):
     build: BuildConfig
     max_attempts: int = Field(default=2, ge=1, le=5)
     max_inspections: int = Field(default=0, ge=0, le=6)
+    inspections_per_attempt: int = Field(default=6, ge=1, le=6)
     structured_diagnostics: bool = False
 
     @field_validator("timezone")

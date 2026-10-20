@@ -452,13 +452,25 @@ def test_investigation_runs_before_repairs_and_carries_observed_evidence(make_fl
             report(passed=["math.add"]),
         ]
     )
+    flow.settings.llm.context_chars = 60000
     flow.settings.max_inspections = 2
     flow.model = InvestigatingModel([inspection(queries=["add"]), inspection()])
     observed = []
 
     def gather(workspace, request, max_chars):
         observed.append((workspace, request.queries, max_chars))
-        return {"queries": [], "excerpts": [{"content": "int add(int a, int b);"}], "errors": []}
+        return {
+            "queries": [],
+            "excerpts": [
+                {
+                    "path": "include/add.h",
+                    "start_line": 1,
+                    "end_line": 1,
+                    "content": "int add(int a, int b);",
+                }
+            ],
+            "errors": [],
+        }
 
     monkeypatch.setattr("auto_fix.workflow.gather_evidence", gather)
     result = flow.run({"run_id": flow.run_id, "failure": failure().model_dump()})
@@ -494,6 +506,74 @@ def test_investigation_budget_is_global_across_repair_attempts(make_flow, monkey
     assert result["inspections"] == 3
     assert not flow.model.requests
     assert not (flow.directory / "investigation-4.json").exists()
+
+
+def test_inspection_round_limit_reserves_evidence_calls_for_failed_repair(make_flow, monkeypatch):
+    flow = make_flow(
+        [
+            report(failed=["math.add"], test_ok=False),
+            report(failed=["math.add"], test_ok=False),
+            report(passed=["math.add"]),
+            report(passed=["math.add"]),
+        ]
+    )
+    flow.settings.max_inspections = 4
+    flow.settings.inspections_per_attempt = 2
+    flow.model = InvestigatingModel([inspection(ready=False, queries=["add"])] * 4)
+    monkeypatch.setattr(
+        "auto_fix.workflow.gather_evidence",
+        lambda *_args, **_kwargs: {"queries": [], "excerpts": [], "errors": []},
+    )
+    result = flow.run({"run_id": flow.run_id, "failure": failure().model_dump()})
+    assert result["status"] == "published"
+    assert flow.model.order == ["inspect", "inspect", "repair", "inspect", "inspect", "repair"]
+    assert result["inspections"] == 4
+    assert result["inspection_round"] == 2
+    assert result["round_inspections"] == 2
+    assert flow.model.inspection_contexts[2]["latest_validation"]["failed"] == ["math.add"]
+
+
+def test_applied_edits_invalidate_stale_source_evidence_for_retry(make_flow, monkeypatch):
+    flow = make_flow()
+    flow.settings.llm.context_chars = 60000
+    flow.settings.structured_diagnostics = True
+    observed = []
+
+    def invalidate(batches, changed_paths, max_chars):
+        observed.append((batches, changed_paths, max_chars))
+        return {"queries": [], "excerpts": [], "errors": []}
+
+    monkeypatch.setattr("auto_fix.workflow.invalidate_evidence", invalidate)
+    stale = [{"excerpts": [{"path": "src/add.cpp", "content": "return a - b;"}]}]
+    state = {**state_for(flow), "investigation": {"evidence": stale}}
+    result = flow.repair(state)
+    assert result["status"] == "working"
+    assert observed == [(stale, {"src/add.cpp"}, 18000)]
+    assert not result["investigation"]["evidence"][0]["excerpts"]
+
+
+def test_retry_packet_includes_new_native_assertion_instead_of_only_original_failure(make_flow):
+    flow = make_flow()
+    flow.settings.structured_diagnostics = True
+    evidence = flow.directory / "evidence/latest"
+    evidence.mkdir(parents=True)
+    junit = evidence / "junit.xml"
+    junit.write_text(
+        '<testsuite><testcase classname="Boundary" name="FiniteMinimum">'
+        '<failure message="preserve finite exact multiple">'
+        "input d=unit=Seconds(INT64_MIN); expected finite d; actual -inf"
+        "</failure></testcase></testsuite>"
+    )
+    latest = report(failed=["Boundary.FiniteMinimum"], test_ok=False).model_dump()
+    latest["logs"] = [str(junit)]
+    state = {**state_for(flow), "verification": latest, "feedback": "[       OK ] Other\n" * 9000}
+    packet = flow._model_context(state, 2)
+    assertions = packet["latest_validation"]["assertions"]
+    serialized = json.dumps(assertions)
+    assert "Seconds(INT64_MIN)" in serialized
+    assert "expected finite d" in serialized
+    assert "actual -inf" in serialized
+    assert "Boundary.FiniteMinimum" in serialized
 
 
 def test_no_investigation_or_repair_when_baseline_cannot_reproduce_original_failure(make_flow):

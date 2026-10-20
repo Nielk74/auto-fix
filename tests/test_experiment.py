@@ -141,6 +141,27 @@ def test_command_keeps_explicit_selection_and_luna_backend_without_shell(tmp_pat
     assert "--recordings" not in command
 
 
+def test_registered_adaptive_resources_reach_the_actual_evaluator_command(tmp_path):
+    specification = ExperimentJob.model_validate(
+        job(
+            max_attempts=4,
+            max_inspections=6,
+            inspections_per_attempt=2,
+            context_chars=160000,
+            definition_reads=True,
+        )
+    )
+    command = job_command(specification, tmp_path / "run", tmp_path / "p", tmp_path / "c")
+    for flag, value in [
+        ("--max-attempts", "4"),
+        ("--max-inspections", "6"),
+        ("--inspections-per-attempt", "2"),
+        ("--context-chars", "160000"),
+    ]:
+        assert command[command.index(flag) + 1] == value
+    assert "--definition-reads" in command
+
+
 def fake_processes(monkeypatch, root, *, fail_job=None):
     invocations = []
     active = 0
