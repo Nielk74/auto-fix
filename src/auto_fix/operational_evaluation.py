@@ -812,6 +812,7 @@ def run_operational_evaluation(
         "cli.py",
         "publication.py",
         "validation_context.py",
+        "cpp_symbols.py",
     ]
     for source in sources:
         (snapshot / source).write_bytes(Path(__file__).with_name(source).read_bytes())
