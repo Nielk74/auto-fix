@@ -407,7 +407,10 @@ def judge_outcome(
     elif scenario.id == "incorrect_pr_head":
         checks.update(
             head_mismatch_rejected=state.get("status") == "publication_unknown"
-            and "head differs" in state.get("reason", ""),
+            and bool(head)
+            and remote_head == head
+            and len(created_prs) == 1
+            and created_prs[0].get("fromRef", {}).get("latestCommit") != head,
             exactly_one_uncertain_write=post_count == 1 and len(created_prs) == 1,
             wrong_head_fault_observed="incorrect_pr_head" in actions,
             candidate_was_natively_verified=native_validated,

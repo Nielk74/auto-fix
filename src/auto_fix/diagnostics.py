@@ -14,17 +14,21 @@ PROGRESS = re.compile(r"^\s*\[(?:\s*(?:RUN|OK|PASSED|={2,}|-{2,})\s*|\d+%|\d+/\d
 
 
 def failure_diagnostics(text: str, max_chars: int = 6000) -> str:
-    lines = text.splitlines()
+    lines = [line for line in text.splitlines() if not PROGRESS.match(line)]
+    text = "\n".join(lines)
     important = [index for index, line in enumerate(lines) if IMPORTANT.search(line)]
     selected = set()
     for index in important:
         selected.update(range(max(0, index - 3), min(len(lines), index + 8)))
     if not selected:
-        return (
-            text
-            if len(text) <= max_chars
-            else text[: max_chars // 2] + "\n...\n" + text[-max_chars // 2 :]
-        )
+        if len(text) <= max_chars:
+            return text
+        marker = "\n...\n"
+        if max_chars <= len(marker):
+            return text[: max(0, max_chars)]
+        available = max_chars - len(marker)
+        first = available // 2
+        return text[:first] + marker + text[-(available - first) :]
     output = []
     remaining = max_chars - 800
     for index in sorted(selected):

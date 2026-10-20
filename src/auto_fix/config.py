@@ -110,6 +110,7 @@ class Settings(Model):
     build: BuildConfig
     max_attempts: int = Field(default=2, ge=1, le=5)
     max_inspections: int = Field(default=0, ge=0, le=6)
+    inspections_per_attempt: int = Field(default=6, ge=1, le=6)
     structured_diagnostics: bool = False
 
     @field_validator("timezone")

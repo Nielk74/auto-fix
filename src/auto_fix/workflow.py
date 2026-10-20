@@ -16,10 +16,11 @@ from auto_fix.build import Builder
 from auto_fix.config import Settings
 from auto_fix.diagnostics import failure_diagnostics
 from auto_fix.integrations import Bitbucket, Jira, TeamCity
-from auto_fix.investigation import gather_evidence
+from auto_fix.investigation import gather_evidence, invalidate_evidence, merge_evidence
 from auto_fix.llm import RepairModel
 from auto_fix.models import Failure, Verification
 from auto_fix.publication import require_verified_pr
+from auto_fix.validation_context import failed_assertions
 from auto_fix.workspace import Workspace
 
 
@@ -41,6 +42,8 @@ class State(TypedDict, total=False):
     inspections: int
     investigation: dict[str, Any]
     last_repair: dict[str, Any]
+    inspection_round: int
+    round_inspections: int
 
 
 def failure_key(failure: Failure) -> str:
@@ -212,6 +215,14 @@ class Workflow:
         )
         if structured:
             signals = signals[:45000] + signals[-15000:]
+            previous_edits = state.get("last_repair", {}).get("proposal", {}).get("edits", [])
+            signals += (
+                "\n"
+                + "\n".join(
+                    edit["path"] + "\n" + edit["old"] + "\n" + edit["new"]
+                    for edit in previous_edits
+                )[:15000]
+            )
         test_names = [test["name"] for test in state["failure"]["tests"]]
         if structured:
             test_names = list(
@@ -224,7 +235,7 @@ class Workflow:
             )[:200]
         source = self.workspace.context(
             failure.changes,
-            max_chars=budget // 2,
+            max_chars=budget // 3 if structured and cfg.max_inspections else budget // 2,
             test_names=test_names,
             signals=signals,
         )
@@ -264,6 +275,7 @@ class Workflow:
                 "build_ok": latest.get("build_ok"),
                 "test_ok": latest.get("test_ok"),
                 "failed": latest.get("report", {}).get("failed", [])[:100],
+                "assertions": failed_assertions(latest, evidence_root=self.directory),
             }
             context["investigation"] = state.get("investigation", {})
             previous = state.get("last_repair")
@@ -297,9 +309,24 @@ class Workflow:
 
     def investigate(self, state: State) -> State:
         count = state.get("inspections", 0)
-        if count >= self.settings.max_inspections:
+        target_attempt = state.get("attempt", 0) + 1
+        round_count = (
+            state.get("round_inspections", 0)
+            if state.get("inspection_round") == target_attempt
+            else 0
+        )
+        if (
+            count >= self.settings.max_inspections
+            or round_count >= self.settings.inspections_per_attempt
+        ):
             return {"status": "working"}
         count += 1
+        round_count += 1
+        progress = {
+            "inspections": count,
+            "inspection_round": target_attempt,
+            "round_inspections": round_count,
+        }
         self.event("investigate", inspection=count)
         try:
             context = self._model_context(state, state.get("attempt", 0) + 1)
@@ -307,7 +334,7 @@ class Workflow:
             write_json(self.directory / f"investigation-{count}.json", request.model_dump())
             if request.ready and not request.queries and not request.reads:
                 return {
-                    "inspections": count,
+                    **progress,
                     "investigation": {
                         **state.get("investigation", {}),
                         "hypotheses": request.hypotheses,
@@ -315,24 +342,26 @@ class Workflow:
                     "status": "working",
                 }
             if not request.queries and not request.reads:
-                return {"inspections": count, "status": "blocked", "reason": request.summary}
+                return {**progress, "status": "blocked", "reason": request.summary}
             evidence = gather_evidence(self.workspace, request, max_chars=10000)
             previous = state.get("investigation", {}).get("evidence", [])
-            combined = [*previous, evidence]
-            while len(json.dumps(combined)) > 12000 and len(combined) > 1:
-                combined.pop(0)
-            report = {"hypotheses": request.hypotheses, "evidence": combined}
+            combined = merge_evidence(previous, evidence, max_chars=18000)
+            report = {"hypotheses": request.hypotheses, "evidence": [combined]}
             write_json(self.directory / f"inspection-evidence-{count}.json", report)
             return {
-                "inspections": count,
+                **progress,
                 "investigation": report,
                 "status": "inspecting"
-                if count < self.settings.max_inspections and not request.ready
+                if (
+                    count < self.settings.max_inspections
+                    and round_count < self.settings.inspections_per_attempt
+                    and not request.ready
+                )
                 else "working",
             }
         except (ValueError, RuntimeError, KeyError) as exc:
             return {
-                "inspections": count,
+                **progress,
                 "status": "blocked",
                 "reason": "Investigation failed: " + redact(str(exc)),
             }
@@ -356,6 +385,16 @@ class Workflow:
             proposal = self.model.propose(context)
             write_json(self.directory / f"proposal-{attempt}.json", proposal.model_dump())
             self.workspace.apply_edits(proposal.edits)
+            refreshed = {
+                **state.get("investigation", {}),
+                "evidence": [
+                    invalidate_evidence(
+                        state.get("investigation", {}).get("evidence", []),
+                        {edit.path for edit in proposal.edits},
+                        max_chars=18000,
+                    )
+                ],
+            }
             return {
                 "attempt": attempt,
                 "proposal": proposal.model_dump(),
@@ -364,6 +403,7 @@ class Workflow:
                     "proposal": proposal.model_dump(),
                     "applied": True,
                 },
+                "investigation": refreshed,
                 "status": "working",
             }
         except (ValueError, RuntimeError, KeyError) as exc:

@@ -347,6 +347,7 @@ def export_recordings(
                 "recordings_directory": f"recordings/expanded/{case_id}",
                 "prompt": manifest["prompt_version"],
                 "max_inspections": manifest["max_inspections"],
+                "inspections_per_attempt": manifest.get("inspections_per_attempt", 6),
                 "structured_diagnostics": manifest["structured_diagnostics"],
                 "reasoning_effort": manifest["reasoning_effort"],
                 "max_attempts": manifest["max_attempts"],

@@ -45,6 +45,7 @@ class ReplayCase(BaseModel):
     recordings_directory: str
     prompt: Literal["repair-v1", "evidence-v2", "contract-v3"]
     max_inspections: int = Field(ge=0, le=6, strict=True)
+    inspections_per_attempt: int = Field(default=6, ge=1, le=6, strict=True)
     structured_diagnostics: bool = Field(strict=True)
     reasoning_effort: Literal["medium", "high"]
     max_attempts: int = Field(ge=1, le=2, strict=True)
@@ -189,6 +190,8 @@ def replay_command(case: ReplayCase, root: Path, directory: Path) -> list[str]:
         case.prompt,
         "--max-inspections",
         str(case.max_inspections),
+        "--inspections-per-attempt",
+        str(case.inspections_per_attempt),
         "--max-attempts",
         str(case.max_attempts),
         "--reasoning-effort",
@@ -226,6 +229,7 @@ def verify_result(case: ReplayCase, root: Path, directory: Path) -> dict:
         and manifest.get("case_ids") == [case.id]
         and manifest.get("prompt_version") == case.prompt
         and manifest.get("max_inspections") == case.max_inspections
+        and manifest.get("inspections_per_attempt", 6) == case.inspections_per_attempt
         and manifest.get("max_attempts") == case.max_attempts
         and manifest.get("structured_diagnostics") is case.structured_diagnostics
         and manifest.get("reasoning_effort") == case.reasoning_effort

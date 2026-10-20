@@ -97,6 +97,22 @@ def test_bad_pr_head_fault_preserves_real_push_head_in_fault_evidence(monkeypatc
     assert len(services.created_prs) == 1
 
 
+@pytest.mark.parametrize("reason", ["", "PR commit head is absent or differs from the candidate"])
+def test_wrong_head_stop_is_judged_from_receipts_instead_of_error_wording(reason):
+    checks = judge_outcome(
+        scenario("incorrect_pr_head"),
+        state={"status": "publication_unknown", "head": "b" * 40, "reason": reason},
+        native_validated=True,
+        protected_unchanged=True,
+        remote_head="b" * 40,
+        created_prs=[{"id": 19, "fromRef": {"latestCommit": "0" * 40}}],
+        post_count=1,
+        calls=[{"model": MODEL, "kind": "repair", "transport": "codex-cli", "returncode": 0}],
+        faults=[{"action": "incorrect_pr_head"}],
+    )
+    assert all(checks.values())
+
+
 class MechanicsModel:
     """Count explicit test-double invocations; never represents inference quality."""
 
