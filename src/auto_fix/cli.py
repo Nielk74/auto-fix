@@ -113,7 +113,9 @@ def main(argv: list[str] | None = None) -> int:
     evaluation.add_argument("--cases-file", type=Path)
     evaluation.add_argument("--split", choices=["development", "holdout"])
     evaluation.add_argument(
-        "--prompt", choices=["repair-v1", "evidence-v2", "contract-v3"], default="repair-v1"
+        "--prompt",
+        choices=["repair-v1", "evidence-v2", "contract-v3", "assertion-v4"],
+        default="repair-v1",
     )
     evaluation.add_argument("--max-inspections", type=int, default=0)
     evaluation.add_argument("--inspections-per-attempt", type=int, default=6)
@@ -128,7 +130,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     operations.add_argument("--directory", type=Path, required=True)
     operations.add_argument(
-        "--prompt", choices=["repair-v1", "evidence-v2", "contract-v3"], default="contract-v3"
+        "--prompt",
+        choices=["repair-v1", "evidence-v2", "contract-v3", "assertion-v4"],
+        default="contract-v3",
     )
     operations.add_argument("--max-inspections", type=int, default=1)
     operations.add_argument("--inspections-per-attempt", type=int, default=6)

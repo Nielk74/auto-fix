@@ -30,7 +30,7 @@ class ExperimentJob(BaseModel):
     split: Literal["development", "holdout"]
     project_file: Path
     cases_file: Path
-    prompt: Literal["repair-v1", "evidence-v2", "contract-v3"] = "repair-v1"
+    prompt: Literal["repair-v1", "evidence-v2", "contract-v3", "assertion-v4"] = "repair-v1"
     max_inspections: int = Field(default=0, ge=0, le=6)
     inspections_per_attempt: int = Field(default=6, ge=1, le=6)
     structured_diagnostics: bool = False

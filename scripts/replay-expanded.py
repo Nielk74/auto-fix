@@ -43,7 +43,7 @@ class ReplayCase(BaseModel):
     cases_file: str
     cases_sha256: str = Field(pattern=SHA)
     recordings_directory: str
-    prompt: Literal["repair-v1", "evidence-v2", "contract-v3"]
+    prompt: Literal["repair-v1", "evidence-v2", "contract-v3", "assertion-v4"]
     max_inspections: int = Field(ge=0, le=6, strict=True)
     inspections_per_attempt: int = Field(default=6, ge=1, le=6, strict=True)
     context_chars: int = Field(default=60000, ge=4000, le=200000, strict=True)

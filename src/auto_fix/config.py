@@ -48,7 +48,7 @@ class BitbucketConfig(ServiceConfig):
 
 class LLMConfig(ServiceConfig):
     model: str
-    prompt_version: Literal["repair-v1", "evidence-v2", "contract-v3"] = "repair-v1"
+    prompt_version: Literal["repair-v1", "evidence-v2", "contract-v3", "assertion-v4"] = "repair-v1"
     max_tokens: int = Field(default=6000, ge=256, le=32000)
     context_chars: int = Field(default=60000, ge=4000, le=200000)
     temperature: float = Field(default=0.1, ge=0, le=2)
