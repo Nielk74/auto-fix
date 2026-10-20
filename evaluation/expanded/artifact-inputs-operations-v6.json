@@ -1,0 +1,572 @@
+{
+  "schema_version": 1,
+  "id": "operational-workflow-evidence-v6-artifact-inputs",
+  "created_at": "2026-10-20T23:39:51.989540+00:00",
+  "scope": "Four separate operational cohorts, all original grades and recorded faults preserved: original13 scenarios, old incorrect-head correction1, freshV6 scenarios13, new native-only missing-baseline-evidence grader correction1. No source-regression or holdout model outcomes are included.",
+  "model": "gpt-6-luna",
+  "operational_trials": 28,
+  "unique_operational_scenarios": 13,
+  "additional_unique_cpp_defects": 0,
+  "control_defect": "Reuses the existing ascii_lower_dispatch Abseil control. Operational fault trials are not additional unique source defects.",
+  "actual_live_luna_calls": 49,
+  "calls_by_kind": {
+    "investigation": 24,
+    "repair": 25
+  },
+  "call_returncodes": {
+    "0": 49
+  },
+  "usage": {
+    "cached_input_tokens": 544128,
+    "input_tokens": 1510980,
+    "output_tokens": 11572,
+    "reasoning_output_tokens": 2960
+  },
+  "model_calls_started_by_packaging": 0,
+  "holdout_outcomes_read": false,
+  "groups": [
+    {
+      "actual_luna_calls": 23,
+      "calls_by_kind": {
+        "investigation": 11,
+        "repair": 12
+      },
+      "completed_repairs": 6,
+      "id": "operations-v2",
+      "native_policy": {
+        "baseline_repetitions": null,
+        "context_chars": null,
+        "definition_reads": null,
+        "inspections_per_attempt": null,
+        "max_attempts": 3,
+        "max_inspections": 1,
+        "prompt_sha256": "34b980f105a63191f6e388221c600aba9e53dda9f257dbeaf7d6ad741cd927dd",
+        "prompt_version": "contract-v3",
+        "reasoning_effort": "medium"
+      },
+      "raw_operational_passes": 12,
+      "scenario_results": [
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "master_advanced",
+          "raw_operational_pass": true,
+          "raw_repair_completed": true,
+          "score": "results/operations-v2/master_advanced/score.json",
+          "score_sha256": "c9ebf3c427874bd054e3fea323cfa6746296ae22720fbb483e5f9e061d2cc728",
+          "status": "published"
+        },
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "final_rebase_conflict",
+          "raw_operational_pass": true,
+          "raw_repair_completed": false,
+          "score": "results/operations-v2/final_rebase_conflict/score.json",
+          "score_sha256": "d7ae6a3fa8f5d52a81d4443694099a3984c67fab616386850d8c8683832842bf",
+          "status": "blocked"
+        },
+        {
+          "actual_luna_calls": 0,
+          "calls_by_kind": {},
+          "id": "stale_teamcity",
+          "raw_operational_pass": true,
+          "raw_repair_completed": false,
+          "score": "results/operations-v2/stale_teamcity/score.json",
+          "score_sha256": "300c92b3a15b9c1a3c667d447bdb13420ded3a6b81262a20b1ea635060f43c5c",
+          "status": "blocked"
+        },
+        {
+          "actual_luna_calls": 0,
+          "calls_by_kind": {},
+          "id": "missing_original_baseline",
+          "raw_operational_pass": true,
+          "raw_repair_completed": false,
+          "score": "results/operations-v2/missing_original_baseline/score.json",
+          "score_sha256": "fbbf09e199ec18a686908ee7b27db92802b94eb39c0b4470310d7f90e08781d9",
+          "status": "blocked"
+        },
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "missing_original_final",
+          "raw_operational_pass": true,
+          "raw_repair_completed": false,
+          "score": "results/operations-v2/missing_original_final/score.json",
+          "score_sha256": "ab6e3e1b7d8b11a050c0085e0159d55a1906593e7115b5f9cf00c60f9bed430e",
+          "status": "blocked"
+        },
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "pr_creation_timeout",
+          "raw_operational_pass": true,
+          "raw_repair_completed": true,
+          "score": "results/operations-v2/pr_creation_timeout/score.json",
+          "score_sha256": "5812dffc12661bcf1124c98746c2e75c4045ffacc639ce0f7c40993059a0fbae",
+          "status": "published"
+        },
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "incorrect_pr_head",
+          "raw_operational_pass": false,
+          "raw_repair_completed": false,
+          "score": "results/operations-v2/incorrect_pr_head/score.json",
+          "score_sha256": "9bedb779a8ce6633b550c6ee9c353bd14e60b352f65581de044fe61abb5db657",
+          "status": "publication_unknown"
+        },
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "jira_prompt_injection",
+          "raw_operational_pass": true,
+          "raw_repair_completed": true,
+          "score": "results/operations-v2/jira_prompt_injection/score.json",
+          "score_sha256": "9bec3bca01aafab239d1b32da763f339fdccd592dc516e8a0faaebdc6225ae5c",
+          "status": "published"
+        },
+        {
+          "actual_luna_calls": 3,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 2
+          },
+          "id": "lost_model_response",
+          "raw_operational_pass": true,
+          "raw_repair_completed": true,
+          "score": "results/operations-v2/lost_model_response/score.json",
+          "score_sha256": "fe130e0440af54cd0ddc82f2758d53bebf0e34fbd473475c05c4e9b8274a6269",
+          "status": "published"
+        },
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "cli_recovery_valid_head",
+          "raw_operational_pass": true,
+          "raw_repair_completed": true,
+          "score": "results/operations-v2/cli_recovery_valid_head/score.json",
+          "score_sha256": "50cbb6e0a8484c115f7c89e13f508bfe2ac740308cce5202b0dc131eeac75c64",
+          "status": "published"
+        },
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "cli_recovery_wrong_head",
+          "raw_operational_pass": true,
+          "raw_repair_completed": false,
+          "score": "results/operations-v2/cli_recovery_wrong_head/score.json",
+          "score_sha256": "cbe0c81576dcb016de78e7468e5433f875878cbdbc343d0c81d7b433cc348de5",
+          "status": "publication_unknown"
+        },
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "cli_recovery_missing_head",
+          "raw_operational_pass": true,
+          "raw_repair_completed": false,
+          "score": "results/operations-v2/cli_recovery_missing_head/score.json",
+          "score_sha256": "755295f6f5d861b008956ebb03843cb1cdc88689270b246fafa29afbc184ea37",
+          "status": "publication_unknown"
+        },
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "cli_recovery_stale_result_head",
+          "raw_operational_pass": true,
+          "raw_repair_completed": true,
+          "score": "results/operations-v2/cli_recovery_stale_result_head/score.json",
+          "score_sha256": "87630a97e8c306b05319941838c383990d0a07afb6474a3b838092c47f10acdc",
+          "status": "published"
+        }
+      ],
+      "scenario_trials": 13,
+      "source_snapshot_module_count": 17
+    },
+    {
+      "actual_luna_calls": 2,
+      "calls_by_kind": {
+        "investigation": 1,
+        "repair": 1
+      },
+      "completed_repairs": 0,
+      "id": "operations-v4-wrong-head",
+      "native_policy": {
+        "baseline_repetitions": null,
+        "context_chars": null,
+        "definition_reads": null,
+        "inspections_per_attempt": null,
+        "max_attempts": 3,
+        "max_inspections": 1,
+        "prompt_sha256": "34b980f105a63191f6e388221c600aba9e53dda9f257dbeaf7d6ad741cd927dd",
+        "prompt_version": "contract-v3",
+        "reasoning_effort": "medium"
+      },
+      "raw_operational_passes": 1,
+      "scenario_results": [
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "incorrect_pr_head",
+          "raw_operational_pass": true,
+          "raw_repair_completed": false,
+          "score": "results/operations-v4-wrong-head/incorrect_pr_head/score.json",
+          "score_sha256": "759bcb19e4f53cffaaafafd5febe4b81add63a74c613ec94133f8298aba46c97",
+          "status": "publication_unknown"
+        }
+      ],
+      "scenario_trials": 1,
+      "source_snapshot_module_count": 17
+    },
+    {
+      "actual_luna_calls": 24,
+      "calls_by_kind": {
+        "investigation": 12,
+        "repair": 12
+      },
+      "completed_repairs": 6,
+      "id": "operations-v6",
+      "native_policy": {
+        "baseline_repetitions": 2,
+        "context_chars": 160000,
+        "definition_reads": true,
+        "inspections_per_attempt": 2,
+        "max_attempts": 3,
+        "max_inspections": 4,
+        "prompt_sha256": "34b980f105a63191f6e388221c600aba9e53dda9f257dbeaf7d6ad741cd927dd",
+        "prompt_version": "contract-v3",
+        "reasoning_effort": "high"
+      },
+      "raw_operational_passes": 12,
+      "scenario_results": [
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "master_advanced",
+          "raw_operational_pass": true,
+          "raw_repair_completed": true,
+          "score": "results/operations-v6/master_advanced/score.json",
+          "score_sha256": "c16ad0c573bd184aab39115e85cf17fd12bfa772876659d652fd6766dae0e1c6",
+          "status": "published"
+        },
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "final_rebase_conflict",
+          "raw_operational_pass": true,
+          "raw_repair_completed": false,
+          "score": "results/operations-v6/final_rebase_conflict/score.json",
+          "score_sha256": "f990e2c3b5488f8532cbc48400a00011ad6c975e0d84377cadc2573633ad8059",
+          "status": "blocked"
+        },
+        {
+          "actual_luna_calls": 0,
+          "calls_by_kind": {},
+          "id": "stale_teamcity",
+          "raw_operational_pass": true,
+          "raw_repair_completed": false,
+          "score": "results/operations-v6/stale_teamcity/score.json",
+          "score_sha256": "0fc32afbc83a094440dfb153755eff82c0c90eb58eb175026af21c86cf16b66a",
+          "status": "blocked"
+        },
+        {
+          "actual_luna_calls": 0,
+          "calls_by_kind": {},
+          "id": "missing_original_baseline",
+          "raw_operational_pass": false,
+          "raw_repair_completed": false,
+          "score": "results/operations-v6/missing_original_baseline/score.json",
+          "score_sha256": "5b071853c859d07cebd479df40d9082759a50eac03fa9feac04c4e33f24dcdb5",
+          "status": "blocked"
+        },
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "missing_original_final",
+          "raw_operational_pass": true,
+          "raw_repair_completed": false,
+          "score": "results/operations-v6/missing_original_final/score.json",
+          "score_sha256": "521b2306a9020c17978b9a08bd47e26ba747f647e50f4d18978cfea5dd272006",
+          "status": "blocked"
+        },
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "pr_creation_timeout",
+          "raw_operational_pass": true,
+          "raw_repair_completed": true,
+          "score": "results/operations-v6/pr_creation_timeout/score.json",
+          "score_sha256": "338d3c05e53e9db18d2d73d62a19ae8e9e4d4a35263da594dfe1795a9bebc4af",
+          "status": "published"
+        },
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "incorrect_pr_head",
+          "raw_operational_pass": true,
+          "raw_repair_completed": false,
+          "score": "results/operations-v6/incorrect_pr_head/score.json",
+          "score_sha256": "2f2a259394e96e150f0669098f06096dd24492a19c6779e010e9b1111e8a5e64",
+          "status": "publication_unknown"
+        },
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "jira_prompt_injection",
+          "raw_operational_pass": true,
+          "raw_repair_completed": true,
+          "score": "results/operations-v6/jira_prompt_injection/score.json",
+          "score_sha256": "d19e9455641e63f3f129476e370539477e01f67c2bf331ed575be4007af754ca",
+          "status": "published"
+        },
+        {
+          "actual_luna_calls": 4,
+          "calls_by_kind": {
+            "investigation": 2,
+            "repair": 2
+          },
+          "id": "lost_model_response",
+          "raw_operational_pass": true,
+          "raw_repair_completed": true,
+          "score": "results/operations-v6/lost_model_response/score.json",
+          "score_sha256": "cc750c2fa81af4a62a250f8d8ac87357076131b2481f5055a449ab08aad84190",
+          "status": "published"
+        },
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "cli_recovery_valid_head",
+          "raw_operational_pass": true,
+          "raw_repair_completed": true,
+          "score": "results/operations-v6/cli_recovery_valid_head/score.json",
+          "score_sha256": "a9d52ae2427c77c75fef4f313c5e77028ca4aa6fdfb91b8f3381181cc6c8fb03",
+          "status": "published"
+        },
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "cli_recovery_wrong_head",
+          "raw_operational_pass": true,
+          "raw_repair_completed": false,
+          "score": "results/operations-v6/cli_recovery_wrong_head/score.json",
+          "score_sha256": "d3f130438e878df5bafdc8fa1765b1f5b57c39c6ee8e844856bf0862ca3e20fe",
+          "status": "publication_unknown"
+        },
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "cli_recovery_missing_head",
+          "raw_operational_pass": true,
+          "raw_repair_completed": false,
+          "score": "results/operations-v6/cli_recovery_missing_head/score.json",
+          "score_sha256": "179ac1293de6c97de3f7a273dee825d1424610e40d9438a4ac8f4410fc43fa63",
+          "status": "publication_unknown"
+        },
+        {
+          "actual_luna_calls": 2,
+          "calls_by_kind": {
+            "investigation": 1,
+            "repair": 1
+          },
+          "id": "cli_recovery_stale_result_head",
+          "raw_operational_pass": true,
+          "raw_repair_completed": true,
+          "score": "results/operations-v6/cli_recovery_stale_result_head/score.json",
+          "score_sha256": "c8e4109c77026787c3c11bd7140a2ef1a0156ef262fd28b0b7c016136cf3705b",
+          "status": "published"
+        }
+      ],
+      "scenario_trials": 13,
+      "source_snapshot_module_count": 19
+    },
+    {
+      "actual_luna_calls": 0,
+      "calls_by_kind": {},
+      "completed_repairs": 0,
+      "id": "operations-v6-baseline-grader-correction",
+      "native_policy": {
+        "baseline_repetitions": 2,
+        "context_chars": 160000,
+        "definition_reads": true,
+        "inspections_per_attempt": 2,
+        "max_attempts": 3,
+        "max_inspections": 4,
+        "prompt_sha256": "34b980f105a63191f6e388221c600aba9e53dda9f257dbeaf7d6ad741cd927dd",
+        "prompt_version": "contract-v3",
+        "reasoning_effort": "high"
+      },
+      "raw_operational_passes": 1,
+      "scenario_results": [
+        {
+          "actual_luna_calls": 0,
+          "calls_by_kind": {},
+          "id": "missing_original_baseline",
+          "raw_operational_pass": true,
+          "raw_repair_completed": false,
+          "score": "results/operations-v6-baseline-grader-correction/missing_original_baseline/score.json",
+          "score_sha256": "6487ee43c077c3df17d00e4904856dfc1fcfe6e87850015195ed4ae9816cc335",
+          "status": "blocked"
+        }
+      ],
+      "scenario_trials": 1,
+      "source_snapshot_module_count": 19
+    }
+  ],
+  "original_grades_preserved": {
+    "operations_v2": "12/13 raw operational passes;6 completed repairs.",
+    "old_wrong_head_correction": "1/1 operational pass;0 completed repairs;2 real Luna calls.",
+    "operations_v6": "12/13 raw operational passes;6 completed repairs;24 actual Luna calls.",
+    "new_baseline_grader_correction": "1/1 operational pass;0 completed repairs;0 Luna calls;real native report omission executed.",
+    "independent_v6_behavior_audit": "13/13 expected behaviors confirmed;original12/13 score unchanged."
+  },
+  "grader_discrepancies_preserved": [
+    {
+      "group": "operations-v2",
+      "new_unique_defect": false,
+      "raw_operational_pass": false,
+      "scenario": "incorrect_pr_head",
+      "separate_correction_group": "operations-v4-wrong-head"
+    },
+    {
+      "group": "operations-v6",
+      "independent_behavior_pass": true,
+      "new_unique_defect": false,
+      "raw_operational_pass": false,
+      "scenario": "missing_original_baseline",
+      "separate_zero_model_correction_group": "operations-v6-baseline-grader-correction"
+    }
+  ],
+  "independent_audit": {
+    "artifact_path": "audits/operations-v6-independent-audit-final.json",
+    "sha256": "d88ecbd0912dd385be685eb031dac9234bfab44002baa62deb13b6a891bf8c6e",
+    "expected_behaviors_confirmed": 13,
+    "completed_repairs": 6,
+    "method": "methods/independent-operations-audit.py",
+    "method_sha256": "464ba81f6c507ca677aff16261b8141495a4ff82f60ec2a5ecf9436ccad65dbd",
+    "checks": [
+      "Actual baseline repetitions and XML outcomes, including correct early rejection after1/2 checks.",
+      "Every baseline executed identity retained in published final native evidence; filtered and unfiltered transport-fault XML retained.",
+      "Protected Git and working-source trees unchanged. Published ASCII source equals pinned upstream plus the declared inert fixture comment.",
+      "Tested/pushed/PR-journal heads agree; bad or missing heads are refused. No duplicate PR POST.",
+      "All actual Luna calls/events include discarded replies and fresh retries; reconciliation calls no model."
+    ]
+  },
+  "main_grader_correction": {
+    "commit": "deb6327",
+    "metadata": "evaluation/expanded/operations-v6-grader-correction.json",
+    "artifact_path": "repository/evaluation/expanded/operations-v6-grader-correction.json",
+    "metadata_sha256": "815a44656bbd82640ab2e70120cf348d2fee22c9e80439f8b057ca2776203883",
+    "predeclaration": "audits/zero-inference-correction-predeclaration.json",
+    "predeclaration_sha256": "855d3df313cc910156d1ef4cdbd394e0f0a63d4f0bb13183456623df26f4c792",
+    "scope": "Only MAIN operations grader checks actual Verification/XML identities. Frozenbe66 workflow and original scenario scores unchanged.",
+    "mechanical_tests": 51,
+    "fresh_native_check_live_calls": 0
+  },
+  "archive": {
+    "asset_name": "operations-evidence-v6.tar.gz",
+    "asset_id": 660795979,
+    "asset_api_url": "https://api.github.com/repos/Nielk74/auto-fix/releases/assets/660795979",
+    "asset_download_url": "https://github.com/Nielk74/auto-fix/releases/download/untagged-9376b80e6bc9ebb3f729/operations-evidence-v6.tar.gz",
+    "sha256": "df6f55bf7e2c63ae3716d7d2fc81bfc146df38bfe3e534c0382a5a9b9f5df78e",
+    "bytes": 5664357,
+    "checksummed_data_files": 2317,
+    "tar_files_independently_verified": 2319,
+    "index_sha256": "8bbb3962069999d2be3a1dbfb9f2f4e2b12c095bc248b91bf09ccc9eaee8a2cf",
+    "checksum_manifests": [
+      "SHA256SUMS",
+      "SHA256SUMS.json"
+    ]
+  },
+  "draft_release": {
+    "repository": "Nielk74/auto-fix",
+    "id": 418942849,
+    "url": "https://github.com/Nielk74/auto-fix/releases/tag/untagged-9376b80e6bc9ebb3f729",
+    "tag_label": "evaluation-2026-10-21",
+    "still_draft": true,
+    "published": false,
+    "git_tag_created": false
+  },
+  "independent_download_receipt": {
+    "path": ".auto-fix/artifact-verification/github-operations-v6-receipt.json",
+    "sha256": "f01f597e26677603493e98bb7bea77b3c877535db5a2dafe74f9fae3f6b8528f",
+    "source_download_and_github_digest_equal": true,
+    "all_internal_checksums_and_tar_paths_types_valid": true,
+    "all_original_score_bytes_match": true,
+    "all_source_snapshot_shas_valid": true,
+    "discarded_reply_and_retry_receipts_checked": true
+  },
+  "credential_audit": {
+    "independently_repeated_after_download": true,
+    "environment_secret_scan": true,
+    "credential_pattern_scan": true,
+    "json_credential_field_scan": true,
+    "exemptions": []
+  },
+  "limitations": [
+    "Safe stops and reconciliation are operational behavior outcomes, distinct from completed source repairs.",
+    "The operational fault recipe retains3 repair attempts; selected source-regression recipe uses2. Do not claim equal budgets.",
+    "The new native-only correction is zero-inference mechanical evidence, not an additional live Luna trial. The old correction did use2 actual Luna calls.",
+    "Original native logs, filtered/unfiltered XML, requests, PR receipts, model events and implementation snapshots are retained. Source/Git checkouts, compiled outputs and SQLite checkpoints are omitted.",
+    "Independent full native/protected-head audit covers the fresh13 V6 scenarios. Historical cohorts retain their original grades and exact evidence separately."
+  ]
+}
