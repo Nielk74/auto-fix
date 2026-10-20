@@ -3,6 +3,9 @@
 timezone: Europe/Paris
 state_dir: .auto-fix
 max_attempts: 2
+max_inspections: 4
+inspections_per_attempt: 2
+structured_diagnostics: true
 # Require matching outcomes in two unchanged native runs before model inference.
 baseline_repetitions: 2
 
@@ -34,8 +37,10 @@ llm:
   url: https://qwen.company.example/v1
   token_env: AUTO_FIX_LLM_TOKEN
   model: qwen3.8-27b # Replace with the exact served model identifier.
+  prompt_version: contract-v3
   max_tokens: 6000
-  context_chars: 60000
+  # Workflow budget measured with Luna; adjust to the served endpoint's capacity.
+  context_chars: 160000
   temperature: 0.1
   # Optional endpoint-specific request fields. Leave empty until verified.
   extra_body: {}
@@ -46,6 +51,7 @@ repository:
   remote: origin
   base_branch: master
   context_strategy: focused
+  definition_reads: true
   author_name: Auto Fix
   author_email: auto-fix@company.example
   allowed_paths:

@@ -93,6 +93,8 @@ The validator requires the original failing test identities to appear as passing
 
 `repository.allowed_paths` controls which source files the model can edit; keep test, build and workflow files outside that list. `context_paths` controls the source files available for diagnosis. The default `context_strategy: focused` retrieves bounded excerpts around failure locations, symbols, and local includes, including relevant code deep inside large files. `legacy` retains the original file-prefix strategy for comparison. Context, model output, edit size, retries and command duration are bounded. Change `max_attempts` to adjust the default two repair attempts.
 
+The example configurations enable the investigation policy selected on Luna development cases: `contract-v3`, complete bounded C++ definition reads, four inspections shared across two repairs, at most two inspections per attempt, and a 160,000-character input budget. They also require two unchanged baselines. Qwen quality and your endpoint's context capacity are unmeasured; adjust `llm.context_chars` to the deployed capacity and evaluate that configuration. Provider-specific reasoning fields remain in `llm.extra_body` for your server's supported options.
+
 “Today” uses the configured IANA timezone, defaulting to `Europe/Paris`. To investigate a specific date:
 
 ```powershell
