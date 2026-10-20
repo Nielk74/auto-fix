@@ -1,0 +1,995 @@
+{
+  "schema_version": 1,
+  "project": "fmt",
+  "split_protocol": "Family split fixed before model evaluation: 6 development families and 6 disjoint holdout families. Native reproduction is not model evaluation.",
+  "cases": [
+    {
+      "id": "fmt_utf8_validation_boundaries",
+      "project": "fmt",
+      "family": "utf8_validation",
+      "split": "development",
+      "title": "Malformed international text is accepted around Unicode validity boundaries, while ordinary input still formats normally.",
+      "description": "Malformed international text is accepted around Unicode validity boundaries, while ordinary input still formats normally.",
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "include/fmt/format.h",
+          "before": "*e |= ((*c >> 11) == 0x1b) << 7;",
+          "after": "*e |= ((*c >> 10) == 0x37) << 7;"
+        },
+        {
+          "path": "include/fmt/format.h",
+          "before": "*e |= (*c > 0x10FFFF) << 8;",
+          "after": "*e |= (*c > 0x1100FF) << 8;"
+        }
+      ],
+      "build_targets": [
+        "format-impl-test"
+      ],
+      "changed_files": [
+        "src/os.cc"
+      ],
+      "context": {
+        "jira_key": "FMT-2200",
+        "jira_summary": "Malformed international text is accepted around Unicode validity boundaries, while ordinary input still formats normally.",
+        "commit_message": "FMT-2200: Refresh application diagnostics integration",
+        "pr_title": "FMT-2200: Refresh diagnostic sink labels"
+      },
+      "expected_failed_tests": [
+        "format_impl_test.utf8_decode_out_of_range",
+        "format_impl_test.utf8_decode_surrogate_halves"
+      ],
+      "upstream_test_count": 26,
+      "upstream_disabled_test_count": 0,
+      "proof": {
+        "case": "fmt_utf8_validation_boundaries",
+        "status": "proved",
+        "tests": {
+          "format-impl-test": {
+            "returncode": 1,
+            "executed": 26,
+            "disabled": 0,
+            "failed": [
+              "format_impl_test.utf8_decode_out_of_range",
+              "format_impl_test.utf8_decode_surrogate_halves"
+            ],
+            "junit": ".auto-fix/expanded/proof/fmt_utf8_validation_boundaries/format-impl-test.xml",
+            "log": ".auto-fix/expanded/proof/fmt_utf8_validation_boundaries/format-impl-test.log",
+            "junit_sha256": "e5a11919eca16f391ea639085d27abef3938e9164396dd2b911eb6120b2f59de"
+          }
+        },
+        "failed": [
+          "format_impl_test.utf8_decode_out_of_range",
+          "format_impl_test.utf8_decode_surrogate_halves"
+        ],
+        "elapsed_seconds": 2.14
+      },
+      "difficulty": "indirect-multi-hunk",
+      "test_runner": "gtest",
+      "ctest_regex": "^(format-impl-test)$",
+      "gtest_filter": "*",
+      "source_metrics": [
+        {
+          "path": "include/fmt/format.h",
+          "file_bytes": 163032,
+          "mutation_byte_offset": 20080,
+          "mutation_line": 605
+        },
+        {
+          "path": "include/fmt/format.h",
+          "file_bytes": 163032,
+          "mutation_byte_offset": 20135,
+          "mutation_line": 606
+        }
+      ]
+    },
+    {
+      "id": "fmt_debug_control_escapes",
+      "project": "fmt",
+      "family": "debug_escaping",
+      "split": "development",
+      "title": "Structured debug output changes line and tab markers, making copied diagnostics ambiguous to the support parser.",
+      "description": "Structured debug output changes line and tab markers, making copied diagnostics ambiguous to the support parser.",
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "include/fmt/format.h",
+          "before": "c = static_cast<Char>('n');\n    break;\n  case '\\r':",
+          "after": "c = static_cast<Char>('r');\n    break;\n  case '\\r':"
+        },
+        {
+          "path": "include/fmt/format.h",
+          "before": "c = static_cast<Char>('t');\n    break;",
+          "after": "c = static_cast<Char>('n');\n    break;"
+        }
+      ],
+      "build_targets": [
+        "format-test"
+      ],
+      "changed_files": [
+        "src/os.cc"
+      ],
+      "context": {
+        "jira_key": "FMT-2201",
+        "jira_summary": "Structured debug output changes line and tab markers, making copied diagnostics ambiguous to the support parser.",
+        "commit_message": "FMT-2201: Refresh application diagnostics integration",
+        "pr_title": "FMT-2201: Refresh diagnostic sink labels"
+      },
+      "expected_failed_tests": [
+        "format_test.debug_presentation",
+        "format_test.format_char",
+        "format_test.format_string",
+        "format_test.format_string_view"
+      ],
+      "upstream_test_count": 137,
+      "upstream_disabled_test_count": 0,
+      "proof": {
+        "case": "fmt_debug_control_escapes",
+        "status": "proved",
+        "tests": {
+          "format-test": {
+            "returncode": 1,
+            "executed": 137,
+            "disabled": 0,
+            "failed": [
+              "format_test.debug_presentation",
+              "format_test.format_char",
+              "format_test.format_string",
+              "format_test.format_string_view"
+            ],
+            "junit": ".auto-fix/expanded/proof/fmt_debug_control_escapes/format-test.xml",
+            "log": ".auto-fix/expanded/proof/fmt_debug_control_escapes/format-test.log",
+            "junit_sha256": "e7acc99b3227287822793f015ae8f6539dd653a68824d8ed971a7ca15fe378e9"
+          }
+        },
+        "failed": [
+          "format_test.debug_presentation",
+          "format_test.format_char",
+          "format_test.format_string",
+          "format_test.format_string_view"
+        ],
+        "elapsed_seconds": 4.0
+      },
+      "difficulty": "indirect-multi-hunk",
+      "test_runner": "gtest",
+      "ctest_regex": "^(format-test)$",
+      "gtest_filter": "*",
+      "source_metrics": [
+        {
+          "path": "include/fmt/format.h",
+          "file_bytes": 163032,
+          "mutation_byte_offset": 65932,
+          "mutation_line": 1819
+        },
+        {
+          "path": "include/fmt/format.h",
+          "file_bytes": 163032,
+          "mutation_byte_offset": 66120,
+          "mutation_line": 1827
+        }
+      ]
+    },
+    {
+      "id": "fmt_printf_dynamic_field_sign",
+      "project": "fmt",
+      "family": "printf_dynamic_fields",
+      "split": "development",
+      "title": "Legacy formatted reports align negative dynamic widths incorrectly and print a digit when a negative precision should suppress it.",
+      "description": "Legacy formatted reports align negative dynamic widths incorrectly and print a digit when a negative precision should suppress it.",
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "include/fmt/printf.h",
+          "before": "specs_.set_align(align::left);\n      width = 0 - width;",
+          "after": "specs_.set_align(align::right);\n      width = 0 - width;"
+        },
+        {
+          "path": "include/fmt/printf.h",
+          "before": "return max_of(static_cast<int>(value), 0);",
+          "after": "return max_of(static_cast<int>(value), 1);"
+        }
+      ],
+      "build_targets": [
+        "printf-test"
+      ],
+      "changed_files": [
+        "src/os.cc"
+      ],
+      "context": {
+        "jira_key": "FMT-2202",
+        "jira_summary": "Legacy formatted reports align negative dynamic widths incorrectly and print a digit when a negative precision should suppress it.",
+        "commit_message": "FMT-2202: Refresh application diagnostics integration",
+        "pr_title": "FMT-2202: Refresh diagnostic sink labels"
+      },
+      "expected_failed_tests": [
+        "printf_test.dynamic_width",
+        "printf_test.positional_width",
+        "printf_test.fixed_large_exponent"
+      ],
+      "upstream_test_count": 42,
+      "upstream_disabled_test_count": 0,
+      "proof": {
+        "case": "fmt_printf_dynamic_field_sign",
+        "status": "proved",
+        "tests": {
+          "printf-test": {
+            "returncode": 1,
+            "executed": 42,
+            "disabled": 0,
+            "failed": [
+              "printf_test.dynamic_width",
+              "printf_test.positional_width",
+              "printf_test.fixed_large_exponent"
+            ],
+            "junit": ".auto-fix/expanded/proof/fmt_printf_dynamic_field_sign/printf-test.xml",
+            "log": ".auto-fix/expanded/proof/fmt_printf_dynamic_field_sign/printf-test.log",
+            "junit_sha256": "d31c032af6ccf33f1dd8d3ab5c2eb3f34cc3ab2d5a38d76e8ad693296b94325f"
+          }
+        },
+        "failed": [
+          "printf_test.dynamic_width",
+          "printf_test.positional_width",
+          "printf_test.fixed_large_exponent"
+        ],
+        "elapsed_seconds": 4.99
+      },
+      "difficulty": "indirect-multi-hunk",
+      "test_runner": "gtest",
+      "ctest_regex": "^(printf-test)$",
+      "gtest_filter": "*",
+      "source_metrics": [
+        {
+          "path": "include/fmt/printf.h",
+          "file_bytes": 21172,
+          "mutation_byte_offset": 6723,
+          "mutation_line": 207
+        },
+        {
+          "path": "include/fmt/printf.h",
+          "file_bytes": 21172,
+          "mutation_byte_offset": 2822,
+          "mutation_line": 91
+        }
+      ]
+    },
+    {
+      "id": "fmt_integer_precision_padding",
+      "project": "fmt",
+      "family": "integer_padding",
+      "split": "development",
+      "title": "Reports requesting an explicit integer precision acquire an extra leading zero and shift neighboring columns.",
+      "description": "Reports requesting an explicit integer precision acquire an extra leading zero and shift neighboring columns.",
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "include/fmt/format.h",
+          "before": "size = (prefix >> 24) + to_unsigned(specs.precision);",
+          "after": "size = (prefix >> 24) + to_unsigned(specs.precision + 1);"
+        },
+        {
+          "path": "include/fmt/format.h",
+          "before": "padding = to_unsigned(specs.precision - num_digits);",
+          "after": "padding = to_unsigned(specs.precision - num_digits + 1);"
+        }
+      ],
+      "build_targets": [
+        "printf-test"
+      ],
+      "changed_files": [
+        "src/os.cc"
+      ],
+      "context": {
+        "jira_key": "FMT-2203",
+        "jira_summary": "Reports requesting an explicit integer precision acquire an extra leading zero and shift neighboring columns.",
+        "commit_message": "FMT-2203: Refresh application diagnostics integration",
+        "pr_title": "FMT-2203: Refresh diagnostic sink labels"
+      },
+      "expected_failed_tests": [
+        "printf_test.zero_flag",
+        "printf_test.int_precision",
+        "printf_test.dynamic_precision",
+        "printf_test.positional_precision",
+        "printf_test.positional_width_and_precision"
+      ],
+      "upstream_test_count": 42,
+      "upstream_disabled_test_count": 0,
+      "proof": {
+        "case": "fmt_integer_precision_padding",
+        "status": "proved",
+        "tests": {
+          "printf-test": {
+            "returncode": 1,
+            "executed": 42,
+            "disabled": 0,
+            "failed": [
+              "printf_test.zero_flag",
+              "printf_test.int_precision",
+              "printf_test.dynamic_precision",
+              "printf_test.positional_precision",
+              "printf_test.positional_width_and_precision"
+            ],
+            "junit": ".auto-fix/expanded/proof/fmt_integer_precision_padding/printf-test.xml",
+            "log": ".auto-fix/expanded/proof/fmt_integer_precision_padding/printf-test.log",
+            "junit_sha256": "4ac39f585935ec17bae5713e44f53f7db73df9595d783b8d8d23422c60f70549"
+          }
+        },
+        "failed": [
+          "printf_test.zero_flag",
+          "printf_test.int_precision",
+          "printf_test.dynamic_precision",
+          "printf_test.positional_precision",
+          "printf_test.positional_width_and_precision"
+        ],
+        "elapsed_seconds": 4.88
+      },
+      "difficulty": "indirect-multi-hunk",
+      "test_runner": "gtest",
+      "ctest_regex": "^(printf-test)$",
+      "gtest_filter": "*",
+      "source_metrics": [
+        {
+          "path": "include/fmt/format.h",
+          "file_bytes": 163032,
+          "mutation_byte_offset": 74970,
+          "mutation_line": 2079
+        },
+        {
+          "path": "include/fmt/format.h",
+          "file_bytes": 163032,
+          "mutation_byte_offset": 75030,
+          "mutation_line": 2080
+        }
+      ]
+    },
+    {
+      "id": "fmt_pre_epoch_fraction_normalization",
+      "project": "fmt",
+      "family": "chrono_subseconds",
+      "split": "development",
+      "title": "Timestamps just before the Unix epoch have inconsistent whole-second and fractional-second components.",
+      "description": "Timestamps just before the Unix epoch have inconsistent whole-second and fractional-second components.",
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "include/fmt/chrono.h",
+          "before": "if (subsecs.count() < 0) {",
+          "after": "if (subsecs.count() <= 0) {"
+        },
+        {
+          "path": "include/fmt/chrono.h",
+          "before": "subsecs += second;\n    }",
+          "after": "subsecs += second / 2;\n    }"
+        }
+      ],
+      "build_targets": [
+        "chrono-test"
+      ],
+      "changed_files": [
+        "src/os.cc"
+      ],
+      "context": {
+        "jira_key": "FMT-2204",
+        "jira_summary": "Timestamps just before the Unix epoch have inconsistent whole-second and fractional-second components.",
+        "commit_message": "FMT-2204: Refresh application diagnostics integration",
+        "pr_title": "FMT-2204: Refresh diagnostic sink labels"
+      },
+      "expected_failed_tests": [
+        "chrono_test.tp_align",
+        "chrono_test.timestamp_ratios",
+        "chrono_test.timestamp_sub_seconds"
+      ],
+      "upstream_test_count": 35,
+      "upstream_disabled_test_count": 0,
+      "proof": {
+        "case": "fmt_pre_epoch_fraction_normalization",
+        "status": "proved",
+        "tests": {
+          "chrono-test": {
+            "returncode": 1,
+            "executed": 35,
+            "disabled": 0,
+            "failed": [
+              "chrono_test.tp_align",
+              "chrono_test.timestamp_ratios",
+              "chrono_test.timestamp_sub_seconds"
+            ],
+            "junit": ".auto-fix/expanded/proof/fmt_pre_epoch_fraction_normalization/final/chrono-test.xml",
+            "log": ".auto-fix/expanded/proof/fmt_pre_epoch_fraction_normalization/final/chrono-test.log",
+            "junit_sha256": "0360a2b8a046fd50088d878f0c2115c776965f55891e1ef1d08888091cf61ae0"
+          }
+        },
+        "failed": [
+          "chrono_test.tp_align",
+          "chrono_test.timestamp_ratios",
+          "chrono_test.timestamp_sub_seconds"
+        ]
+      },
+      "difficulty": "indirect-multi-hunk",
+      "test_runner": "gtest",
+      "ctest_regex": "^(chrono-test)$",
+      "gtest_filter": "*",
+      "source_metrics": [
+        {
+          "path": "include/fmt/chrono.h",
+          "file_bytes": 77401,
+          "mutation_byte_offset": 75521,
+          "mutation_line": 2190
+        },
+        {
+          "path": "include/fmt/chrono.h",
+          "file_bytes": 77401,
+          "mutation_byte_offset": 75787,
+          "mutation_line": 2198
+        }
+      ]
+    },
+    {
+      "id": "fmt_diagnostic_fallback_capacity",
+      "project": "fmt",
+      "family": "diagnostic_fallback",
+      "split": "development",
+      "title": "Error reporting drops contextual prefixes when a message is close to the inline buffer limit, particularly with negative error codes.",
+      "description": "Error reporting drops contextual prefixes when a message is close to the inline buffer limit, particularly with negative error codes.",
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "include/fmt/format-inl.h",
+          "before": "if (message.size() <= inline_buffer_size - error_code_size)",
+          "after": "if (message.size() < inline_buffer_size - error_code_size)"
+        },
+        {
+          "path": "include/fmt/format-inl.h",
+          "before": "abs_value = 0 - abs_value;\n    ++error_code_size;",
+          "after": "abs_value = 0 - abs_value;\n    error_code_size += 2;"
+        }
+      ],
+      "build_targets": [
+        "format-impl-test"
+      ],
+      "changed_files": [
+        "src/os.cc"
+      ],
+      "context": {
+        "jira_key": "FMT-2205",
+        "jira_summary": "Error reporting drops contextual prefixes when a message is close to the inline buffer limit, particularly with negative error codes.",
+        "commit_message": "FMT-2205: Refresh application diagnostics integration",
+        "pr_title": "FMT-2205: Refresh diagnostic sink labels"
+      },
+      "expected_failed_tests": [
+        "format_impl_test.format_error_code"
+      ],
+      "upstream_test_count": 26,
+      "upstream_disabled_test_count": 0,
+      "proof": {
+        "case": "fmt_diagnostic_fallback_capacity",
+        "status": "proved",
+        "tests": {
+          "format-impl-test": {
+            "returncode": 1,
+            "executed": 26,
+            "disabled": 0,
+            "failed": [
+              "format_impl_test.format_error_code"
+            ],
+            "junit": ".auto-fix/expanded/proof/fmt_diagnostic_fallback_capacity/format-impl-test.xml",
+            "log": ".auto-fix/expanded/proof/fmt_diagnostic_fallback_capacity/format-impl-test.log",
+            "junit_sha256": "0e20150908e4950297d333bf2813921eef2b54e9806fec80f8a7b8cd975c8c90"
+          }
+        },
+        "failed": [
+          "format_impl_test.format_error_code"
+        ],
+        "elapsed_seconds": 2.13
+      },
+      "difficulty": "indirect-multi-hunk",
+      "test_runner": "gtest",
+      "ctest_regex": "^(format-impl-test)$",
+      "gtest_filter": "*",
+      "source_metrics": [
+        {
+          "path": "include/fmt/format-inl.h",
+          "file_bytes": 82917,
+          "mutation_byte_offset": 2994,
+          "mutation_line": 108
+        },
+        {
+          "path": "include/fmt/format-inl.h",
+          "file_bytes": 82917,
+          "mutation_byte_offset": 2836,
+          "mutation_line": 103
+        }
+      ]
+    },
+    {
+      "id": "fmt_east_asian_emoji_display_width",
+      "project": "fmt",
+      "family": "unicode_display_width",
+      "split": "holdout",
+      "title": "Terminal columns become uneven for a mixture of Chinese text and emoji, including centered and precision-limited values.",
+      "description": "Terminal columns become uneven for a mixture of Chinese text and emoji, including centered and precision-limited values.",
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "include/fmt/format.h",
+          "before": "(cp >= 0x2e80 && cp <= 0xa4cf && cp != 0x303f)",
+          "after": "(cp >= 0x4fff && cp <= 0xa4cf && cp != 0x303f)"
+        },
+        {
+          "path": "include/fmt/format.h",
+          "before": "(cp >= 0x1f900 && cp <= 0x1f9ff)",
+          "after": "(cp >= 0x1f980 && cp <= 0x1f9ff)"
+        }
+      ],
+      "build_targets": [
+        "format-test"
+      ],
+      "changed_files": [
+        "src/os.cc"
+      ],
+      "context": {
+        "jira_key": "FMT-2206",
+        "jira_summary": "Terminal columns become uneven for a mixture of Chinese text and emoji, including centered and precision-limited values.",
+        "commit_message": "FMT-2206: Refresh application diagnostics integration",
+        "pr_title": "FMT-2206: Refresh diagnostic sink labels"
+      },
+      "expected_failed_tests": [
+        "format_test.width",
+        "format_test.debug_presentation"
+      ],
+      "upstream_test_count": 137,
+      "upstream_disabled_test_count": 0,
+      "proof": {
+        "case": "fmt_east_asian_emoji_display_width",
+        "status": "proved",
+        "tests": {
+          "format-test": {
+            "returncode": 1,
+            "executed": 137,
+            "disabled": 0,
+            "failed": [
+              "format_test.width",
+              "format_test.debug_presentation"
+            ],
+            "junit": ".auto-fix/expanded/proof/fmt_east_asian_emoji_display_width/format-test.xml",
+            "log": ".auto-fix/expanded/proof/fmt_east_asian_emoji_display_width/format-test.log",
+            "junit_sha256": "019784a0ea778a661ac368d8a49c0bcd3187d60ce1db691d2932e64d548ea9be"
+          }
+        },
+        "failed": [
+          "format_test.width",
+          "format_test.debug_presentation"
+        ],
+        "elapsed_seconds": 3.98
+      },
+      "difficulty": "indirect-multi-hunk",
+      "test_runner": "gtest",
+      "ctest_regex": "^(format-test)$",
+      "gtest_filter": "*",
+      "source_metrics": [
+        {
+          "path": "include/fmt/format.h",
+          "file_bytes": 163032,
+          "mutation_byte_offset": 22119,
+          "mutation_line": 662
+        },
+        {
+          "path": "include/fmt/format.h",
+          "file_bytes": 163032,
+          "mutation_byte_offset": 22881,
+          "mutation_line": 674
+        }
+      ]
+    },
+    {
+      "id": "fmt_binary_prefix_casing",
+      "project": "fmt",
+      "family": "numeric_prefixes",
+      "split": "holdout",
+      "title": "Binary identifiers use the wrong prefix case in both regular and locale-grouped output.",
+      "description": "Binary identifiers use the wrong prefix case in both regular and locale-grouped output.",
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "include/fmt/format.h",
+          "before": "unsigned(specs.upper() ? 'B' : 'b') << 8 | '0');\n    num_digits = count_digits<1>(value);",
+          "after": "unsigned(specs.upper() ? 'b' : 'B') << 8 | '0');\n    num_digits = count_digits<1>(value);"
+        },
+        {
+          "path": "include/fmt/format.h",
+          "before": "unsigned(specs.upper() ? 'B' : 'b') << 8 | '0');\n    break;",
+          "after": "unsigned(specs.upper() ? 'b' : 'B') << 8 | '0');\n    break;"
+        }
+      ],
+      "build_targets": [
+        "format-test"
+      ],
+      "changed_files": [
+        "src/os.cc"
+      ],
+      "context": {
+        "jira_key": "FMT-2207",
+        "jira_summary": "Binary identifiers use the wrong prefix case in both regular and locale-grouped output.",
+        "commit_message": "FMT-2207: Refresh application diagnostics integration",
+        "pr_title": "FMT-2207: Refresh diagnostic sink labels"
+      },
+      "expected_failed_tests": [
+        "format_test.hash_flag",
+        "format_test.format_locale"
+      ],
+      "upstream_test_count": 137,
+      "upstream_disabled_test_count": 0,
+      "proof": {
+        "case": "fmt_binary_prefix_casing",
+        "status": "proved",
+        "tests": {
+          "format-test": {
+            "returncode": 1,
+            "executed": 137,
+            "disabled": 0,
+            "failed": [
+              "format_test.hash_flag",
+              "format_test.format_locale"
+            ],
+            "junit": ".auto-fix/expanded/proof/fmt_binary_prefix_casing/format-test.xml",
+            "log": ".auto-fix/expanded/proof/fmt_binary_prefix_casing/format-test.log",
+            "junit_sha256": "36414f9060b7c3f79b0e29eb2d770ecab5c184c65bb8fd4c07427b901f0f76a6"
+          }
+        },
+        "failed": [
+          "format_test.hash_flag",
+          "format_test.format_locale"
+        ],
+        "elapsed_seconds": 4.22
+      },
+      "difficulty": "indirect-multi-hunk",
+      "test_runner": "gtest",
+      "ctest_regex": "^(format-test)$",
+      "gtest_filter": "*",
+      "source_metrics": [
+        {
+          "path": "include/fmt/format.h",
+          "file_bytes": 163032,
+          "mutation_byte_offset": 72008,
+          "mutation_line": 1992
+        },
+        {
+          "path": "include/fmt/format.h",
+          "file_bytes": 163032,
+          "mutation_byte_offset": 76617,
+          "mutation_line": 2121
+        }
+      ]
+    },
+    {
+      "id": "fmt_printf_positional_fields",
+      "project": "fmt",
+      "family": "positional_arguments",
+      "split": "holdout",
+      "title": "Translated legacy reports read width and precision from the wrong positional arguments, although ordinary sequential formatting still works.",
+      "description": "Translated legacy reports read width and precision from the wrong positional arguments, although ordinary sequential formatting still works.",
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "include/fmt/printf.h",
+          "before": "get_arg(width_index).visit(detail::printf_width_handler(specs))",
+          "after": "get_arg(width_index + 1).visit(detail::printf_width_handler(specs))"
+        },
+        {
+          "path": "include/fmt/printf.h",
+          "before": "get_arg(precision_index).visit(printf_precision_handler())",
+          "after": "get_arg(precision_index + 1).visit(printf_precision_handler())"
+        }
+      ],
+      "build_targets": [
+        "printf-test"
+      ],
+      "changed_files": [
+        "src/os.cc"
+      ],
+      "context": {
+        "jira_key": "FMT-2208",
+        "jira_summary": "Translated legacy reports read width and precision from the wrong positional arguments, although ordinary sequential formatting still works.",
+        "commit_message": "FMT-2208: Refresh application diagnostics integration",
+        "pr_title": "FMT-2208: Refresh diagnostic sink labels"
+      },
+      "expected_failed_tests": [
+        "printf_test.zero_positional_width_precision",
+        "printf_test.positional_width",
+        "printf_test.positional_precision",
+        "printf_test.positional_width_and_precision"
+      ],
+      "upstream_test_count": 42,
+      "upstream_disabled_test_count": 0,
+      "proof": {
+        "case": "fmt_printf_positional_fields",
+        "status": "proved",
+        "tests": {
+          "printf-test": {
+            "returncode": 1,
+            "executed": 42,
+            "disabled": 0,
+            "failed": [
+              "printf_test.zero_positional_width_precision",
+              "printf_test.positional_width",
+              "printf_test.positional_precision",
+              "printf_test.positional_width_and_precision"
+            ],
+            "junit": ".auto-fix/expanded/proof/fmt_printf_positional_fields/printf-test.xml",
+            "log": ".auto-fix/expanded/proof/fmt_printf_positional_fields/printf-test.log",
+            "junit_sha256": "24e681e5adc47b064fdad3d13d663c9f20ef8d6ae81239e4ba492203bf69925a"
+          }
+        },
+        "failed": [
+          "printf_test.zero_positional_width_precision",
+          "printf_test.positional_width",
+          "printf_test.positional_precision",
+          "printf_test.positional_width_and_precision"
+        ],
+        "elapsed_seconds": 4.95
+      },
+      "difficulty": "indirect-multi-hunk",
+      "test_runner": "gtest",
+      "ctest_regex": "^(printf-test)$",
+      "gtest_filter": "*",
+      "source_metrics": [
+        {
+          "path": "include/fmt/printf.h",
+          "file_bytes": 21172,
+          "mutation_byte_offset": 11706,
+          "mutation_line": 367
+        },
+        {
+          "path": "include/fmt/printf.h",
+          "file_bytes": 21172,
+          "mutation_byte_offset": 15227,
+          "mutation_line": 464
+        }
+      ]
+    },
+    {
+      "id": "fmt_nested_range_delimiters",
+      "project": "fmt",
+      "family": "range_delimiters",
+      "split": "holdout",
+      "title": "Map output loses its outer delimiters and delimiter-free tuples unexpectedly gain separators, breaking diagnostic serialization.",
+      "description": "Map output loses its outer delimiters and delimiter-free tuples unexpectedly gain separators, breaking diagnostic serialization.",
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "include/fmt/ranges.h",
+          "before": "bool no_delimiters_ = false;",
+          "after": "bool no_delimiters_ = true;"
+        },
+        {
+          "path": "include/fmt/ranges.h",
+          "before": "set_brackets({}, {});\n      set_separator({});",
+          "after": "set_brackets({}, {});\n      set_separator(detail::string_literal<Char, ',', ' '>{});"
+        }
+      ],
+      "build_targets": [
+        "ranges-test"
+      ],
+      "changed_files": [
+        "src/os.cc"
+      ],
+      "context": {
+        "jira_key": "FMT-2209",
+        "jira_summary": "Map output loses its outer delimiters and delimiter-free tuples unexpectedly gain separators, breaking diagnostic serialization.",
+        "commit_message": "FMT-2209: Refresh application diagnostics integration",
+        "pr_title": "FMT-2209: Refresh diagnostic sink labels"
+      },
+      "expected_failed_tests": [
+        "ranges_test.format_map",
+        "ranges_test.format_map_custom_pair",
+        "ranges_test.format_pair",
+        "ranges_test.format_tuple"
+      ],
+      "upstream_test_count": 40,
+      "upstream_disabled_test_count": 0,
+      "proof": {
+        "case": "fmt_nested_range_delimiters",
+        "status": "proved",
+        "tests": {
+          "ranges-test": {
+            "returncode": 1,
+            "executed": 40,
+            "disabled": 0,
+            "failed": [
+              "ranges_test.format_map",
+              "ranges_test.format_map_custom_pair",
+              "ranges_test.format_pair",
+              "ranges_test.format_tuple"
+            ],
+            "junit": ".auto-fix/expanded/proof/fmt_nested_range_delimiters/ranges-test.xml",
+            "log": ".auto-fix/expanded/proof/fmt_nested_range_delimiters/ranges-test.log",
+            "junit_sha256": "e6e4379db4c192b70c0b8d94074ddfb2bf43bfe0cbf4b20a35b1e9f1025b6bef"
+          }
+        },
+        "failed": [
+          "ranges_test.format_map",
+          "ranges_test.format_map_custom_pair",
+          "ranges_test.format_pair",
+          "ranges_test.format_tuple"
+        ],
+        "elapsed_seconds": 2.28
+      },
+      "difficulty": "indirect-multi-hunk",
+      "test_runner": "gtest",
+      "ctest_regex": "^(ranges-test)$",
+      "gtest_filter": "*",
+      "source_metrics": [
+        {
+          "path": "include/fmt/ranges.h",
+          "file_bytes": 28782,
+          "mutation_byte_offset": 18297,
+          "mutation_line": 548
+        },
+        {
+          "path": "include/fmt/ranges.h",
+          "file_bytes": 28782,
+          "mutation_byte_offset": 11116,
+          "mutation_line": 332
+        }
+      ]
+    },
+    {
+      "id": "fmt_utf16_storage_and_surrogates",
+      "project": "fmt",
+      "family": "utf16_transcoding",
+      "split": "holdout",
+      "title": "UTF-16 conversion exposes an extra terminator in string results and corrupts supplementary-plane characters.",
+      "description": "UTF-16 conversion exposes an extra terminator in string results and corrupts supplementary-plane characters.",
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "include/fmt/format.h",
+          "before": "inline auto size() const -> size_t { return buffer_.size() - 1; }",
+          "after": "inline auto size() const -> size_t { return buffer_.size(); }"
+        },
+        {
+          "path": "include/fmt/format-inl.h",
+          "before": "0xD800 + (cp >> 10)",
+          "after": "0xD800 + (cp >> 9)"
+        }
+      ],
+      "build_targets": [
+        "format-test"
+      ],
+      "changed_files": [
+        "src/os.cc"
+      ],
+      "context": {
+        "jira_key": "FMT-2210",
+        "jira_summary": "UTF-16 conversion exposes an extra terminator in string results and corrupts supplementary-plane characters.",
+        "commit_message": "FMT-2210: Refresh application diagnostics integration",
+        "pr_title": "FMT-2210: Refresh diagnostic sink labels"
+      },
+      "expected_failed_tests": [
+        "util_test.utf8_to_utf16",
+        "util_test.utf8_to_utf16_empty_string"
+      ],
+      "upstream_test_count": 137,
+      "upstream_disabled_test_count": 0,
+      "proof": {
+        "case": "fmt_utf16_storage_and_surrogates",
+        "status": "proved",
+        "tests": {
+          "format-test": {
+            "returncode": 1,
+            "executed": 137,
+            "disabled": 0,
+            "failed": [
+              "util_test.utf8_to_utf16",
+              "util_test.utf8_to_utf16_empty_string"
+            ],
+            "junit": ".auto-fix/expanded/proof/fmt_utf16_storage_and_surrogates/format-test.xml",
+            "log": ".auto-fix/expanded/proof/fmt_utf16_storage_and_surrogates/format-test.log",
+            "junit_sha256": "cd2d92b90c34c5e42269a26a5f575fd43090dda22cb3ad19b462e67d169df9c2"
+          }
+        },
+        "failed": [
+          "util_test.utf8_to_utf16",
+          "util_test.utf8_to_utf16_empty_string"
+        ],
+        "elapsed_seconds": 3.98
+      },
+      "difficulty": "indirect-multi-hunk",
+      "test_runner": "gtest",
+      "ctest_regex": "^(format-test)$",
+      "gtest_filter": "*",
+      "source_metrics": [
+        {
+          "path": "include/fmt/format.h",
+          "file_bytes": 163032,
+          "mutation_byte_offset": 47084,
+          "mutation_line": 1325
+        },
+        {
+          "path": "include/fmt/format-inl.h",
+          "file_bytes": 82917,
+          "mutation_byte_offset": 61533,
+          "mutation_line": 1433
+        }
+      ]
+    },
+    {
+      "id": "fmt_decimal_halfway_rounding",
+      "project": "fmt",
+      "family": "decimal_rounding",
+      "split": "holdout",
+      "title": "Decimal values round upward by the wrong amount at low and high requested precisions.",
+      "description": "Decimal values round upward by the wrong amount at low and high requested precisions.",
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "include/fmt/format.h",
+          "before": "(first_segment | static_cast<uint64_t>(has_more_segments)) >\n              5000000000000000000ULL",
+          "after": "(first_segment | static_cast<uint64_t>(has_more_segments)) >=\n              5000000000000000000ULL"
+        },
+        {
+          "path": "include/fmt/format.h",
+          "before": "++buf[precision - 1];",
+          "after": "buf[precision - 1] += 2;"
+        }
+      ],
+      "build_targets": [
+        "format-test"
+      ],
+      "changed_files": [
+        "src/os.cc"
+      ],
+      "context": {
+        "jira_key": "FMT-2211",
+        "jira_summary": "Decimal values round upward by the wrong amount at low and high requested precisions.",
+        "commit_message": "FMT-2211: Refresh application diagnostics integration",
+        "pr_title": "FMT-2211: Refresh diagnostic sink labels"
+      },
+      "expected_failed_tests": [
+        "format_test.hash_flag",
+        "format_test.precision_rounding"
+      ],
+      "upstream_test_count": 137,
+      "upstream_disabled_test_count": 0,
+      "proof": {
+        "case": "fmt_decimal_halfway_rounding",
+        "status": "proved",
+        "tests": {
+          "format-test": {
+            "returncode": 1,
+            "executed": 137,
+            "disabled": 0,
+            "failed": [
+              "format_test.hash_flag",
+              "format_test.precision_rounding"
+            ],
+            "junit": ".auto-fix/expanded/proof/fmt_decimal_halfway_rounding/final/format-test.xml",
+            "log": ".auto-fix/expanded/proof/fmt_decimal_halfway_rounding/final/format-test.log",
+            "junit_sha256": "e3ede287d575e83859f57b284c8f26f7aa9af4f1a9dc715f5c2805acfe6d40a5"
+          }
+        },
+        "failed": [
+          "format_test.hash_flag",
+          "format_test.precision_rounding"
+        ]
+      },
+      "difficulty": "indirect-multi-hunk",
+      "test_runner": "gtest",
+      "ctest_regex": "^(format-test)$",
+      "gtest_filter": "*",
+      "source_metrics": [
+        {
+          "path": "include/fmt/format.h",
+          "file_bytes": 163032,
+          "mutation_byte_offset": 121150,
+          "mutation_line": 3274
+        },
+        {
+          "path": "include/fmt/format.h",
+          "file_bytes": 163032,
+          "mutation_byte_offset": 128369,
+          "mutation_line": 3423
+        }
+      ]
+    }
+  ]
+}

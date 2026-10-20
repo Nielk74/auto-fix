@@ -1,0 +1,1796 @@
+{
+  "schema_version": 1,
+  "group": "abseil_systems",
+  "cases": [
+    {
+      "id": "duration_negative_unit_rounding",
+      "title": "Rounding duration buckets with negative units moves in the wrong direction",
+      "description": "Telemetry aggregation accepts negative bucket units but produces inconsistent lower and upper boundaries for the same interval.",
+      "category": "duration_arithmetic",
+      "split": "development",
+      "complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "Two related rounding paths lose sign normalization; unchanged floor and ceiling tests must both recover. Small edits, but no recent inverse diff is supplied.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "absl/time/duration.cc",
+          "before": "  return td <= d ? td : td - AbsDuration(unit);",
+          "after": "  return td <= d ? td : td - unit;"
+        },
+        {
+          "path": "absl/time/duration.cc",
+          "before": "  return td >= d ? td : td + AbsDuration(unit);",
+          "after": "  return td >= d ? td : td + unit;"
+        }
+      ],
+      "build_targets": [
+        "absl_time_test"
+      ],
+      "ctest_regex": "^absl_time_test$",
+      "gtest_filter": "*",
+      "changed_files": [
+        "absl/base/internal/strerror.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-2401",
+        "jira_summary": "Rounding duration buckets with negative units moves in the wrong direction",
+        "commit_message": "CORE-2401: Consolidate runtime adapter paths",
+        "pr_title": "CORE-2401: Refresh runtime error diagnostics"
+      },
+      "provenance": {
+        "kind": "synthetic_source_regression",
+        "project": "Abseil C++",
+        "upstream_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "primary_source": "https://github.com/abseil/abseil-cpp/tree/255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "upstream_tests_modified": false,
+        "model_calls_during_authoring": 0,
+        "split_assignment": "Predetermined by defect family before any repair-model evaluation: duration and Unix-epoch conversions plus status contracts are development; timezone/format interchange plus numeric formatting/conversion are holdout.",
+        "native_proof_platform": "macOS-26.4.1-arm64-arm-64bit",
+        "individually_observed_hunks": 2,
+        "proof_model_calls": 0
+      },
+      "expected_failed_tests": [
+        "Duration.Flooring",
+        "Duration.Ceiling"
+      ],
+      "upstream_test_count": 133,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "directory": ".auto-fix/expanded-authoring/systems/duration_negative_unit_rounding",
+        "clean_target": "absl_time_test",
+        "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_time_test.xml",
+        "injected_exit_code": 1,
+        "test_count": 133,
+        "executed_test_count": 133,
+        "disabled_test_count": 0,
+        "skipped_test_count": 0,
+        "failed_tests": [
+          "Duration.Flooring",
+          "Duration.Ceiling"
+        ]
+      },
+      "source_metrics": [
+        {
+          "path": "absl/time/duration.cc",
+          "file_bytes": 31188,
+          "mutation_byte_offset": 18520,
+          "mutation_line": 525
+        },
+        {
+          "path": "absl/time/duration.cc",
+          "file_bytes": 31188,
+          "mutation_byte_offset": 18670,
+          "mutation_line": 530
+        }
+      ],
+      "individual_hunk_proof": [
+        {
+          "hunk": 1,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Duration.Flooring"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/duration_negative_unit_rounding/individual-hunk-1"
+        },
+        {
+          "hunk": 2,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Duration.Ceiling"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/duration_negative_unit_rounding/individual-hunk-2"
+        }
+      ]
+    },
+    {
+      "id": "duration_composite_parse_accumulator",
+      "title": "Composite duration configuration loses earlier components",
+      "description": "Retry configuration accepts multi-unit and decimal durations but the loaded interval differs from the complete textual value.",
+      "category": "duration_parser",
+      "split": "development",
+      "complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "Integer and fractional parser paths both overwrite accumulated state; repairing one does not restore composite values. This is one accumulator regression at two paths.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "absl/time/duration.cc",
+          "before": "    if (int_part != 0) dur += sign * int_part * unit;",
+          "after": "    if (int_part != 0) dur = sign * int_part * unit;"
+        },
+        {
+          "path": "absl/time/duration.cc",
+          "before": "    if (frac_part != 0) dur += sign * frac_part * unit / frac_scale;",
+          "after": "    if (frac_part != 0) dur = sign * frac_part * unit / frac_scale;"
+        }
+      ],
+      "build_targets": [
+        "absl_time_test"
+      ],
+      "ctest_regex": "^absl_time_test$",
+      "gtest_filter": "*",
+      "changed_files": [
+        "absl/base/internal/strerror.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-2402",
+        "jira_summary": "Composite duration configuration loses earlier components",
+        "commit_message": "CORE-2402: Consolidate runtime adapter paths",
+        "pr_title": "CORE-2402: Refresh runtime error diagnostics"
+      },
+      "provenance": {
+        "kind": "synthetic_source_regression",
+        "project": "Abseil C++",
+        "upstream_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "primary_source": "https://github.com/abseil/abseil-cpp/tree/255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "upstream_tests_modified": false,
+        "model_calls_during_authoring": 0,
+        "split_assignment": "Predetermined by defect family before any repair-model evaluation: duration and Unix-epoch conversions plus status contracts are development; timezone/format interchange plus numeric formatting/conversion are holdout.",
+        "native_proof_platform": "macOS-26.4.1-arm64-arm-64bit",
+        "individually_observed_hunks": 2,
+        "proof_model_calls": 0
+      },
+      "expected_failed_tests": [
+        "Duration.ParseDuration",
+        "Duration.FormatParseRoundTrip"
+      ],
+      "upstream_test_count": 133,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "directory": ".auto-fix/expanded-authoring/systems/duration_composite_parse_accumulator",
+        "clean_target": "absl_time_test",
+        "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_time_test.xml",
+        "injected_exit_code": 1,
+        "test_count": 133,
+        "executed_test_count": 133,
+        "disabled_test_count": 0,
+        "skipped_test_count": 0,
+        "failed_tests": [
+          "Duration.ParseDuration",
+          "Duration.FormatParseRoundTrip"
+        ]
+      },
+      "source_metrics": [
+        {
+          "path": "absl/time/duration.cc",
+          "file_bytes": 31188,
+          "mutation_byte_offset": 30632,
+          "mutation_line": 899
+        },
+        {
+          "path": "absl/time/duration.cc",
+          "file_bytes": 31188,
+          "mutation_byte_offset": 30686,
+          "mutation_line": 900
+        }
+      ],
+      "individual_hunk_proof": [
+        {
+          "hunk": 1,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Duration.ParseDuration",
+            "Duration.FormatParseRoundTrip"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/duration_composite_parse_accumulator/individual-hunk-1"
+        },
+        {
+          "hunk": 2,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Duration.ParseDuration",
+            "Duration.FormatParseRoundTrip"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/duration_composite_parse_accumulator/individual-hunk-2"
+        }
+      ]
+    },
+    {
+      "id": "duration_posix_negative_fraction_rounding",
+      "title": "Negative duration export disagrees between nanosecond and microsecond adapters",
+      "description": "Timeouts just below zero are exported with an extra negative quantum through POSIX adapters; positive durations still round as expected.",
+      "category": "duration_conversion",
+      "split": "development",
+      "complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "Two different precision adapters use the wrong directional rounding for negative fractional durations. Native absolute-time adapters share the file family but have different floor semantics.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "absl/time/duration.cc",
+          "before": "      rep_lo += kTicksPerNanosecond - 1;",
+          "after": "      rep_lo -= rep_lo % kTicksPerNanosecond;"
+        },
+        {
+          "path": "absl/time/duration.cc",
+          "before": "    ts.tv_nsec += 1000 - 1;",
+          "after": "    ts.tv_nsec -= ts.tv_nsec % 1000;"
+        }
+      ],
+      "build_targets": [
+        "absl_time_test"
+      ],
+      "ctest_regex": "^absl_time_test$",
+      "gtest_filter": "*",
+      "changed_files": [
+        "absl/base/internal/strerror.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-2403",
+        "jira_summary": "Negative duration export disagrees between nanosecond and microsecond adapters",
+        "commit_message": "CORE-2403: Consolidate runtime adapter paths",
+        "pr_title": "CORE-2403: Refresh runtime error diagnostics"
+      },
+      "provenance": {
+        "kind": "synthetic_source_regression",
+        "project": "Abseil C++",
+        "upstream_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "primary_source": "https://github.com/abseil/abseil-cpp/tree/255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "upstream_tests_modified": false,
+        "model_calls_during_authoring": 0,
+        "split_assignment": "Predetermined by defect family before any repair-model evaluation: duration and Unix-epoch conversions plus status contracts are development; timezone/format interchange plus numeric formatting/conversion are holdout.",
+        "native_proof_platform": "macOS-26.4.1-arm64-arm-64bit",
+        "individually_observed_hunks": 2,
+        "proof_model_calls": 0
+      },
+      "expected_failed_tests": [
+        "Duration.TruncConversions"
+      ],
+      "upstream_test_count": 133,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "directory": ".auto-fix/expanded-authoring/systems/duration_posix_negative_fraction_rounding",
+        "clean_target": "absl_time_test",
+        "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_time_test.xml",
+        "injected_exit_code": 1,
+        "test_count": 133,
+        "executed_test_count": 133,
+        "disabled_test_count": 0,
+        "skipped_test_count": 0,
+        "failed_tests": [
+          "Duration.TruncConversions"
+        ]
+      },
+      "source_metrics": [
+        {
+          "path": "absl/time/duration.cc",
+          "file_bytes": 31188,
+          "mutation_byte_offset": 20181,
+          "mutation_line": 577
+        },
+        {
+          "path": "absl/time/duration.cc",
+          "file_bytes": 31188,
+          "mutation_byte_offset": 20964,
+          "mutation_line": 605
+        }
+      ],
+      "individual_hunk_proof": [
+        {
+          "hunk": 1,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Duration.TruncConversions"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/duration_posix_negative_fraction_rounding/individual-hunk-1"
+        },
+        {
+          "hunk": 2,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Duration.TruncConversions"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/duration_posix_negative_fraction_rounding/individual-hunk-2"
+        }
+      ]
+    },
+    {
+      "id": "time_negative_unix_precision_floor",
+      "title": "Timestamps before the Unix epoch lose consistent lower-bound conversion",
+      "description": "Archival records immediately before the epoch produce zero or a later integer timestamp when converted to coarser units.",
+      "category": "unix_epoch_conversion",
+      "split": "development",
+      "complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "The shared subsecond converter and separate seconds converter both switch from floor to truncation. This requires finding two conversion paths instead of changing a fixture constant.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "absl/time/time.cc",
+          "before": "             : q - 1;",
+          "after": "             : q;"
+        },
+        {
+          "path": "absl/time/time.cc",
+          "before": "int64_t ToUnixSeconds(Time t) {\n  return time_internal::GetRepHi(time_internal::ToUnixDuration(t));\n}",
+          "after": "int64_t ToUnixSeconds(Time t) {\n  return ToInt64Seconds(time_internal::ToUnixDuration(t));\n}"
+        }
+      ],
+      "build_targets": [
+        "absl_time_test"
+      ],
+      "ctest_regex": "^absl_time_test$",
+      "gtest_filter": "*",
+      "changed_files": [
+        "absl/base/internal/strerror.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-2404",
+        "jira_summary": "Timestamps before the Unix epoch lose consistent lower-bound conversion",
+        "commit_message": "CORE-2404: Consolidate runtime adapter paths",
+        "pr_title": "CORE-2404: Refresh runtime error diagnostics"
+      },
+      "provenance": {
+        "kind": "synthetic_source_regression",
+        "project": "Abseil C++",
+        "upstream_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "primary_source": "https://github.com/abseil/abseil-cpp/tree/255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "upstream_tests_modified": false,
+        "model_calls_during_authoring": 0,
+        "split_assignment": "Predetermined by defect family before any repair-model evaluation: duration and Unix-epoch conversions plus status contracts are development; timezone/format interchange plus numeric formatting/conversion are holdout.",
+        "native_proof_platform": "macOS-26.4.1-arm64-arm-64bit",
+        "individually_observed_hunks": 2,
+        "proof_model_calls": 0
+      },
+      "expected_failed_tests": [
+        "Time.FloorConversion"
+      ],
+      "upstream_test_count": 133,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "directory": ".auto-fix/expanded-authoring/systems/time_negative_unix_precision_floor",
+        "clean_target": "absl_time_test",
+        "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_time_test.xml",
+        "injected_exit_code": 1,
+        "test_count": 133,
+        "executed_test_count": 133,
+        "disabled_test_count": 0,
+        "skipped_test_count": 0,
+        "failed_tests": [
+          "Time.FloorConversion"
+        ]
+      },
+      "source_metrics": [
+        {
+          "path": "absl/time/time.cc",
+          "file_bytes": 15652,
+          "mutation_byte_offset": 2202,
+          "mutation_line": 66
+        },
+        {
+          "path": "absl/time/time.cc",
+          "file_bytes": 15652,
+          "mutation_byte_offset": 8715,
+          "mutation_line": 279
+        }
+      ],
+      "individual_hunk_proof": [
+        {
+          "hunk": 1,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Time.FloorConversion"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/time_negative_unix_precision_floor/individual-hunk-1"
+        },
+        {
+          "hunk": 2,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Time.FloorConversion"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/time_negative_unix_precision_floor/individual-hunk-2"
+        }
+      ]
+    },
+    {
+      "id": "timezone_civil_ambiguity_pre_post",
+      "title": "Ambiguous civil timestamps report reversed candidate instants",
+      "description": "Scheduler previews during daylight-saving transitions present candidate instants in the wrong order although ordinary dates remain stable.",
+      "category": "timezone_transition",
+      "split": "holdout",
+      "complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "An adapter swaps two meanings in a transition-state record. Diagnosis crosses public civil-time results and the CCTZ lookup representation; two assignments require repair.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "absl/time/time.cc",
+          "before": "  ti.pre = MakeTimeWithOverflow(cl.pre, cs, cz_);",
+          "after": "  ti.pre = MakeTimeWithOverflow(cl.post, cs, cz_);"
+        },
+        {
+          "path": "absl/time/time.cc",
+          "before": "  ti.post = MakeTimeWithOverflow(cl.post, cs, cz_);",
+          "after": "  ti.post = MakeTimeWithOverflow(cl.pre, cs, cz_);"
+        }
+      ],
+      "build_targets": [
+        "absl_time_test"
+      ],
+      "ctest_regex": "^absl_time_test$",
+      "gtest_filter": "*",
+      "changed_files": [
+        "absl/base/internal/strerror.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-2405",
+        "jira_summary": "Ambiguous civil timestamps report reversed candidate instants",
+        "commit_message": "CORE-2405: Consolidate runtime adapter paths",
+        "pr_title": "CORE-2405: Refresh runtime error diagnostics"
+      },
+      "provenance": {
+        "kind": "synthetic_source_regression",
+        "project": "Abseil C++",
+        "upstream_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "primary_source": "https://github.com/abseil/abseil-cpp/tree/255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "upstream_tests_modified": false,
+        "model_calls_during_authoring": 0,
+        "split_assignment": "Predetermined by defect family before any repair-model evaluation: duration and Unix-epoch conversions plus status contracts are development; timezone/format interchange plus numeric formatting/conversion are holdout.",
+        "native_proof_platform": "macOS-26.4.1-arm64-arm-64bit",
+        "individually_observed_hunks": 2,
+        "proof_model_calls": 0
+      },
+      "expected_failed_tests": [
+        "Time.TimeZoneAt",
+        "Time.FromTM",
+        "Time.TMRoundTrip"
+      ],
+      "upstream_test_count": 133,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "directory": ".auto-fix/expanded-authoring/systems/timezone_civil_ambiguity_pre_post",
+        "clean_target": "absl_time_test",
+        "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_time_test.xml",
+        "injected_exit_code": 1,
+        "test_count": 133,
+        "executed_test_count": 133,
+        "disabled_test_count": 0,
+        "skipped_test_count": 0,
+        "failed_tests": [
+          "Time.TimeZoneAt",
+          "Time.FromTM",
+          "Time.TMRoundTrip"
+        ]
+      },
+      "source_metrics": [
+        {
+          "path": "absl/time/time.cc",
+          "file_bytes": 15652,
+          "mutation_byte_offset": 12140,
+          "mutation_line": 390
+        },
+        {
+          "path": "absl/time/time.cc",
+          "file_bytes": 15652,
+          "mutation_byte_offset": 12244,
+          "mutation_line": 392
+        }
+      ],
+      "individual_hunk_proof": [
+        {
+          "hunk": 1,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Time.TimeZoneAt",
+            "Time.FromTM",
+            "Time.TMRoundTrip"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/timezone_civil_ambiguity_pre_post/individual-hunk-1"
+        },
+        {
+          "hunk": 2,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Time.TimeZoneAt",
+            "Time.FromTM",
+            "Time.TMRoundTrip"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/timezone_civil_ambiguity_pre_post/individual-hunk-2"
+        }
+      ]
+    },
+    {
+      "id": "time_format_fraction_interchange_scale",
+      "title": "Fractional timestamp interchange changes precision across formatting and parsing",
+      "description": "Audit records with fractional seconds change their subsecond value when timestamps are formatted or parsed; whole-second records appear normal.",
+      "category": "time_format_interchange",
+      "split": "holdout",
+      "complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "Symmetric interchange helpers both lose the quarter-nanosecond scale. A round trip can hide reciprocal errors, while unchanged independent formatter/parser tests expose both.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "absl/time/format.cc",
+          "before": "  const auto fem = cctz::detail::femtoseconds(rep_lo * (1000 * 1000 / 4));",
+          "after": "  const auto fem = cctz::detail::femtoseconds(rep_lo * (1000 * 1000));"
+        },
+        {
+          "path": "absl/time/format.cc",
+          "before": "      static_cast<uint32_t>(parts.fem.count() / (1000 * 1000 / 4));",
+          "after": "      static_cast<uint32_t>(parts.fem.count() / (1000 * 1000));"
+        }
+      ],
+      "build_targets": [
+        "absl_time_test"
+      ],
+      "ctest_regex": "^absl_time_test$",
+      "gtest_filter": "*",
+      "changed_files": [
+        "absl/base/internal/strerror.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-2406",
+        "jira_summary": "Fractional timestamp interchange changes precision across formatting and parsing",
+        "commit_message": "CORE-2406: Consolidate runtime adapter paths",
+        "pr_title": "CORE-2406: Refresh runtime error diagnostics"
+      },
+      "provenance": {
+        "kind": "synthetic_source_regression",
+        "project": "Abseil C++",
+        "upstream_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "primary_source": "https://github.com/abseil/abseil-cpp/tree/255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "upstream_tests_modified": false,
+        "model_calls_during_authoring": 0,
+        "split_assignment": "Predetermined by defect family before any repair-model evaluation: duration and Unix-epoch conversions plus status contracts are development; timezone/format interchange plus numeric formatting/conversion are holdout.",
+        "native_proof_platform": "macOS-26.4.1-arm64-arm-64bit",
+        "individually_observed_hunks": 2,
+        "proof_model_calls": 0
+      },
+      "expected_failed_tests": [
+        "FormatTime.Basics",
+        "FormatTime.ExtendedSeconds",
+        "ParseTime.ExtendedSeconds"
+      ],
+      "upstream_test_count": 133,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "directory": ".auto-fix/expanded-authoring/systems/time_format_fraction_interchange_scale",
+        "clean_target": "absl_time_test",
+        "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_time_test.xml",
+        "injected_exit_code": 1,
+        "test_count": 133,
+        "executed_test_count": 133,
+        "disabled_test_count": 0,
+        "skipped_test_count": 0,
+        "failed_tests": [
+          "FormatTime.Basics",
+          "FormatTime.ExtendedSeconds",
+          "ParseTime.ExtendedSeconds"
+        ]
+      },
+      "source_metrics": [
+        {
+          "path": "absl/time/format.cc",
+          "file_bytes": 5403,
+          "mutation_byte_offset": 1996,
+          "mutation_line": 60
+        },
+        {
+          "path": "absl/time/format.cc",
+          "file_bytes": 5403,
+          "mutation_byte_offset": 2338,
+          "mutation_line": 69
+        }
+      ],
+      "individual_hunk_proof": [
+        {
+          "hunk": 1,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "FormatTime.Basics",
+            "FormatTime.ExtendedSeconds",
+            "FormatParse.RoundTrip"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/time_format_fraction_interchange_scale/individual-hunk-1"
+        },
+        {
+          "hunk": 2,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "ParseTime.ExtendedSeconds",
+            "FormatParse.RoundTrip"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/time_format_fraction_interchange_scale/individual-hunk-2"
+        }
+      ]
+    },
+    {
+      "id": "time_format_timezone_propagation",
+      "title": "Timestamp rendering and parsing discard an explicitly selected time zone",
+      "description": "Exports configured for a named non-UTC zone display UTC fields, and local timestamp imports are interpreted in the wrong zone.",
+      "category": "time_format_interchange",
+      "split": "holdout",
+      "complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "Two opposite directions of the public API discard the caller-supplied zone. The case requires correcting both propagation points and preserving explicit input offsets.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "absl/time/format.cc",
+          "before": "                              cctz::time_zone(tz));",
+          "after": "                              cctz::time_zone(absl::UTCTimeZone()));"
+        },
+        {
+          "path": "absl/time/format.cc",
+          "before": "                          cctz::time_zone(tz), &parts.sec, &parts.fem, &error);",
+          "after": "                          cctz::time_zone(absl::UTCTimeZone()), &parts.sec, &parts.fem, &error);"
+        }
+      ],
+      "build_targets": [
+        "absl_time_test"
+      ],
+      "ctest_regex": "^absl_time_test$",
+      "gtest_filter": "*",
+      "changed_files": [
+        "absl/base/internal/strerror.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-2407",
+        "jira_summary": "Timestamp rendering and parsing discard an explicitly selected time zone",
+        "commit_message": "CORE-2407: Consolidate runtime adapter paths",
+        "pr_title": "CORE-2407: Refresh runtime error diagnostics"
+      },
+      "provenance": {
+        "kind": "synthetic_source_regression",
+        "project": "Abseil C++",
+        "upstream_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "primary_source": "https://github.com/abseil/abseil-cpp/tree/255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "upstream_tests_modified": false,
+        "model_calls_during_authoring": 0,
+        "split_assignment": "Predetermined by defect family before any repair-model evaluation: duration and Unix-epoch conversions plus status contracts are development; timezone/format interchange plus numeric formatting/conversion are holdout.",
+        "native_proof_platform": "macOS-26.4.1-arm64-arm-64bit",
+        "individually_observed_hunks": 2,
+        "proof_model_calls": 0
+      },
+      "expected_failed_tests": [
+        "Time.TimeZoneAt",
+        "Time.FromTM",
+        "Time.ConversionSaturation",
+        "ParseTime.WithTimeZone"
+      ],
+      "upstream_test_count": 133,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "directory": ".auto-fix/expanded-authoring/systems/time_format_timezone_propagation",
+        "clean_target": "absl_time_test",
+        "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_time_test.xml",
+        "injected_exit_code": 1,
+        "test_count": 133,
+        "executed_test_count": 133,
+        "disabled_test_count": 0,
+        "skipped_test_count": 0,
+        "failed_tests": [
+          "Time.TimeZoneAt",
+          "Time.FromTM",
+          "Time.ConversionSaturation",
+          "ParseTime.WithTimeZone"
+        ]
+      },
+      "source_metrics": [
+        {
+          "path": "absl/time/format.cc",
+          "file_bytes": 5403,
+          "mutation_byte_offset": 2890,
+          "mutation_line": 82
+        },
+        {
+          "path": "absl/time/format.cc",
+          "file_bytes": 5403,
+          "mutation_byte_offset": 4581,
+          "mutation_line": 136
+        }
+      ],
+      "individual_hunk_proof": [
+        {
+          "hunk": 1,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Time.TimeZoneAt",
+            "Time.FromTM",
+            "Time.ConversionSaturation"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/time_format_timezone_propagation/individual-hunk-1"
+        },
+        {
+          "hunk": 2,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "ParseTime.WithTimeZone"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/time_format_timezone_propagation/individual-hunk-2"
+        }
+      ]
+    },
+    {
+      "id": "status_update_first_failure_contract",
+      "title": "Accumulated operation status is replaced by later failures",
+      "description": "Batch processing reports the last failing operation rather than retaining the first error, with different call sites using copied and moved statuses.",
+      "category": "status_state_contract",
+      "split": "development",
+      "complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "The copy overload accepts a newer failure and the move overload accepts an empty update based on source state rather than receiver state. This is a compound overload contract regression; both first-error retention and no-op OK updates are independently checked.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "absl/status/status.h",
+          "before": "inline void Status::Update(const Status& new_status) {\n  if (ok()) {",
+          "after": "inline void Status::Update(const Status& new_status) {\n  if (!new_status.ok()) {"
+        },
+        {
+          "path": "absl/status/status.h",
+          "before": "inline void Status::Update(Status&& new_status) {\n  if (ok()) {",
+          "after": "inline void Status::Update(Status&& new_status) {\n  if (new_status.ok()) {"
+        }
+      ],
+      "build_targets": [
+        "absl_status_test"
+      ],
+      "ctest_regex": "^absl_status_test$",
+      "gtest_filter": "*",
+      "changed_files": [
+        "absl/base/internal/strerror.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-2408",
+        "jira_summary": "Accumulated operation status is replaced by later failures",
+        "commit_message": "CORE-2408: Consolidate runtime adapter paths",
+        "pr_title": "CORE-2408: Refresh runtime error diagnostics"
+      },
+      "provenance": {
+        "kind": "synthetic_source_regression",
+        "project": "Abseil C++",
+        "upstream_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "primary_source": "https://github.com/abseil/abseil-cpp/tree/255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "upstream_tests_modified": false,
+        "model_calls_during_authoring": 0,
+        "split_assignment": "Predetermined by defect family before any repair-model evaluation: duration and Unix-epoch conversions plus status contracts are development; timezone/format interchange plus numeric formatting/conversion are holdout.",
+        "native_proof_platform": "macOS-26.4.1-arm64-arm-64bit",
+        "individually_observed_hunks": 2,
+        "proof_model_calls": 0
+      },
+      "expected_failed_tests": [
+        "Status.Update"
+      ],
+      "upstream_test_count": 28,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "directory": ".auto-fix/expanded-authoring/systems/status_update_first_failure_contract",
+        "clean_target": "absl_status_test",
+        "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_status_test.xml",
+        "injected_exit_code": 1,
+        "test_count": 28,
+        "executed_test_count": 28,
+        "disabled_test_count": 0,
+        "skipped_test_count": 0,
+        "failed_tests": [
+          "Status.Update"
+        ]
+      },
+      "source_metrics": [
+        {
+          "path": "absl/status/status.h",
+          "file_bytes": 36596,
+          "mutation_byte_offset": 32304,
+          "mutation_line": 807
+        },
+        {
+          "path": "absl/status/status.h",
+          "file_bytes": 36596,
+          "mutation_byte_offset": 32404,
+          "mutation_line": 813
+        }
+      ],
+      "individual_hunk_proof": [
+        {
+          "hunk": 1,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Status.Update"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/status_update_first_failure_contract/individual-hunk-1"
+        },
+        {
+          "hunk": 2,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Status.Update"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/status_update_first_failure_contract/individual-hunk-2"
+        }
+      ]
+    },
+    {
+      "id": "status_payload_clone_write_retention",
+      "title": "Error metadata is lost while cloning and replacing attached entries",
+      "description": "Copying an error before metadata mutation can drop an existing entry; replacing an entry with a newer value can retain the stale value instead.",
+      "category": "status_copy_on_write",
+      "split": "development",
+      "complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "A compound payload mutation regression loses a singleton payload during copy-on-write cloning and bypasses replacement of an existing key. Both metadata retention and overwrite contracts are independently tested.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "absl/status/internal/status_internal.cc",
+          "before": "  if (payloads_) {\n    payloads = absl::make_unique<status_internal::Payloads>(*payloads_);\n  }",
+          "after": "  if (payloads_ && payloads_->size() > 1) {\n    payloads = absl::make_unique<status_internal::Payloads>(*payloads_);\n  }"
+        },
+        {
+          "path": "absl/status/internal/status_internal.cc",
+          "before": "  if (index.has_value()) {\n    (*payloads_)[index.value()].payload = std::move(payload);\n    return;\n  }",
+          "after": "  if (index.has_value()) {\n    return;\n  }"
+        }
+      ],
+      "build_targets": [
+        "absl_status_test"
+      ],
+      "ctest_regex": "^absl_status_test$",
+      "gtest_filter": "*",
+      "changed_files": [
+        "absl/base/internal/strerror.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-2409",
+        "jira_summary": "Error metadata is lost while cloning and replacing attached entries",
+        "commit_message": "CORE-2409: Consolidate runtime adapter paths",
+        "pr_title": "CORE-2409: Refresh runtime error diagnostics"
+      },
+      "provenance": {
+        "kind": "synthetic_source_regression",
+        "project": "Abseil C++",
+        "upstream_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "primary_source": "https://github.com/abseil/abseil-cpp/tree/255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "upstream_tests_modified": false,
+        "model_calls_during_authoring": 0,
+        "split_assignment": "Predetermined by defect family before any repair-model evaluation: duration and Unix-epoch conversions plus status contracts are development; timezone/format interchange plus numeric formatting/conversion are holdout.",
+        "native_proof_platform": "macOS-26.4.1-arm64-arm-64bit",
+        "individually_observed_hunks": 2,
+        "proof_model_calls": 0
+      },
+      "expected_failed_tests": [
+        "Status.TestGetSetPayload",
+        "Status.CopyOnWriteForErasePayload"
+      ],
+      "upstream_test_count": 28,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "directory": ".auto-fix/expanded-authoring/systems/status_payload_clone_write_retention",
+        "clean_target": "absl_status_test",
+        "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_status_test.xml",
+        "injected_exit_code": 1,
+        "test_count": 28,
+        "executed_test_count": 28,
+        "disabled_test_count": 0,
+        "skipped_test_count": 0,
+        "failed_tests": [
+          "Status.TestGetSetPayload",
+          "Status.CopyOnWriteForErasePayload"
+        ]
+      },
+      "source_metrics": [
+        {
+          "path": "absl/status/internal/status_internal.cc",
+          "file_bytes": 8571,
+          "mutation_byte_offset": 6932,
+          "mutation_line": 203
+        },
+        {
+          "path": "absl/status/internal/status_internal.cc",
+          "file_bytes": 8571,
+          "mutation_byte_offset": 2700,
+          "mutation_line": 86
+        }
+      ],
+      "individual_hunk_proof": [
+        {
+          "hunk": 1,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Status.CopyOnWriteForErasePayload"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/status_payload_clone_write_retention/individual-hunk-1"
+        },
+        {
+          "hunk": 2,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Status.TestGetSetPayload"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/status_payload_clone_write_retention/individual-hunk-2"
+        }
+      ]
+    },
+    {
+      "id": "status_lookup_conflict_dispatch",
+      "title": "Lookup and conflict errors are routed to the wrong status categories",
+      "description": "A resource gateway reports a conflict for missing records and missing-record errors for resources that already exist.",
+      "category": "status_error_dispatch",
+      "split": "development",
+      "complexity": {
+        "level": "low_to_moderate",
+        "kind": "paired_factory_dispatch",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "Two related factory-dispatch entries are swapped. The edit surface is small and the case is explicitly easier than multi-file state or parsing regressions; indirect context still requires finding the factories.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "absl/status/status.cc",
+          "before": "Status NotFoundError(absl::string_view message) {\n  return Status(absl::StatusCode::kNotFound, message);",
+          "after": "Status NotFoundError(absl::string_view message) {\n  return Status(absl::StatusCode::kAlreadyExists, message);"
+        },
+        {
+          "path": "absl/status/status.cc",
+          "before": "Status AlreadyExistsError(absl::string_view message) {\n  return Status(absl::StatusCode::kAlreadyExists, message);",
+          "after": "Status AlreadyExistsError(absl::string_view message) {\n  return Status(absl::StatusCode::kNotFound, message);"
+        }
+      ],
+      "build_targets": [
+        "absl_status_test"
+      ],
+      "ctest_regex": "^absl_status_test$",
+      "gtest_filter": "*",
+      "changed_files": [
+        "absl/base/internal/strerror.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-2410",
+        "jira_summary": "Lookup and conflict errors are routed to the wrong status categories",
+        "commit_message": "CORE-2410: Consolidate runtime adapter paths",
+        "pr_title": "CORE-2410: Refresh runtime error diagnostics"
+      },
+      "provenance": {
+        "kind": "synthetic_source_regression",
+        "project": "Abseil C++",
+        "upstream_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "primary_source": "https://github.com/abseil/abseil-cpp/tree/255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "upstream_tests_modified": false,
+        "model_calls_during_authoring": 0,
+        "split_assignment": "Predetermined by defect family before any repair-model evaluation: duration and Unix-epoch conversions plus status contracts are development; timezone/format interchange plus numeric formatting/conversion are holdout.",
+        "native_proof_platform": "macOS-26.4.1-arm64-arm-64bit",
+        "individually_observed_hunks": 2,
+        "proof_model_calls": 0
+      },
+      "expected_failed_tests": [
+        "Status.CreateAndClassify"
+      ],
+      "upstream_test_count": 28,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "directory": ".auto-fix/expanded-authoring/systems/status_lookup_conflict_dispatch",
+        "clean_target": "absl_status_test",
+        "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_status_test.xml",
+        "injected_exit_code": 1,
+        "test_count": 28,
+        "executed_test_count": 28,
+        "disabled_test_count": 0,
+        "skipped_test_count": 0,
+        "failed_tests": [
+          "Status.CreateAndClassify"
+        ]
+      },
+      "source_metrics": [
+        {
+          "path": "absl/status/status.cc",
+          "file_bytes": 13255,
+          "mutation_byte_offset": 5071,
+          "mutation_line": 168
+        },
+        {
+          "path": "absl/status/status.cc",
+          "file_bytes": 13255,
+          "mutation_byte_offset": 4253,
+          "mutation_line": 140
+        }
+      ],
+      "individual_hunk_proof": [
+        {
+          "hunk": 1,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Status.CreateAndClassify"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/status_lookup_conflict_dispatch/individual-hunk-1"
+        },
+        {
+          "hunk": 2,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Status.CreateAndClassify"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/status_lookup_conflict_dispatch/individual-hunk-2"
+        }
+      ]
+    },
+    {
+      "id": "uint128_floating_word_layout",
+      "title": "Converting floating-point values to wide unsigned integers changes word significance",
+      "description": "Numeric import produces incorrect 128-bit magnitudes for values on both sides of the 64-bit boundary, while integral constructors remain correct.",
+      "category": "wide_integer_conversion",
+      "split": "holdout",
+      "complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "Both floating conversion branches put the high/low words in the wrong positions. The change is memory safe and portable across intrinsic and non-intrinsic uint128 implementations.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "absl/numeric/int128.cc",
+          "before": "    return MakeUint128(hi, lo);",
+          "after": "    return MakeUint128(lo, hi);"
+        },
+        {
+          "path": "absl/numeric/int128.cc",
+          "before": "  return MakeUint128(0, static_cast<uint64_t>(v));",
+          "after": "  return MakeUint128(static_cast<uint64_t>(v), 0);"
+        }
+      ],
+      "build_targets": [
+        "absl_int128_test"
+      ],
+      "ctest_regex": "^absl_int128_test$",
+      "gtest_filter": "*",
+      "changed_files": [
+        "absl/base/internal/strerror.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-2411",
+        "jira_summary": "Converting floating-point values to wide unsigned integers changes word significance",
+        "commit_message": "CORE-2411: Consolidate runtime adapter paths",
+        "pr_title": "CORE-2411: Refresh runtime error diagnostics"
+      },
+      "provenance": {
+        "kind": "synthetic_source_regression",
+        "project": "Abseil C++",
+        "upstream_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "primary_source": "https://github.com/abseil/abseil-cpp/tree/255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "upstream_tests_modified": false,
+        "model_calls_during_authoring": 0,
+        "split_assignment": "Predetermined by defect family before any repair-model evaluation: duration and Unix-epoch conversions plus status contracts are development; timezone/format interchange plus numeric formatting/conversion are holdout.",
+        "native_proof_platform": "macOS-26.4.1-arm64-arm-64bit",
+        "individually_observed_hunks": 2,
+        "proof_model_calls": 0
+      },
+      "expected_failed_tests": [
+        "Uint128.ConversionTests"
+      ],
+      "upstream_test_count": 92,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "directory": ".auto-fix/expanded-authoring/systems/uint128_floating_word_layout",
+        "clean_target": "absl_int128_test",
+        "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_int128_test.xml",
+        "injected_exit_code": 1,
+        "test_count": 92,
+        "executed_test_count": 92,
+        "disabled_test_count": 0,
+        "skipped_test_count": 0,
+        "failed_tests": [
+          "Uint128.ConversionTests"
+        ]
+      },
+      "source_metrics": [
+        {
+          "path": "absl/numeric/int128.cc",
+          "file_bytes": 11370,
+          "mutation_byte_offset": 3063,
+          "mutation_line": 105
+        },
+        {
+          "path": "absl/numeric/int128.cc",
+          "file_bytes": 11370,
+          "mutation_byte_offset": 3100,
+          "mutation_line": 108
+        }
+      ],
+      "individual_hunk_proof": [
+        {
+          "hunk": 1,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Uint128.ConversionTests"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/uint128_floating_word_layout/individual-hunk-1"
+        },
+        {
+          "hunk": 2,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Uint128.ConversionTests"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/uint128_floating_word_layout/individual-hunk-2"
+        }
+      ]
+    },
+    {
+      "id": "int128_stream_internal_padding",
+      "title": "Signed and unsigned wide-integer stream padding is placed inside value text",
+      "description": "Report columns using internal alignment place padding at the wrong boundary around numeric signs and hexadecimal prefixes.",
+      "category": "wide_integer_formatting",
+      "split": "holdout",
+      "complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "Unsigned prefixed and signed decimal formatting take separate internal-alignment paths. Two overloads must respect different prefix lengths; this is dispatch/layout logic rather than a numerical constant defect.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "absl/numeric/int128.cc",
+          "before": "               (flags & std::ios::basefield) == std::ios::hex && v != 0) {\n      rep.insert(size_t{2}, count, os.fill());",
+          "after": "               (flags & std::ios::basefield) == std::ios::hex && v != 0) {\n      rep.insert(size_t{0}, count, os.fill());"
+        },
+        {
+          "path": "absl/numeric/int128.cc",
+          "before": "        if (print_as_decimal && (rep[0] == '+' || rep[0] == '-')) {\n          rep.insert(size_t{1}, count, os.fill());",
+          "after": "        if (print_as_decimal && (rep[0] == '+' || rep[0] == '-')) {\n          rep.insert(size_t{0}, count, os.fill());"
+        }
+      ],
+      "build_targets": [
+        "absl_int128_test"
+      ],
+      "ctest_regex": "^absl_int128_test$",
+      "gtest_filter": "*",
+      "changed_files": [
+        "absl/base/internal/strerror.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-2412",
+        "jira_summary": "Signed and unsigned wide-integer stream padding is placed inside value text",
+        "commit_message": "CORE-2412: Consolidate runtime adapter paths",
+        "pr_title": "CORE-2412: Refresh runtime error diagnostics"
+      },
+      "provenance": {
+        "kind": "synthetic_source_regression",
+        "project": "Abseil C++",
+        "upstream_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "primary_source": "https://github.com/abseil/abseil-cpp/tree/255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "upstream_tests_modified": false,
+        "model_calls_during_authoring": 0,
+        "split_assignment": "Predetermined by defect family before any repair-model evaluation: duration and Unix-epoch conversions plus status contracts are development; timezone/format interchange plus numeric formatting/conversion are holdout.",
+        "native_proof_platform": "macOS-26.4.1-arm64-arm-64bit",
+        "individually_observed_hunks": 2,
+        "proof_model_calls": 0
+      },
+      "expected_failed_tests": [
+        "Uint128.OStreamFormatTest",
+        "Int128.OStreamFormatTest"
+      ],
+      "upstream_test_count": 92,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "directory": ".auto-fix/expanded-authoring/systems/int128_stream_internal_padding",
+        "clean_target": "absl_int128_test",
+        "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_int128_test.xml",
+        "injected_exit_code": 1,
+        "test_count": 92,
+        "executed_test_count": 92,
+        "disabled_test_count": 0,
+        "skipped_test_count": 0,
+        "failed_tests": [
+          "Uint128.OStreamFormatTest",
+          "Int128.OStreamFormatTest"
+        ]
+      },
+      "source_metrics": [
+        {
+          "path": "absl/numeric/int128.cc",
+          "file_bytes": 11370,
+          "mutation_byte_offset": 7107,
+          "mutation_line": 219
+        },
+        {
+          "path": "absl/numeric/int128.cc",
+          "file_bytes": 11370,
+          "mutation_byte_offset": 10804,
+          "mutation_line": 325
+        }
+      ],
+      "individual_hunk_proof": [
+        {
+          "hunk": 1,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Uint128.OStreamFormatTest"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/int128_stream_internal_padding/individual-hunk-1"
+        },
+        {
+          "hunk": 2,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Int128.OStreamFormatTest"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/int128_stream_internal_padding/individual-hunk-2"
+        }
+      ]
+    },
+    {
+      "id": "uint128_multichunk_zero_padding",
+      "title": "Wide integer text contains spacing within numeric digit groups",
+      "description": "Large values spanning multiple conversion chunks contain spaces within the digit sequence; smaller one-chunk values still serialize correctly.",
+      "category": "wide_integer_formatting",
+      "split": "holdout",
+      "complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "Both two-chunk and three-chunk serialization lose numeric zero-padding. Changes are small and remain classified moderate; locating the shared helper and both branches is required.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "absl/numeric/int128.cc",
+          "before": "    os << Uint128Low64(high);\n    os << std::noshowbase << std::setfill('0') << std::setw(div_base_log);",
+          "after": "    os << Uint128Low64(high);\n    os << std::noshowbase << std::setfill(' ') << std::setw(div_base_log);"
+        },
+        {
+          "path": "absl/numeric/int128.cc",
+          "before": "    os << Uint128Low64(mid);\n    os << std::noshowbase << std::setfill('0') << std::setw(div_base_log);",
+          "after": "    os << Uint128Low64(mid);\n    os << std::noshowbase << std::setfill(' ') << std::setw(div_base_log);"
+        }
+      ],
+      "build_targets": [
+        "absl_int128_test"
+      ],
+      "ctest_regex": "^absl_int128_test$",
+      "gtest_filter": "*",
+      "changed_files": [
+        "absl/base/internal/strerror.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-2413",
+        "jira_summary": "Wide integer text contains spacing within numeric digit groups",
+        "commit_message": "CORE-2413: Consolidate runtime adapter paths",
+        "pr_title": "CORE-2413: Refresh runtime error diagnostics"
+      },
+      "provenance": {
+        "kind": "synthetic_source_regression",
+        "project": "Abseil C++",
+        "upstream_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "primary_source": "https://github.com/abseil/abseil-cpp/tree/255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "upstream_tests_modified": false,
+        "model_calls_during_authoring": 0,
+        "split_assignment": "Predetermined by defect family before any repair-model evaluation: duration and Unix-epoch conversions plus status contracts are development; timezone/format interchange plus numeric formatting/conversion are holdout.",
+        "native_proof_platform": "macOS-26.4.1-arm64-arm-64bit",
+        "individually_observed_hunks": 2,
+        "proof_model_calls": 0
+      },
+      "expected_failed_tests": [
+        "Uint128.OStreamValueTest",
+        "Int128.OStreamValueTest"
+      ],
+      "upstream_test_count": 92,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "directory": ".auto-fix/expanded-authoring/systems/uint128_multichunk_zero_padding",
+        "clean_target": "absl_int128_test",
+        "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_int128_test.xml",
+        "injected_exit_code": 1,
+        "test_count": 92,
+        "executed_test_count": 92,
+        "disabled_test_count": 0,
+        "skipped_test_count": 0,
+        "failed_tests": [
+          "Uint128.OStreamValueTest",
+          "Int128.OStreamValueTest"
+        ]
+      },
+      "source_metrics": [
+        {
+          "path": "absl/numeric/int128.cc",
+          "file_bytes": 11370,
+          "mutation_byte_offset": 6031,
+          "mutation_line": 188
+        },
+        {
+          "path": "absl/numeric/int128.cc",
+          "file_bytes": 11370,
+          "mutation_byte_offset": 6239,
+          "mutation_line": 193
+        }
+      ],
+      "individual_hunk_proof": [
+        {
+          "hunk": 1,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Uint128.OStreamValueTest",
+            "Int128.OStreamValueTest"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/uint128_multichunk_zero_padding/individual-hunk-1"
+        },
+        {
+          "hunk": 2,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Uint128.OStreamValueTest",
+            "Int128.OStreamValueTest"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/uint128_multichunk_zero_padding/individual-hunk-2"
+        }
+      ]
+    },
+    {
+      "id": "status_serialization_mode_boundary",
+      "title": "Error serialization disagrees about which metadata should be visible",
+      "description": "The public error-to-text API and its heap-backed renderer disagree about payload visibility, making default and explicitly selected rendering modes inconsistent.",
+      "category": "status_serialization_contract",
+      "split": "holdout",
+      "complexity": {
+        "level": "moderate_to_hard",
+        "kind": "coupled_multi_file_api_contract",
+        "hunks": 2,
+        "files": 2,
+        "rationale": "A coupled two-file API/renderer mode contract: forwarding the wrong mode and testing a bitmask as an enum value partially mask each other. Fixing either layer alone leaves unchanged mode assertions failing.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "absl/status/status.h",
+          "before": "  return ok() ? \"OK\" : ToStringSlow(rep_, mode);",
+          "after": "  return ok() ? \"OK\" : ToStringSlow(rep_, StatusToStringMode::kWithEverything);"
+        },
+        {
+          "path": "absl/status/internal/status_internal.cc",
+          "before": "  const bool with_payload = (mode & StatusToStringMode::kWithPayload) ==\n                            StatusToStringMode::kWithPayload;",
+          "after": "  const bool with_payload = mode == StatusToStringMode::kWithPayload;"
+        }
+      ],
+      "build_targets": [
+        "absl_status_test"
+      ],
+      "ctest_regex": "^absl_status_test$",
+      "gtest_filter": "*",
+      "changed_files": [
+        "absl/base/internal/strerror.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-2414",
+        "jira_summary": "Error serialization disagrees about which metadata should be visible",
+        "commit_message": "CORE-2414: Consolidate runtime adapter paths",
+        "pr_title": "CORE-2414: Refresh runtime error diagnostics"
+      },
+      "provenance": {
+        "kind": "synthetic_source_regression",
+        "project": "Abseil C++",
+        "upstream_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "primary_source": "https://github.com/abseil/abseil-cpp/tree/255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "upstream_tests_modified": false,
+        "model_calls_during_authoring": 0,
+        "split_assignment": "Predetermined by defect family before any repair-model evaluation: duration and Unix-epoch conversions plus status contracts are development; timezone/format interchange plus numeric formatting/conversion are holdout.",
+        "native_proof_platform": "macOS-26.4.1-arm64-arm-64bit",
+        "individually_observed_hunks": 2,
+        "proof_model_calls": 0
+      },
+      "expected_failed_tests": [
+        "Status.ToString",
+        "Status.ToStringMode",
+        "Status.OstreamOperator",
+        "Status.AbslStringify"
+      ],
+      "upstream_test_count": 28,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "directory": ".auto-fix/expanded-authoring/systems/status_serialization_mode_boundary",
+        "clean_target": "absl_status_test",
+        "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_status_test.xml",
+        "injected_exit_code": 1,
+        "test_count": 28,
+        "executed_test_count": 28,
+        "disabled_test_count": 0,
+        "skipped_test_count": 0,
+        "failed_tests": [
+          "Status.ToString",
+          "Status.ToStringMode",
+          "Status.OstreamOperator",
+          "Status.AbslStringify"
+        ]
+      },
+      "source_metrics": [
+        {
+          "path": "absl/status/status.h",
+          "file_bytes": 36596,
+          "mutation_byte_offset": 33615,
+          "mutation_line": 853
+        },
+        {
+          "path": "absl/status/internal/status_internal.cc",
+          "file_bytes": 8571,
+          "mutation_byte_offset": 4427,
+          "mutation_line": 137
+        }
+      ],
+      "individual_hunk_proof": [
+        {
+          "hunk": 1,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Status.ToStringMode"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/status_serialization_mode_boundary/individual-hunk-1"
+        },
+        {
+          "hunk": 2,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Status.ToStringMode",
+            "Status.OstreamOperator",
+            "Status.AbslStringify"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/status_serialization_mode_boundary/individual-hunk-2"
+        }
+      ]
+    },
+    {
+      "id": "status_copy_on_write_mutation_boundary",
+      "title": "Updating copied error metadata modifies the original status too",
+      "description": "Metadata writes and removals on a copied non-OK status leak across copies. The failure depends on shared backing storage rather than the size of the message.",
+      "category": "status_copy_on_write",
+      "split": "development",
+      "complexity": {
+        "level": "moderate_to_hard",
+        "kind": "coupled_multi_file_state_protocol",
+        "hunks": 2,
+        "files": 2,
+        "rationale": "A coordinated mutation protocol regression across the inline API and backing implementation: writes bypass detachment while other mutation paths incorrectly treat shared storage as exclusive. References remain valid; unchanged copy isolation assertions expose aliasing.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "absl/status/status.h",
+          "before": "inline void Status::SetPayload(absl::string_view type_url, absl::Cord payload) {\n  if (ok()) return;\n  status_internal::StatusRep* rep = PrepareToModify(rep_);",
+          "after": "inline void Status::SetPayload(absl::string_view type_url, absl::Cord payload) {\n  if (ok()) return;\n  status_internal::StatusRep* rep = IsInlined(rep_) ? PrepareToModify(rep_) : const_cast<status_internal::StatusRep*>(RepToPointer(rep_));"
+        },
+        {
+          "path": "absl/status/internal/status_internal.cc",
+          "before": "  if (ref_.load(std::memory_order_acquire) == 1) {\n    // All StatusRep instances are heap allocated and mutable, therefore this",
+          "after": "  if (ref_.load(std::memory_order_acquire) <= 2) {\n    // All StatusRep instances are heap allocated and mutable, therefore this"
+        }
+      ],
+      "build_targets": [
+        "absl_status_test"
+      ],
+      "ctest_regex": "^absl_status_test$",
+      "gtest_filter": "*",
+      "changed_files": [
+        "absl/base/internal/strerror.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-2415",
+        "jira_summary": "Updating copied error metadata modifies the original status too",
+        "commit_message": "CORE-2415: Consolidate runtime adapter paths",
+        "pr_title": "CORE-2415: Refresh runtime error diagnostics"
+      },
+      "provenance": {
+        "kind": "synthetic_source_regression",
+        "project": "Abseil C++",
+        "upstream_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "primary_source": "https://github.com/abseil/abseil-cpp/tree/255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "upstream_tests_modified": false,
+        "model_calls_during_authoring": 0,
+        "split_assignment": "Predetermined by defect family before any repair-model evaluation: duration and Unix-epoch conversions plus status contracts are development; timezone/format interchange plus numeric formatting/conversion are holdout.",
+        "native_proof_platform": "macOS-26.4.1-arm64-arm-64bit",
+        "individually_observed_hunks": 2,
+        "proof_model_calls": 0
+      },
+      "expected_failed_tests": [
+        "Status.CopyOnWriteForErasePayload",
+        "Status.CopyAssignmentIsNotRef",
+        "Status.Equality"
+      ],
+      "upstream_test_count": 28,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "directory": ".auto-fix/expanded-authoring/systems/status_copy_on_write_mutation_boundary",
+        "clean_target": "absl_status_test",
+        "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_status_test.xml",
+        "injected_exit_code": 1,
+        "test_count": 28,
+        "executed_test_count": 28,
+        "disabled_test_count": 0,
+        "skipped_test_count": 0,
+        "failed_tests": [
+          "Status.CopyOnWriteForErasePayload",
+          "Status.CopyAssignmentIsNotRef",
+          "Status.Equality"
+        ]
+      },
+      "source_metrics": [
+        {
+          "path": "absl/status/status.h",
+          "file_bytes": 36596,
+          "mutation_byte_offset": 34024,
+          "mutation_line": 871
+        },
+        {
+          "path": "absl/status/internal/status_internal.cc",
+          "file_bytes": 8571,
+          "mutation_byte_offset": 6474,
+          "mutation_line": 194
+        }
+      ],
+      "individual_hunk_proof": [
+        {
+          "hunk": 1,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Status.CopyAssignmentIsNotRef",
+            "Status.Equality"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/status_copy_on_write_mutation_boundary/individual-hunk-1"
+        },
+        {
+          "hunk": 2,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "Status.CopyOnWriteForErasePayload",
+            "Status.CopyAssignmentIsNotRef",
+            "Status.Equality"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/status_copy_on_write_mutation_boundary/individual-hunk-2"
+        }
+      ]
+    },
+    {
+      "id": "cctz_numeric_offset_validation_sign",
+      "title": "Numeric time-zone offsets accept malformed input and shift valid timestamps incorrectly",
+      "description": "Timestamp import accepts malformed numeric time-zone offsets, while valid explicitly signed offsets can shift records in the wrong direction.",
+      "category": "deep_offset_parser",
+      "split": "holdout",
+      "complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "A deep-parser validation/sign regression breaks the boundary between a generic bounded-width integer parser and the exact-width offset grammar. Unchanged tests independently exercise malformed offsets and signed valid instants; recent changes give no inverse diff.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "exposure": "indirect",
+      "mutations": [
+        {
+          "path": "absl/time/internal/cctz/src/time_zone_format.cc",
+          "before": "      if (ap != nullptr && ap - dp == 2) {",
+          "after": "      if (ap != nullptr) {"
+        },
+        {
+          "path": "absl/time/internal/cctz/src/time_zone_format.cc",
+          "before": "        if (first == '-') *offset = -*offset;",
+          "after": "        if (first == '+') *offset = -*offset;"
+        }
+      ],
+      "build_targets": [
+        "absl_time_test"
+      ],
+      "ctest_regex": "^absl_time_test$",
+      "gtest_filter": "*",
+      "changed_files": [
+        "absl/base/internal/strerror.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-2417",
+        "jira_summary": "Numeric time-zone offsets accept malformed input and shift valid timestamps incorrectly",
+        "commit_message": "CORE-2417: Consolidate runtime adapter paths",
+        "pr_title": "CORE-2417: Refresh runtime error diagnostics"
+      },
+      "provenance": {
+        "kind": "synthetic_source_regression",
+        "project": "Abseil C++",
+        "upstream_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "primary_source": "https://github.com/abseil/abseil-cpp/tree/255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "upstream_tests_modified": false,
+        "model_calls_during_authoring": 0,
+        "split_assignment": "Predetermined by defect family before any repair-model evaluation: duration and Unix-epoch conversions plus status contracts are development; timezone/format interchange plus numeric formatting/conversion are holdout.",
+        "native_proof_platform": "macOS-26.4.1-arm64-arm-64bit",
+        "individually_observed_hunks": 2,
+        "proof_model_calls": 0
+      },
+      "expected_failed_tests": [
+        "ParseTime.Basics",
+        "ParseTime.WithTimeZone",
+        "ParseTime.ExtendedOffsetErrors",
+        "FormatParse.RoundTrip"
+      ],
+      "upstream_test_count": 133,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "directory": ".auto-fix/expanded-authoring/systems/cctz_numeric_offset_validation_sign",
+        "clean_target": "absl_time_test",
+        "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_time_test.xml",
+        "injected_exit_code": 1,
+        "test_count": 133,
+        "executed_test_count": 133,
+        "disabled_test_count": 0,
+        "skipped_test_count": 0,
+        "failed_tests": [
+          "ParseTime.Basics",
+          "ParseTime.WithTimeZone",
+          "ParseTime.ExtendedOffsetErrors",
+          "FormatParse.RoundTrip"
+        ]
+      },
+      "source_metrics": [
+        {
+          "path": "absl/time/internal/cctz/src/time_zone_format.cc",
+          "file_bytes": 33738,
+          "mutation_byte_offset": 19229,
+          "mutation_line": 608
+        },
+        {
+          "path": "absl/time/internal/cctz/src/time_zone_format.cc",
+          "file_bytes": 33738,
+          "mutation_byte_offset": 19688,
+          "mutation_line": 619
+        }
+      ],
+      "individual_hunk_proof": [
+        {
+          "hunk": 1,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "ParseTime.ExtendedOffsetErrors"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/cctz_numeric_offset_validation_sign/individual-hunk-1"
+        },
+        {
+          "hunk": 2,
+          "observed": true,
+          "exit_code": 1,
+          "failed_tests": [
+            "ParseTime.Basics",
+            "ParseTime.WithTimeZone",
+            "FormatParse.RoundTrip"
+          ],
+          "directory": ".auto-fix/expanded-authoring/systems/cctz_numeric_offset_validation_sign/individual-hunk-2"
+        }
+      ]
+    }
+  ],
+  "split_policy": {
+    "development": [
+      "duration_arithmetic",
+      "duration_conversion",
+      "duration_parser",
+      "status_copy_on_write",
+      "status_error_dispatch",
+      "status_state_contract",
+      "unix_epoch_conversion"
+    ],
+    "holdout": [
+      "deep_offset_parser",
+      "status_serialization_contract",
+      "time_format_interchange",
+      "timezone_transition",
+      "wide_integer_conversion",
+      "wide_integer_formatting"
+    ]
+  },
+  "native_proof_summary": {
+    "platform": "macOS-26.4.1-arm64-arm-64bit",
+    "proof_directory": ".auto-fix/expanded-authoring/systems",
+    "accepted_cases": 16,
+    "development_cases": 8,
+    "holdout_cases": 8,
+    "multi_file_cases": 2,
+    "individually_observed_hunks": 32,
+    "unique_selected_upstream_tests": 253,
+    "test_instances_per_full_case_set": 1480,
+    "model_calls": 0,
+    "upstream_cache_unchanged": true,
+    "authoring_clone_restored_and_final_suites_pass": true,
+    "split_assignment_phase": "before any repair-model evaluation; native fixture authoring and test-observability validation only"
+  }
+}

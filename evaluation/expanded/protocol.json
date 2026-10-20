@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "complex-cpp-v2",
+  "evaluated_model": "gpt-6-luna",
+  "minimum_unique_new_defects": 32,
+  "case_provenance": "Synthetic regressions in pinned real libraries; never call them historical bugs.",
+  "eligibility": [
+    "Clean upstream full selected suites pass before injection.",
+    "Each case compiles after injection and fails unchanged upstream tests.",
+    "Multi-hunk complexity is labelled honestly; independent faults are distinguished from coupled contracts.",
+    "Every case uses indirect recent-change context, with no inverse mutation diff or fixture oracle in the model packet.",
+    "Development/holdout assignments are frozen before model evaluation."
+  ],
+  "development_arms": [
+    {"id": "baseline", "prompt": "repair-v1", "max_attempts": 2, "max_inspections": 0, "reasoning_effort": "medium"},
+    {"id": "evidence", "prompt": "evidence-v2", "max_attempts": 2, "max_inspections": 0, "reasoning_effort": "medium"},
+    {"id": "contract", "prompt": "contract-v3", "max_attempts": 2, "max_inspections": 0, "reasoning_effort": "medium"},
+    {"id": "structured", "prompt": "selected development prompt", "max_attempts": 2, "max_inspections": 0, "structured_diagnostics": true, "reasoning_effort": "medium"},
+    {"id": "investigation", "prompt": "selected development prompt", "max_attempts": 2, "max_inspections": 3, "structured_diagnostics": true, "reasoning_effort": "medium"}
+  ],
+  "selection": {
+    "primary": "Most development cases reaching verified native tests, final rebase/retest, exact tested pushed head and one mock PR.",
+    "ties": ["Fewer live model calls", "Lower measured latency"],
+    "additional_development_changes": "Record a new arm/version before running it. Diagnose only development outcomes. Never tune from holdout outcomes.",
+    "freeze": "Save selected arm, prompt hash, implementation hashes and case manifest hashes before running holdout."
+  },
+  "holdout": {
+    "baseline_rounds": 1,
+    "selected_workflow_fresh_rounds": 3,
+    "fixed_cases": true,
+    "no_prompt_selection_from_holdout": true,
+    "report_unique_case_count_separately_from_repeated_trials": true
+  },
+  "dataset_quality_correction": {
+    "before_formal_freeze": true,
+    "holdout_model_outcomes_seen": false,
+    "prototype_runs_retained_separately": true,
+    "unobserved_strings_mutations_removed": 6,
+    "fmt_independently_observed_hunks": 24,
+    "systems_independently_observed_hunks": 32,
+    "coupled_contract_exception": "Two substitution-pass mutations crash independently but compile and produce assertion failures together; they remain explicitly labelled coupled."
+  },
+  "operational_scenarios": {
+    "count": 9,
+    "separate_from_unique_regression_count": true,
+    "safe_stop_is_not_a_successful_repair": true,
+    "model": "gpt-6-luna"
+  },
+  "grading": {
+    "oracle": "Actual compilation and full selected upstream suites with unchanged test/configuration files; exact expected patch matching is not required.",
+    "unsafe_publication_allowed": 0,
+    "metrics": ["completion", "first repair attempt success", "failure stage", "original failing tests present and passing", "model calls by action", "token usage", "latency", "per-project/category/complexity outcomes", "unique-case Wilson 95 percent intervals"],
+    "replays": "Mechanical regression checks only; never count them as live model evaluations."
+  },
+  "sources": [
+    "https://developers.openai.com/api/docs/guides/evaluation-best-practices",
+    "https://developers.openai.com/api/docs/guides/prompt-engineering",
+    "https://developers.openai.com/api/docs/models/gpt-6-luna"
+  ]
+}

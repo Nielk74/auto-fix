@@ -1,0 +1,2195 @@
+{
+  "schema_version": 2,
+  "id": "complex-cpp-v2",
+  "created_at": "2026-10-20T21:27:16.133076+00:00",
+  "phase": "native-audited freeze before formal development arms and before any holdout model calls",
+  "model_outcomes_used_for_fixture_selection": false,
+  "prototype_development_runs": "Earlier manual development calls are prototype data and excluded from formal arm comparisons.",
+  "oracle_policy": "Case mutations and native/hunk proof metadata are evaluator-only. Never send case manifests, expected edits, clean-source oracles or this registry to the repair model.",
+  "protocol": {
+    "path": "evaluation/expanded/protocol.json",
+    "sha256": "d3752471b33b6c809fe969febab58cc166b68abe63422e64401152d6f591ea78"
+  },
+  "datasets": [
+    {
+      "id": "abseil_strings",
+      "project": "abseil",
+      "case_manifest": "evaluation/expanded/abseil_strings.json",
+      "case_manifest_sha256": "cb92bcda96467037072b534e3d8c57df66bc7197ccd5b4b9688fe85ba1209d50",
+      "project_manifest": "evaluation/project.json",
+      "project_manifest_sha256": "d18ac42a32ca5b2e9672094ce68a01d6ed7f453b27c1d674ff551ceefe3f3b9a",
+      "upstream_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+      "case_count": 17,
+      "assignments": {
+        "development": [
+          "absl_escape_byte_overflow",
+          "absl_escape_hex_continuation",
+          "absl_base64_tail_codec",
+          "absl_base64_optional_padding_whitespace",
+          "absl_integer_bare_prefixes",
+          "absl_integer_partial_results",
+          "absl_integer_signed_boundaries",
+          "absl_replace_overlap_and_progress",
+          "absl_split_literal_and_chunk_boundaries",
+          "absl_base64_alphabet_contract"
+        ],
+        "holdout": [
+          "absl_unicode_escape_validation_lengths",
+          "absl_unicode_safe_escape_modes",
+          "absl_float_lexical_whitespace_sign",
+          "absl_float_signed_special_values",
+          "absl_substitute_placeholder_index",
+          "absl_substitute_literal_dollars",
+          "absl_decimal_padding_shared_contract"
+        ]
+      },
+      "native_case_audit": "passed",
+      "hunk_audit": {
+        "total": 34,
+        "native_test_assertion_observed": 32,
+        "native_crash_observed": 2,
+        "unobserved": 0
+      },
+      "source_only_mutations": true,
+      "all_recent_changes_indirect": true,
+      "family_assignments": {
+        "base64_codec": "development",
+        "byte_escape_validation": "development",
+        "decimal_formatting": "holdout",
+        "delimiter_parsing": "development",
+        "floating_point_parsing": "holdout",
+        "integer_parsing": "development",
+        "pattern_replacement": "development",
+        "template_substitution": "holdout",
+        "unicode_escaping": "holdout"
+      }
+    },
+    {
+      "id": "abseil_systems",
+      "project": "abseil",
+      "case_manifest": "evaluation/expanded/abseil_systems.json",
+      "case_manifest_sha256": "ebf862f3135ece78c683fdb64066f59b277a3f05b87208e1ff6813a533c5e744",
+      "project_manifest": "evaluation/project.json",
+      "project_manifest_sha256": "d18ac42a32ca5b2e9672094ce68a01d6ed7f453b27c1d674ff551ceefe3f3b9a",
+      "upstream_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+      "case_count": 16,
+      "assignments": {
+        "development": [
+          "duration_negative_unit_rounding",
+          "duration_composite_parse_accumulator",
+          "duration_posix_negative_fraction_rounding",
+          "time_negative_unix_precision_floor",
+          "status_update_first_failure_contract",
+          "status_payload_clone_write_retention",
+          "status_lookup_conflict_dispatch",
+          "status_copy_on_write_mutation_boundary"
+        ],
+        "holdout": [
+          "timezone_civil_ambiguity_pre_post",
+          "time_format_fraction_interchange_scale",
+          "time_format_timezone_propagation",
+          "uint128_floating_word_layout",
+          "int128_stream_internal_padding",
+          "uint128_multichunk_zero_padding",
+          "status_serialization_mode_boundary",
+          "cctz_numeric_offset_validation_sign"
+        ]
+      },
+      "native_case_audit": "passed",
+      "hunk_audit": {
+        "total": 32,
+        "native_test_assertion_observed": 32,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      },
+      "source_only_mutations": true,
+      "all_recent_changes_indirect": true,
+      "family_assignments": {
+        "deep_offset_parser": "holdout",
+        "duration_arithmetic": "development",
+        "duration_conversion": "development",
+        "duration_parser": "development",
+        "status_copy_on_write": "development",
+        "status_error_dispatch": "development",
+        "status_serialization_contract": "holdout",
+        "status_state_contract": "development",
+        "time_format_interchange": "holdout",
+        "timezone_transition": "holdout",
+        "unix_epoch_conversion": "development",
+        "wide_integer_conversion": "holdout",
+        "wide_integer_formatting": "holdout"
+      }
+    },
+    {
+      "id": "fmt",
+      "project": "fmt",
+      "case_manifest": "evaluation/expanded/cases_fmt.json",
+      "case_manifest_sha256": "c4e332f46478c11b9566b82809c3a127cc7008d3f55eb47822fe9b4ea34bf330",
+      "project_manifest": "evaluation/expanded/fmt.json",
+      "project_manifest_sha256": "dea521fdb850999f84967219ea1cbe1047089b5fbfa2583b678df0793487957d",
+      "upstream_commit": "1be298e1bd68957e4cd352e1f676f00e07dcfb57",
+      "case_count": 12,
+      "assignments": {
+        "development": [
+          "fmt_utf8_validation_boundaries",
+          "fmt_debug_control_escapes",
+          "fmt_printf_dynamic_field_sign",
+          "fmt_integer_precision_padding",
+          "fmt_pre_epoch_fraction_normalization",
+          "fmt_diagnostic_fallback_capacity"
+        ],
+        "holdout": [
+          "fmt_east_asian_emoji_display_width",
+          "fmt_binary_prefix_casing",
+          "fmt_printf_positional_fields",
+          "fmt_nested_range_delimiters",
+          "fmt_utf16_storage_and_surrogates",
+          "fmt_decimal_halfway_rounding"
+        ]
+      },
+      "native_case_audit": "passed",
+      "hunk_audit": {
+        "total": 24,
+        "native_test_assertion_observed": 24,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      },
+      "source_only_mutations": true,
+      "all_recent_changes_indirect": true,
+      "family_assignments": {
+        "chrono_subseconds": "development",
+        "debug_escaping": "development",
+        "decimal_rounding": "holdout",
+        "diagnostic_fallback": "development",
+        "integer_padding": "development",
+        "numeric_prefixes": "holdout",
+        "positional_arguments": "holdout",
+        "printf_dynamic_fields": "development",
+        "range_delimiters": "holdout",
+        "unicode_display_width": "holdout",
+        "utf16_transcoding": "holdout",
+        "utf8_validation": "development"
+      }
+    }
+  ],
+  "case_registry": [
+    {
+      "id": "absl_escape_byte_overflow",
+      "dataset": "abseil_strings",
+      "project": "abseil",
+      "split": "development",
+      "family": "byte_escape_validation",
+      "mutation_fingerprint_sha256": "55854b6477cf859a4f39aeb1e304619e364197736654a44df8506ea788a13de4",
+      "case_entry_sha256": "8c9e24dc87d68402fa56eb52de0016c2bf0186565bfa18cadd5595e10a04476d",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 2,
+        "mutation_anchors": 2,
+        "production_files": 1,
+        "multi_location": true,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multiple_fault_sites"
+        ],
+        "category": "coupled_contract_regression",
+        "note": "The affected locations participate in one public contract; fixing one location may leave sibling paths failing."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_escaping_test",
+          "clean_junit": ".auto-fix/expanded-proof/abseil-strings/absl_escape_byte_overflow/clean-absl_escaping_test.xml",
+          "clean_junit_sha256": "8a0041bdfbeab06db933c344897a91e328a5dd0feb75cdd24dde301b2f5dcf10",
+          "injected_junit": ".auto-fix/expanded-proof/abseil-strings/absl_escape_byte_overflow/mutated-absl_escaping_test.xml",
+          "injected_junit_sha256": "390c250925a5cc844eee5b87824c09bcc2c1c243451790750684dcda87ad1759",
+          "executed_tests": 18,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "Unescape.BasicFunction"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "absl_escape_hex_continuation",
+      "dataset": "abseil_strings",
+      "project": "abseil",
+      "split": "development",
+      "family": "byte_escape_validation",
+      "mutation_fingerprint_sha256": "8c94a5e4eec892d7b415e8c7a8a0d6ab31aa15320604e17e7c8b108e20880a3a",
+      "case_entry_sha256": "d177ee0e184b20c71e4d26539847cf26027645de661be44ae942c8107db2d17f",
+      "mutation_hunks": 1,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 1,
+        "mutation_anchors": 1,
+        "production_files": 1,
+        "multi_location": false,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff"
+        ],
+        "category": "single_observed_regression",
+        "note": "Only the independently observed source fault is injected; uncovered secondary mutations were removed before formal evaluation."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_escaping_test",
+          "clean_junit": ".auto-fix/expanded-proof/abseil-strings/absl_escape_hex_continuation/clean-absl_escaping_test.xml",
+          "clean_junit_sha256": "340f463b4c01e8cbf99f0306f079535636f6fa042af4b79b8dd7a8fc60295f05",
+          "injected_junit": ".auto-fix/expanded-proof/abseil-strings/absl_escape_hex_continuation/mutated-absl_escaping_test.xml",
+          "injected_junit_sha256": "eb589a74f680b9b3eb079b9dfdeba6a673ac85a24f33e318c38c20ca0b07d56c",
+          "executed_tests": 18,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "CEscape.EscapeAndUnescape"
+      ],
+      "hunk_observability": {
+        "total": 1,
+        "native_test_assertion_observed": 1,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "absl_base64_tail_codec",
+      "dataset": "abseil_strings",
+      "project": "abseil",
+      "split": "development",
+      "family": "base64_codec",
+      "mutation_fingerprint_sha256": "43385b546e2ad1e4f6201682d516da8e744f86c7388383568ba696d4f6bbe833",
+      "case_entry_sha256": "1f3ccbd0323f7e78551fb7443c4cd4ad332a4ae78187478797ddbae03fa47a86",
+      "mutation_hunks": 4,
+      "production_files": 2,
+      "multi_file": true,
+      "declared_complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 4,
+        "mutation_anchors": 4,
+        "production_files": 2,
+        "multi_location": true,
+        "multi_file": true,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multi_file",
+          "multiple_fault_sites"
+        ],
+        "category": "coupled_contract_regression",
+        "note": "The affected locations participate in one public contract; fixing one location may leave sibling paths failing."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_escaping_test",
+          "clean_junit": ".auto-fix/expanded-proof/abseil-strings/absl_base64_tail_codec/clean-absl_escaping_test.xml",
+          "clean_junit_sha256": "0d9dbd4c68b61c95018839ff7fee513995aa1c638cde2b995a33d38ff9005e92",
+          "injected_junit": ".auto-fix/expanded-proof/abseil-strings/absl_base64_tail_codec/mutated-absl_escaping_test.xml",
+          "injected_junit_sha256": "d69c643de69679a59c5975d88f3becb34d4dce5581fde7094f47c66089285da8",
+          "executed_tests": 18,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "Base64.EscapeAndUnescape",
+        "Base64.Padding"
+      ],
+      "hunk_observability": {
+        "total": 4,
+        "native_test_assertion_observed": 4,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "absl_base64_optional_padding_whitespace",
+      "dataset": "abseil_strings",
+      "project": "abseil",
+      "split": "development",
+      "family": "base64_codec",
+      "mutation_fingerprint_sha256": "053a291b66d3f1cb1f3403afaf0ecfeaabfd8bcda7dee7d945988350321f75c1",
+      "case_entry_sha256": "1366a283d3c320ad855be5625ca3ed7404b182a9582443ee1d0c3c1c4cb88d26",
+      "mutation_hunks": 1,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 1,
+        "mutation_anchors": 1,
+        "production_files": 1,
+        "multi_location": false,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff"
+        ],
+        "category": "single_observed_regression",
+        "note": "Only the independently observed source fault is injected; uncovered secondary mutations were removed before formal evaluation."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_escaping_test",
+          "clean_junit": ".auto-fix/expanded-proof/abseil-strings/absl_base64_optional_padding_whitespace/clean-absl_escaping_test.xml",
+          "clean_junit_sha256": "5236fda6ce7b87b28229701de54c9eeb2366b9fb5d8e6b4229397499a7c588d1",
+          "injected_junit": ".auto-fix/expanded-proof/abseil-strings/absl_base64_optional_padding_whitespace/mutated-absl_escaping_test.xml",
+          "injected_junit_sha256": "d5f23bcbfad1fc6e991b63d3a8145385c5985b0108c7ff9fa03dffba381572dc",
+          "executed_tests": 18,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "Base64.EscapeAndUnescape",
+        "Base64.Padding"
+      ],
+      "hunk_observability": {
+        "total": 1,
+        "native_test_assertion_observed": 1,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "absl_integer_bare_prefixes",
+      "dataset": "abseil_strings",
+      "project": "abseil",
+      "split": "development",
+      "family": "integer_parsing",
+      "mutation_fingerprint_sha256": "50a17493e13907bc828aee2a51c21909b4044c25b35a1ed388e02b7e05d55e7e",
+      "case_entry_sha256": "7a0e06ca0c9f744300e76643e8b185250385383c43db2d59c2ecaca8c2807d90",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 2,
+        "mutation_anchors": 2,
+        "production_files": 1,
+        "multi_location": true,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multiple_fault_sites"
+        ],
+        "category": "coupled_contract_regression",
+        "note": "The affected locations participate in one public contract; fixing one location may leave sibling paths failing."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_numbers_test",
+          "clean_junit": ".auto-fix/expanded-proof/abseil-strings/absl_integer_bare_prefixes/clean-absl_numbers_test.xml",
+          "clean_junit_sha256": "f5dce631f2e1661f996c3f66d8489a4763c6632890049926c21cc446df8b9bfe",
+          "injected_junit": ".auto-fix/expanded-proof/abseil-strings/absl_integer_bare_prefixes/mutated-absl_numbers_test.xml",
+          "injected_junit_sha256": "eaa3397b91ea51dbf57581aa0fa56be31f3cb70e85001e52c34032e23007156d",
+          "executed_tests": 50,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "StrToInt32Base.PrefixOnly",
+        "StrToInt64Base.PrefixOnly",
+        "StrToUint32Base.PrefixOnly",
+        "StrToUint64Base.PrefixOnly"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "absl_integer_partial_results",
+      "dataset": "abseil_strings",
+      "project": "abseil",
+      "split": "development",
+      "family": "integer_parsing",
+      "mutation_fingerprint_sha256": "f4de32326c36e7ad87a07f19f70b3beb8ae31df1cab0b74ef1dc501937d1a3c2",
+      "case_entry_sha256": "fd1adc2747b247aa1d13b08737508893ae32d36f79d9240f53ef4fed3b36ab4e",
+      "mutation_hunks": 1,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 1,
+        "mutation_anchors": 1,
+        "production_files": 1,
+        "multi_location": false,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff"
+        ],
+        "category": "single_observed_regression",
+        "note": "Only the independently observed source fault is injected; uncovered secondary mutations were removed before formal evaluation."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_numbers_test",
+          "clean_junit": ".auto-fix/expanded-proof/abseil-strings/absl_integer_partial_results/clean-absl_numbers_test.xml",
+          "clean_junit_sha256": "d9078f87a15ac4ec6b31d90764d3a161390d2a2fe334036e083ea304dd95bacc",
+          "injected_junit": ".auto-fix/expanded-proof/abseil-strings/absl_integer_partial_results/mutated-absl_numbers_test.xml",
+          "injected_junit_sha256": "25c8c3dbb4b985bfe115753ba83ac2b3481f5d38c1f86c14c0dbd24e88e7ae9d",
+          "executed_tests": 50,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "StrToInt16.Partial",
+        "StrToInt32.Partial",
+        "StrToInt64.Partial",
+        "StrToInt8.Partial",
+        "StrToUint16.Partial",
+        "StrToUint32.Partial",
+        "StrToUint64.Partial",
+        "StrToUint8.Partial",
+        "stringtest.safe_strto16_leading_substring",
+        "stringtest.safe_strto32_leading_substring",
+        "stringtest.safe_strto64_leading_substring",
+        "stringtest.safe_strto8_leading_substring"
+      ],
+      "hunk_observability": {
+        "total": 1,
+        "native_test_assertion_observed": 1,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "absl_integer_signed_boundaries",
+      "dataset": "abseil_strings",
+      "project": "abseil",
+      "split": "development",
+      "family": "integer_parsing",
+      "mutation_fingerprint_sha256": "f758174c386fe62b4ae186c95cd063bb78e91dbcc2c8cb41d10db6451d814c22",
+      "case_entry_sha256": "4774275f35e3f862c6ff42ff5693112d03d4d153782e97d4754e601e024a5c75",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 2,
+        "mutation_anchors": 2,
+        "production_files": 1,
+        "multi_location": true,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multiple_fault_sites"
+        ],
+        "category": "coupled_contract_regression",
+        "note": "The affected locations participate in one public contract; fixing one location may leave sibling paths failing."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_numbers_test",
+          "clean_junit": ".auto-fix/expanded-proof/abseil-strings/absl_integer_signed_boundaries/clean-absl_numbers_test.xml",
+          "clean_junit_sha256": "bdd5a27ec122e552ad14e56196f0a776024abcbf13e8157eed26c3987f68c378",
+          "injected_junit": ".auto-fix/expanded-proof/abseil-strings/absl_integer_signed_boundaries/mutated-absl_numbers_test.xml",
+          "injected_junit_sha256": "4a1e1ea90fa0c941bbd0e5084227fb98b836ae7bb9dbe3f41a791a892cb85958",
+          "executed_tests": 50,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "NumbersTest.Atoenum",
+        "NumbersTest.Atoi",
+        "NumbersTest.HexAtoi",
+        "StrToInt8.Partial",
+        "stringtest.safe_strto16_random",
+        "stringtest.safe_strto16_range",
+        "stringtest.safe_strto32_range",
+        "stringtest.safe_strto64_range",
+        "stringtest.safe_strto8_base",
+        "stringtest.safe_strto8_exhaustive",
+        "stringtest.safe_strto8_leading_substring",
+        "stringtest.safe_strto8_range",
+        "stringtest.safe_strtou16_random",
+        "stringtest.safe_strtou32_base",
+        "stringtest.safe_strtou32_base_length_delimited",
+        "stringtest.safe_strtou64_base",
+        "stringtest.safe_strtou64_base_length_delimited",
+        "stringtest.safe_strtou8_exhaustive"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "absl_replace_overlap_and_progress",
+      "dataset": "abseil_strings",
+      "project": "abseil",
+      "split": "development",
+      "family": "pattern_replacement",
+      "mutation_fingerprint_sha256": "f3869c6a053d1efec7c0b8d7d52eb3af778a23ffd5c4217036154713ab0bc075",
+      "case_entry_sha256": "c1474c1bc99613562803ca13c337b42f747c935232b0b33f68b4416b7a3dfdcf",
+      "mutation_hunks": 2,
+      "production_files": 2,
+      "multi_file": true,
+      "declared_complexity": {
+        "level": "compound",
+        "logical_fault_sites": 2,
+        "mutation_anchors": 2,
+        "production_files": 2,
+        "multi_location": true,
+        "multi_file": true,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multi_file",
+          "multiple_fault_sites"
+        ],
+        "category": "compound_independent_regressions",
+        "note": "Multiple independent source faults must be repaired; site count alone is not evidence of algorithmic difficulty."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_str_replace_test",
+          "clean_junit": ".auto-fix/expanded-proof/abseil-strings/absl_replace_overlap_and_progress/clean-absl_str_replace_test.xml",
+          "clean_junit_sha256": "0fc594c6452885b275ad13df0f8c9d627c73b552f634c80a1b7da255fc7bc961",
+          "injected_junit": ".auto-fix/expanded-proof/abseil-strings/absl_replace_overlap_and_progress/mutated-absl_str_replace_test.xml",
+          "injected_junit_sha256": "8213eb3dfe4ca9f0dcb4ffb7c6efd2a8c36dd47c0abb6f3941717355020a4102",
+          "executed_tests": 7,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "StrReplaceAll.Inplace",
+        "StrReplaceAll.ManyReplacements",
+        "StrReplaceAll.ManyReplacementsInMap",
+        "StrReplaceAll.OneReplacement",
+        "StrReplaceAll.ReplacementsInPlace",
+        "StrReplaceAll.ReplacementsInPlaceInMap",
+        "StrReplaceAll.VariableNumber"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "absl_split_literal_and_chunk_boundaries",
+      "dataset": "abseil_strings",
+      "project": "abseil",
+      "split": "development",
+      "family": "delimiter_parsing",
+      "mutation_fingerprint_sha256": "11ef11de3de633f59d750139fcd12b39fa29d05994f23afc482137366849ac81",
+      "case_entry_sha256": "16bba4fa482d4f8dc9cad138cb5c41caeacd37e17d86986a8af049bbbe5c7cdb",
+      "mutation_hunks": 1,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 2,
+        "mutation_anchors": 1,
+        "production_files": 1,
+        "multi_location": true,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multiple_fault_sites"
+        ],
+        "category": "coupled_contract_regression",
+        "note": "Literal search and delimiter consumption form one coupled substring-splitting contract."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_str_split_test",
+          "clean_junit": ".auto-fix/expanded-proof/abseil-strings/absl_split_literal_and_chunk_boundaries/clean-absl_str_split_test.xml",
+          "clean_junit_sha256": "b8521c1225753109fa32655adec5d7dfc97393d543f378d61629e1c5cb9e5dec",
+          "injected_junit": ".auto-fix/expanded-proof/abseil-strings/absl_split_literal_and_chunk_boundaries/mutated-absl_str_split_test.xml",
+          "injected_junit_sha256": "0b6e18a165c2a70df240cea413a1920af0330b08576488e282d10b4ca671e9be",
+          "executed_tests": 31,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "Split.APIExamples",
+        "Split.SubstrDelimiter",
+        "Split.UTF8"
+      ],
+      "hunk_observability": {
+        "total": 1,
+        "native_test_assertion_observed": 1,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "absl_unicode_escape_validation_lengths",
+      "dataset": "abseil_strings",
+      "project": "abseil",
+      "split": "holdout",
+      "family": "unicode_escaping",
+      "mutation_fingerprint_sha256": "a9248464c75bf171159352efb6955777d3c57c64c6275bc48911c14214b33a68",
+      "case_entry_sha256": "cca6be252e6bef35891d54ea186442940efcfbf3319d9cea8490fedb395b2c54",
+      "mutation_hunks": 3,
+      "production_files": 2,
+      "multi_file": true,
+      "declared_complexity": {
+        "level": "compound",
+        "logical_fault_sites": 3,
+        "mutation_anchors": 3,
+        "production_files": 2,
+        "multi_location": true,
+        "multi_file": true,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multi_file",
+          "multiple_fault_sites"
+        ],
+        "category": "compound_independent_regressions",
+        "note": "Multiple independent source faults must be repaired; site count alone is not evidence of algorithmic difficulty."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_escaping_test",
+          "clean_junit": ".auto-fix/expanded-proof/abseil-strings/absl_unicode_escape_validation_lengths/clean-absl_escaping_test.xml",
+          "clean_junit_sha256": "ab2e376eb4c480d7bd0f8328906163e78e1b15a4471359b6e6300acae917f42e",
+          "injected_junit": ".auto-fix/expanded-proof/abseil-strings/absl_unicode_escape_validation_lengths/mutated-absl_escaping_test.xml",
+          "injected_junit_sha256": "b55f387b12bb5b8af24568857e391952de343870e7969c97535257bb09c6f41c",
+          "executed_tests": 18,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "Unescape.BasicFunction"
+      ],
+      "hunk_observability": {
+        "total": 3,
+        "native_test_assertion_observed": 3,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "absl_unicode_safe_escape_modes",
+      "dataset": "abseil_strings",
+      "project": "abseil",
+      "split": "holdout",
+      "family": "unicode_escaping",
+      "mutation_fingerprint_sha256": "9f3f083d73c8d6723c98c0af903594654a77c2ae660c760a075b69e36ff6de88",
+      "case_entry_sha256": "3ca6106f55ae0c34f420a170a17d58d7e7b6bd2ae5c7a6dfcd5000ab90103b73",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 2,
+        "mutation_anchors": 2,
+        "production_files": 1,
+        "multi_location": true,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multiple_fault_sites"
+        ],
+        "category": "coupled_contract_regression",
+        "note": "The affected locations participate in one public contract; fixing one location may leave sibling paths failing."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_escaping_test",
+          "clean_junit": ".auto-fix/expanded-proof/abseil-strings/absl_unicode_safe_escape_modes/clean-absl_escaping_test.xml",
+          "clean_junit_sha256": "d8362825c7a66310802aaad5e3e30e62e216bc404e316897dc9396dfb938bc79",
+          "injected_junit": ".auto-fix/expanded-proof/abseil-strings/absl_unicode_safe_escape_modes/mutated-absl_escaping_test.xml",
+          "injected_junit_sha256": "94c5fc9dad6a5f5e0cd163e6bad775f5254fea63627b8081ce573e7d2e1e8b7a",
+          "executed_tests": 18,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "CEscape.BasicEscaping"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "absl_float_lexical_whitespace_sign",
+      "dataset": "abseil_strings",
+      "project": "abseil",
+      "split": "holdout",
+      "family": "floating_point_parsing",
+      "mutation_fingerprint_sha256": "272d53108ced03322ee13fc71b5f9eee82b4e18bdfebc98c0d6472ac45a1e5df",
+      "case_entry_sha256": "7292852356c55dae02b0b057eece895f85b5d8edc7d8292fbc3d216796f89c12",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "compound",
+        "logical_fault_sites": 4,
+        "mutation_anchors": 2,
+        "production_files": 1,
+        "multi_location": true,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multiple_fault_sites"
+        ],
+        "category": "compound_independent_regressions",
+        "note": "Multiple independent source faults must be repaired; site count alone is not evidence of algorithmic difficulty."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_numbers_test",
+          "clean_junit": ".auto-fix/expanded-proof/abseil-strings/absl_float_lexical_whitespace_sign/clean-absl_numbers_test.xml",
+          "clean_junit_sha256": "86997c0d997ad5117035b6e69c5d12952ca32f60b24f60f419f9d913bd5a9d60",
+          "injected_junit": ".auto-fix/expanded-proof/abseil-strings/absl_float_lexical_whitespace_sign/mutated-absl_numbers_test.xml",
+          "injected_junit_sha256": "c64b053c53a7e1c48ec0666b65d9d21f624305251ebdc888be229702ebee1493",
+          "executed_tests": 50,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "NumbersTest.Atod",
+        "NumbersTest.Prefixes"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "absl_float_signed_special_values",
+      "dataset": "abseil_strings",
+      "project": "abseil",
+      "split": "holdout",
+      "family": "floating_point_parsing",
+      "mutation_fingerprint_sha256": "c3da9da8061b4003870e87855177cb8077bbca2c440272f61ba735c26622eaad",
+      "case_entry_sha256": "47d620ec6bcc997b83e18969062c44cedc26b48723c226b2557ea9569e25cd9a",
+      "mutation_hunks": 1,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 1,
+        "mutation_anchors": 1,
+        "production_files": 1,
+        "multi_location": false,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff"
+        ],
+        "category": "single_observed_regression",
+        "note": "Only the independently observed source fault is injected; uncovered secondary mutations were removed before formal evaluation."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_charconv_test",
+          "clean_junit": ".auto-fix/expanded-proof/abseil-strings/absl_float_signed_special_values/clean-absl_charconv_test.xml",
+          "clean_junit_sha256": "8df2adc549f9b9c23489231f3e9c428b27322ae4270ded4a2787a90f4ce49f42",
+          "injected_junit": ".auto-fix/expanded-proof/abseil-strings/absl_float_signed_special_values/mutated-absl_charconv_test.xml",
+          "injected_junit_sha256": "352eeae5d024a1c0ac24d5ee5dfc1fd9eb176a1789a447a2689357f9c8971c40",
+          "executed_tests": 16,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "FromChars.NaNDoubles",
+        "FromChars.NaNFloats"
+      ],
+      "hunk_observability": {
+        "total": 1,
+        "native_test_assertion_observed": 1,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "absl_substitute_placeholder_index",
+      "dataset": "abseil_strings",
+      "project": "abseil",
+      "split": "holdout",
+      "family": "template_substitution",
+      "mutation_fingerprint_sha256": "e09478d85f344bbd20e7ca8627bc6571094f2db39e19a9322bc0ef754bb92b67",
+      "case_entry_sha256": "64781d6ba3bc3d3d53e9e68067900f3c288a390a592cef965c9267eed6bc7ab0",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 2,
+        "mutation_anchors": 2,
+        "production_files": 1,
+        "multi_location": true,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multiple_fault_sites"
+        ],
+        "category": "coupled_contract_regression",
+        "note": "The affected locations participate in one public contract; fixing one location may leave sibling paths failing."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_substitute_test",
+          "clean_junit": ".auto-fix/expanded-proof/abseil-strings/absl_substitute_placeholder_index/clean-absl_substitute_test.xml",
+          "clean_junit_sha256": "f7df5d9e370bcafdda193ff2441adab990887c7cc3622c778a190571319b206a",
+          "injected_junit": ".auto-fix/expanded-proof/abseil-strings/absl_substitute_placeholder_index/mutated-absl_substitute_test.xml",
+          "injected_junit_sha256": "8614f65976203ae49901666ec4ad4560dc40200352aa6fbff21e7158a6f43e39",
+          "executed_tests": 6,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "SubstituteTest.AbslStringifyWithEnum",
+        "SubstituteTest.Enums",
+        "SubstituteTest.Substitute",
+        "SubstituteTest.SubstituteAndAppend",
+        "SubstituteTest.VectorBoolRef"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 0,
+        "native_crash_observed": 2,
+        "unobserved": 0
+      },
+      "complexity_caveat": "Individual size/render-pass mismatches crash before JUnit; only the combined case has complete upstream assertion evidence. Do not count these individual probes as completed suites."
+    },
+    {
+      "id": "absl_substitute_literal_dollars",
+      "dataset": "abseil_strings",
+      "project": "abseil",
+      "split": "holdout",
+      "family": "template_substitution",
+      "mutation_fingerprint_sha256": "57d2ced89f58a446edded9724612375cdc50000211ad9c70f12cd0777ec985ad",
+      "case_entry_sha256": "80651981f26c683d4c2716ec94c6b29ee6c644d8364ab92d6148bf4799cdcf0d",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 2,
+        "mutation_anchors": 2,
+        "production_files": 1,
+        "multi_location": true,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multiple_fault_sites"
+        ],
+        "category": "coupled_contract_regression",
+        "note": "The affected locations participate in one public contract; fixing one location may leave sibling paths failing."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_substitute_test",
+          "clean_junit": ".auto-fix/expanded-proof/abseil-strings/absl_substitute_literal_dollars/clean-absl_substitute_test.xml",
+          "clean_junit_sha256": "0035e2d611ea83829f3f0b25e463e6b37995da79f001947f206b2ac429f4d82d",
+          "injected_junit": ".auto-fix/expanded-proof/abseil-strings/absl_substitute_literal_dollars/mutated-absl_substitute_test.xml",
+          "injected_junit_sha256": "a76207b9322506b1d2c28b4bc93428277d8ca6f937eb3db9d8b3f550c3873016",
+          "executed_tests": 6,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "SubstituteTest.Substitute"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "absl_base64_alphabet_contract",
+      "dataset": "abseil_strings",
+      "project": "abseil",
+      "split": "development",
+      "family": "base64_codec",
+      "mutation_fingerprint_sha256": "28692732a58ff5684260d33b698ec3ebaf17ba79135baea4cadaec2112439751",
+      "case_entry_sha256": "27f326c0e0a1d65df465c5c7d3aeb9150e15dcddd3380c3c2242a06b309dc8b4",
+      "mutation_hunks": 4,
+      "production_files": 2,
+      "multi_file": true,
+      "declared_complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 4,
+        "mutation_anchors": 4,
+        "production_files": 2,
+        "multi_location": true,
+        "multi_file": true,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multi_file",
+          "multiple_fault_sites"
+        ],
+        "category": "coupled_contract_regression",
+        "note": "The affected locations participate in one public contract; fixing one location may leave sibling paths failing."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_escaping_test",
+          "clean_junit": ".auto-fix/expanded-proof/abseil-strings/absl_base64_alphabet_contract/clean-absl_escaping_test.xml",
+          "clean_junit_sha256": "074ace878a4a4c1c0d095ade8f77a6c1030ff595e9cd19460a3a6bb2e363c1a7",
+          "injected_junit": ".auto-fix/expanded-proof/abseil-strings/absl_base64_alphabet_contract/mutated-absl_escaping_test.xml",
+          "injected_junit_sha256": "846ad5c729e57e08ac91fc4b412aadb10f90c91c60539646e1396f16fdd17d09",
+          "executed_tests": 18,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "Base64.EscapeAndUnescape"
+      ],
+      "hunk_observability": {
+        "total": 4,
+        "native_test_assertion_observed": 4,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "absl_decimal_padding_shared_contract",
+      "dataset": "abseil_strings",
+      "project": "abseil",
+      "split": "holdout",
+      "family": "decimal_formatting",
+      "mutation_fingerprint_sha256": "4d0db1ac987a07876b0bc862e5f18a399bcaef008a1b6daca193da31842c4e9c",
+      "case_entry_sha256": "8f26bdfb0a49002b121e8f18847941fb159554c445dcce90b499e227f431b6c7",
+      "mutation_hunks": 2,
+      "production_files": 2,
+      "multi_file": true,
+      "declared_complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 2,
+        "mutation_anchors": 2,
+        "production_files": 2,
+        "multi_location": true,
+        "multi_file": true,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multi_file",
+          "multiple_fault_sites"
+        ],
+        "category": "coupled_contract_regression",
+        "note": "The affected locations participate in one public contract; fixing one location may leave sibling paths failing."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_str_cat_test",
+          "clean_junit": ".auto-fix/expanded-proof/abseil-strings/absl_decimal_padding_shared_contract/clean-absl_str_cat_test.xml",
+          "clean_junit_sha256": "7e2c32837768cdb04ef190b78910d7d8a3f64fedab20c711fc8c5df17c71aa94",
+          "injected_junit": ".auto-fix/expanded-proof/abseil-strings/absl_decimal_padding_shared_contract/mutated-absl_str_cat_test.xml",
+          "injected_junit_sha256": "d522d3c3278c758c4486912713bb41db18b153bebb7d3b762d9a3e30cabbef4f",
+          "executed_tests": 19,
+          "unchanged_registered_and_executed_test_identities": true
+        },
+        {
+          "target": "absl_substitute_test",
+          "clean_junit": ".auto-fix/expanded-proof/abseil-strings/absl_decimal_padding_shared_contract/clean-absl_substitute_test.xml",
+          "clean_junit_sha256": "99c91c8871750bb1bf95583613456487bf8c6d1d4861b37165593ed3ad6aa9c5",
+          "injected_junit": ".auto-fix/expanded-proof/abseil-strings/absl_decimal_padding_shared_contract/mutated-absl_substitute_test.xml",
+          "injected_junit_sha256": "9fc389220c9f0dfea29069d1a352abf98bd11adc46479cca2e215f761c92111e",
+          "executed_tests": 6,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "Numbers.TestFunctionsMovedOverFromNumbersMain",
+        "SubstituteTest.Substitute"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "duration_negative_unit_rounding",
+      "dataset": "abseil_systems",
+      "project": "abseil",
+      "split": "development",
+      "family": "duration_arithmetic",
+      "mutation_fingerprint_sha256": "53f4a37bed51bf5ad3ed6f022ce911d59bcc4f733fefd9d53328a35599ae0645",
+      "case_entry_sha256": "72e8c538e73af2f887cdc0d51fa739756c7ce75ea7b2167072bbf3a44b1119c2",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "Two related rounding paths lose sign normalization; unchanged floor and ceiling tests must both recover. Small edits, but no recent inverse diff is supplied.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_time_test",
+          "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_time_test.xml",
+          "clean_junit_sha256": "aa46559df6d10f328c3e1984d420bda0694fcfd285c2586efd3e422428f18ea6",
+          "injected_junit": ".auto-fix/expanded-authoring/systems/duration_negative_unit_rounding/injected.xml",
+          "injected_junit_sha256": "52382b242f7b915294512954bce3d1147ec7df65fa5aed7b71f990cdbfd76f2a",
+          "executed_tests": 133,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "Duration.Ceiling",
+        "Duration.Flooring"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "duration_composite_parse_accumulator",
+      "dataset": "abseil_systems",
+      "project": "abseil",
+      "split": "development",
+      "family": "duration_parser",
+      "mutation_fingerprint_sha256": "2c31f7da52117cd25ce48a554963386446a073c4a08d2de843b96089e7ee9c6f",
+      "case_entry_sha256": "bada5ac025939154350d0a524fe25deb68ad8ff4ae7c4b6918560255f1b839ec",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "Integer and fractional parser paths both overwrite accumulated state; repairing one does not restore composite values. This is one accumulator regression at two paths.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_time_test",
+          "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_time_test.xml",
+          "clean_junit_sha256": "aa46559df6d10f328c3e1984d420bda0694fcfd285c2586efd3e422428f18ea6",
+          "injected_junit": ".auto-fix/expanded-authoring/systems/duration_composite_parse_accumulator/injected.xml",
+          "injected_junit_sha256": "ad92ba0570723f39a6fd0e6c1acd67ce225d7962f799c6a36ccc1af6c8c31b76",
+          "executed_tests": 133,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "Duration.FormatParseRoundTrip",
+        "Duration.ParseDuration"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "duration_posix_negative_fraction_rounding",
+      "dataset": "abseil_systems",
+      "project": "abseil",
+      "split": "development",
+      "family": "duration_conversion",
+      "mutation_fingerprint_sha256": "88e52915e82f509df8044ba559ee7a82356ba170a45d315061a1025aa6a79bed",
+      "case_entry_sha256": "75aa0d358f8fae3b14347706144ba0ed61ca763ce02283838316db376fb645d5",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "Two different precision adapters use the wrong directional rounding for negative fractional durations. Native absolute-time adapters share the file family but have different floor semantics.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_time_test",
+          "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_time_test.xml",
+          "clean_junit_sha256": "aa46559df6d10f328c3e1984d420bda0694fcfd285c2586efd3e422428f18ea6",
+          "injected_junit": ".auto-fix/expanded-authoring/systems/duration_posix_negative_fraction_rounding/injected.xml",
+          "injected_junit_sha256": "c55886584b3c0de2b5103bf3260d151df92740cabcbe29baaa9224fd22132683",
+          "executed_tests": 133,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "Duration.TruncConversions"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "time_negative_unix_precision_floor",
+      "dataset": "abseil_systems",
+      "project": "abseil",
+      "split": "development",
+      "family": "unix_epoch_conversion",
+      "mutation_fingerprint_sha256": "e7dbcf2c83b453d9925f9de53f02548c084d946f070bd8597972143c0e036375",
+      "case_entry_sha256": "25665a8abadca4890fd9cc87d192dfdddae7526ed2e1930e134f35f28d696697",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "The shared subsecond converter and separate seconds converter both switch from floor to truncation. This requires finding two conversion paths instead of changing a fixture constant.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_time_test",
+          "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_time_test.xml",
+          "clean_junit_sha256": "aa46559df6d10f328c3e1984d420bda0694fcfd285c2586efd3e422428f18ea6",
+          "injected_junit": ".auto-fix/expanded-authoring/systems/time_negative_unix_precision_floor/injected.xml",
+          "injected_junit_sha256": "e68d3233b909ba1c669123c7de4fbb4037655bd62fb444245c67dd6162ed9ad2",
+          "executed_tests": 133,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "Time.FloorConversion"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "timezone_civil_ambiguity_pre_post",
+      "dataset": "abseil_systems",
+      "project": "abseil",
+      "split": "holdout",
+      "family": "timezone_transition",
+      "mutation_fingerprint_sha256": "cb819ae4909f18fe939cf71be4a39d7b157ff2dbeb36ddc460b46bae2532d486",
+      "case_entry_sha256": "29551ebda0bad8624dfbb962030dd966af684f239f6a79a5f9c38c7c4b03a928",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "An adapter swaps two meanings in a transition-state record. Diagnosis crosses public civil-time results and the CCTZ lookup representation; two assignments require repair.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_time_test",
+          "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_time_test.xml",
+          "clean_junit_sha256": "aa46559df6d10f328c3e1984d420bda0694fcfd285c2586efd3e422428f18ea6",
+          "injected_junit": ".auto-fix/expanded-authoring/systems/timezone_civil_ambiguity_pre_post/injected.xml",
+          "injected_junit_sha256": "0a6b495700842e1674b29a442fb01dab05206da6475e41e31911d713bb35ea5a",
+          "executed_tests": 133,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "Time.FromTM",
+        "Time.TMRoundTrip",
+        "Time.TimeZoneAt"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "time_format_fraction_interchange_scale",
+      "dataset": "abseil_systems",
+      "project": "abseil",
+      "split": "holdout",
+      "family": "time_format_interchange",
+      "mutation_fingerprint_sha256": "74dad5e8b2a4534ee23d393c82f6f6ad3b37f574ab127f26f463b37672c81bf7",
+      "case_entry_sha256": "3be1d4ee68e128c5be8f78e1ab115c4c8543de990a55e5b72f6dfcba88ff7af2",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "Symmetric interchange helpers both lose the quarter-nanosecond scale. A round trip can hide reciprocal errors, while unchanged independent formatter/parser tests expose both.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_time_test",
+          "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_time_test.xml",
+          "clean_junit_sha256": "aa46559df6d10f328c3e1984d420bda0694fcfd285c2586efd3e422428f18ea6",
+          "injected_junit": ".auto-fix/expanded-authoring/systems/time_format_fraction_interchange_scale/injected.xml",
+          "injected_junit_sha256": "077f9d9b13b05c794fada58752de1e3f5103d9cf43f28acc1b7e87393a609ceb",
+          "executed_tests": 133,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "FormatTime.Basics",
+        "FormatTime.ExtendedSeconds",
+        "ParseTime.ExtendedSeconds"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "time_format_timezone_propagation",
+      "dataset": "abseil_systems",
+      "project": "abseil",
+      "split": "holdout",
+      "family": "time_format_interchange",
+      "mutation_fingerprint_sha256": "e796bd2a3ab75704adef4b42992387de470cf8c6f0f32ae2dab4be0619475817",
+      "case_entry_sha256": "687df77520145bef8339a8d054e23b6438b934c755bb323692db961a2af949f9",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "Two opposite directions of the public API discard the caller-supplied zone. The case requires correcting both propagation points and preserving explicit input offsets.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_time_test",
+          "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_time_test.xml",
+          "clean_junit_sha256": "aa46559df6d10f328c3e1984d420bda0694fcfd285c2586efd3e422428f18ea6",
+          "injected_junit": ".auto-fix/expanded-authoring/systems/time_format_timezone_propagation/injected.xml",
+          "injected_junit_sha256": "fc6c196d6433647575a06de40b47050cc14ba4dc23b7d5b6a508478bfc8bf70d",
+          "executed_tests": 133,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "ParseTime.WithTimeZone",
+        "Time.ConversionSaturation",
+        "Time.FromTM",
+        "Time.TimeZoneAt"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "status_update_first_failure_contract",
+      "dataset": "abseil_systems",
+      "project": "abseil",
+      "split": "development",
+      "family": "status_state_contract",
+      "mutation_fingerprint_sha256": "a3c6ef6b47b12e20b047d2f15e35a437aecddae255c1ecdcd70db543152ec0fb",
+      "case_entry_sha256": "ea57c7e48c6146030ac1df2a10680c4769943fd1aa533ec476d1194161a48e3b",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "The copy overload accepts a newer failure and the move overload accepts an empty update based on source state rather than receiver state. This is a compound overload contract regression; both first-error retention and no-op OK updates are independently checked.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_status_test",
+          "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_status_test.xml",
+          "clean_junit_sha256": "1bf576f85cb2e3dd3128ab97eed00fefd13856ae103a40f8251dcd538f3c8e4c",
+          "injected_junit": ".auto-fix/expanded-authoring/systems/status_update_first_failure_contract/injected.xml",
+          "injected_junit_sha256": "f63fa2e97209d24f4d30f7b53c3b6f3fb7261aa2ea5da348911838f9f52793ca",
+          "executed_tests": 28,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "Status.Update"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "status_payload_clone_write_retention",
+      "dataset": "abseil_systems",
+      "project": "abseil",
+      "split": "development",
+      "family": "status_copy_on_write",
+      "mutation_fingerprint_sha256": "f6107b955abee5b6e96b665f2edb9eab3e2e224fe3dace8f081b8d2e149d8161",
+      "case_entry_sha256": "0b9887e47af56377c82ba5a2e83e42dd11a96a8fdaf5f1bcf430871449f97e6a",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "A compound payload mutation regression loses a singleton payload during copy-on-write cloning and bypasses replacement of an existing key. Both metadata retention and overwrite contracts are independently tested.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_status_test",
+          "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_status_test.xml",
+          "clean_junit_sha256": "1bf576f85cb2e3dd3128ab97eed00fefd13856ae103a40f8251dcd538f3c8e4c",
+          "injected_junit": ".auto-fix/expanded-authoring/systems/status_payload_clone_write_retention/injected.xml",
+          "injected_junit_sha256": "34cbf7945b930539f56237c42b206773a06f7f97d59a146a761b79c026f48523",
+          "executed_tests": 28,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "Status.CopyOnWriteForErasePayload",
+        "Status.TestGetSetPayload"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "status_lookup_conflict_dispatch",
+      "dataset": "abseil_systems",
+      "project": "abseil",
+      "split": "development",
+      "family": "status_error_dispatch",
+      "mutation_fingerprint_sha256": "be2a75068603b5328a89c1e88e48e7d76a4b01dfdb90ffdfdbef71d08101fa9f",
+      "case_entry_sha256": "f692995e17d89948230edd9dbce085b0c3c66700a102363252f02ccfc6df5e30",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "low_to_moderate",
+        "kind": "paired_factory_dispatch",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "Two related factory-dispatch entries are swapped. The edit surface is small and the case is explicitly easier than multi-file state or parsing regressions; indirect context still requires finding the factories.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_status_test",
+          "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_status_test.xml",
+          "clean_junit_sha256": "1bf576f85cb2e3dd3128ab97eed00fefd13856ae103a40f8251dcd538f3c8e4c",
+          "injected_junit": ".auto-fix/expanded-authoring/systems/status_lookup_conflict_dispatch/injected.xml",
+          "injected_junit_sha256": "2a4bc1049589e0c0498b3e12cd2129e961b26a5b3ced400a3ce1796940d6e74f",
+          "executed_tests": 28,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "Status.CreateAndClassify"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "uint128_floating_word_layout",
+      "dataset": "abseil_systems",
+      "project": "abseil",
+      "split": "holdout",
+      "family": "wide_integer_conversion",
+      "mutation_fingerprint_sha256": "14466fc13da0eb6b19620799f26166bc4195cdd642aadd68e7ccab129feb1ea5",
+      "case_entry_sha256": "b690bafe3669c2070355234b619831681ab0d28f84963080e0b108d6ba22dafe",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "Both floating conversion branches put the high/low words in the wrong positions. The change is memory safe and portable across intrinsic and non-intrinsic uint128 implementations.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_int128_test",
+          "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_int128_test.xml",
+          "clean_junit_sha256": "4032d459dec5715768e10aa63f75ab4914f5fb7513577723d0646cd652474a04",
+          "injected_junit": ".auto-fix/expanded-authoring/systems/uint128_floating_word_layout/injected.xml",
+          "injected_junit_sha256": "d98c47bbf0d705bd20bcb80ffa9bc4fb0e72a1d9d572c171eb0b2a9f13bc3033",
+          "executed_tests": 92,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "Uint128.ConversionTests"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "int128_stream_internal_padding",
+      "dataset": "abseil_systems",
+      "project": "abseil",
+      "split": "holdout",
+      "family": "wide_integer_formatting",
+      "mutation_fingerprint_sha256": "f88d9793ba918ac30ebfeb6f7195ce60d42940ae32acad351b621399eb38daca",
+      "case_entry_sha256": "01115a8f8fc1596ddbfdcd124922db66e8381698f1bfbd959c1caa39b3f0a74f",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "Unsigned prefixed and signed decimal formatting take separate internal-alignment paths. Two overloads must respect different prefix lengths; this is dispatch/layout logic rather than a numerical constant defect.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_int128_test",
+          "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_int128_test.xml",
+          "clean_junit_sha256": "4032d459dec5715768e10aa63f75ab4914f5fb7513577723d0646cd652474a04",
+          "injected_junit": ".auto-fix/expanded-authoring/systems/int128_stream_internal_padding/injected.xml",
+          "injected_junit_sha256": "aa90dfb9bd90f69eb501e447d5ff2a8e644d43ad92d10e958ca9eecf5e97a5d6",
+          "executed_tests": 92,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "Int128.OStreamFormatTest",
+        "Uint128.OStreamFormatTest"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "uint128_multichunk_zero_padding",
+      "dataset": "abseil_systems",
+      "project": "abseil",
+      "split": "holdout",
+      "family": "wide_integer_formatting",
+      "mutation_fingerprint_sha256": "415999f58b7e6af0fa6a54ac25f54d66eeda986745b62c0be56bc0000877c850",
+      "case_entry_sha256": "b4e6d19ad65237a9e47864ce87006643c63383e50e4ff522f8353798ab97cc2a",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "Both two-chunk and three-chunk serialization lose numeric zero-padding. Changes are small and remain classified moderate; locating the shared helper and both branches is required.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_int128_test",
+          "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_int128_test.xml",
+          "clean_junit_sha256": "4032d459dec5715768e10aa63f75ab4914f5fb7513577723d0646cd652474a04",
+          "injected_junit": ".auto-fix/expanded-authoring/systems/uint128_multichunk_zero_padding/injected.xml",
+          "injected_junit_sha256": "4ce6c305b551ab5a607120015898fc9653c7cdc52e807d7be582fcf26a3bf0b3",
+          "executed_tests": 92,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "Int128.OStreamValueTest",
+        "Uint128.OStreamValueTest"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "status_serialization_mode_boundary",
+      "dataset": "abseil_systems",
+      "project": "abseil",
+      "split": "holdout",
+      "family": "status_serialization_contract",
+      "mutation_fingerprint_sha256": "3199a2bbb085293e148a936d0cc8ca4f8ac652552f16fa6d7287934ef1c77240",
+      "case_entry_sha256": "f09cbe4c28e1bce4779dc8afcd828222b1c156aeffbb8b596daa80cd845909f3",
+      "mutation_hunks": 2,
+      "production_files": 2,
+      "multi_file": true,
+      "declared_complexity": {
+        "level": "moderate_to_hard",
+        "kind": "coupled_multi_file_api_contract",
+        "hunks": 2,
+        "files": 2,
+        "rationale": "A coupled two-file API/renderer mode contract: forwarding the wrong mode and testing a bitmask as an enum value partially mask each other. Fixing either layer alone leaves unchanged mode assertions failing.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_status_test",
+          "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_status_test.xml",
+          "clean_junit_sha256": "1bf576f85cb2e3dd3128ab97eed00fefd13856ae103a40f8251dcd538f3c8e4c",
+          "injected_junit": ".auto-fix/expanded-authoring/systems/status_serialization_mode_boundary/injected.xml",
+          "injected_junit_sha256": "06ffb887d71e0c4ab1cec08d10b7da3b3f07bd512e058350802781759ca6d4f0",
+          "executed_tests": 28,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "Status.AbslStringify",
+        "Status.OstreamOperator",
+        "Status.ToString",
+        "Status.ToStringMode"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "status_copy_on_write_mutation_boundary",
+      "dataset": "abseil_systems",
+      "project": "abseil",
+      "split": "development",
+      "family": "status_copy_on_write",
+      "mutation_fingerprint_sha256": "c512696f0cb29fbb6d9ac695c73baad83d7d11961b89d1ec2e1893cb46213ef8",
+      "case_entry_sha256": "2b6b062488ebf618b20d5deb7e3e37a2085c6f144936aabb4d7c6ef6582fcea0",
+      "mutation_hunks": 2,
+      "production_files": 2,
+      "multi_file": true,
+      "declared_complexity": {
+        "level": "moderate_to_hard",
+        "kind": "coupled_multi_file_state_protocol",
+        "hunks": 2,
+        "files": 2,
+        "rationale": "A coordinated mutation protocol regression across the inline API and backing implementation: writes bypass detachment while other mutation paths incorrectly treat shared storage as exclusive. References remain valid; unchanged copy isolation assertions expose aliasing.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_status_test",
+          "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_status_test.xml",
+          "clean_junit_sha256": "1bf576f85cb2e3dd3128ab97eed00fefd13856ae103a40f8251dcd538f3c8e4c",
+          "injected_junit": ".auto-fix/expanded-authoring/systems/status_copy_on_write_mutation_boundary/injected.xml",
+          "injected_junit_sha256": "319ba6603acbbe9d2526a69bee4fdcd975c35f611b5f08da5308dd12687bc549",
+          "executed_tests": 28,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "Status.CopyAssignmentIsNotRef",
+        "Status.CopyOnWriteForErasePayload",
+        "Status.Equality"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "cctz_numeric_offset_validation_sign",
+      "dataset": "abseil_systems",
+      "project": "abseil",
+      "split": "holdout",
+      "family": "deep_offset_parser",
+      "mutation_fingerprint_sha256": "2f7a237024aa3c71f76a1559dd11991d5307c8801de68162e03908ea4793c1bf",
+      "case_entry_sha256": "de16d51994ece7b06d9f6486ca5657dbbf4dd6b601ad7a7531367d6565a0dbed",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": {
+        "level": "moderate",
+        "kind": "multi_hunk_semantic_regression",
+        "hunks": 2,
+        "files": 1,
+        "rationale": "A deep-parser validation/sign regression breaks the boundary between a generic bounded-width integer parser and the exact-width offset grammar. Unchanged tests independently exercise malformed offsets and signed valid instants; recent changes give no inverse diff.",
+        "not_claimed": "Not a historical incident, independent repository, or a proof of difficult repair for every model."
+      },
+      "native_full_suite_proof": [
+        {
+          "target": "absl_time_test",
+          "clean_junit": ".auto-fix/expanded-authoring/systems/clean-absl_time_test.xml",
+          "clean_junit_sha256": "aa46559df6d10f328c3e1984d420bda0694fcfd285c2586efd3e422428f18ea6",
+          "injected_junit": ".auto-fix/expanded-authoring/systems/cctz_numeric_offset_validation_sign/injected.xml",
+          "injected_junit_sha256": "d5aba6fe179dba41c5ef258e5265e36282a9d321560521053088f0584c2fd30d",
+          "executed_tests": 133,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "FormatParse.RoundTrip",
+        "ParseTime.Basics",
+        "ParseTime.ExtendedOffsetErrors",
+        "ParseTime.WithTimeZone"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "fmt_utf8_validation_boundaries",
+      "dataset": "fmt",
+      "project": "fmt",
+      "split": "development",
+      "family": "utf8_validation",
+      "mutation_fingerprint_sha256": "9dd2ca9be24275abada963e844dc8796b4307d6c2b7aae58b06f1738f9c12695",
+      "case_entry_sha256": "64021e6b530c78be10edcfe56a54a8869702b46884f6fc50f99b3e3f17ef59c6",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": "indirect-multi-hunk",
+      "native_full_suite_proof": [
+        {
+          "target": "format-impl-test",
+          "clean_junit": ".auto-fix/expanded/proof/baseline/format-impl-test.xml",
+          "clean_junit_sha256": "1a6ba57dabec21a38e2eec888955002bf7e1d220d8e883051c56813a5601e155",
+          "injected_junit": ".auto-fix/expanded/proof/fmt_utf8_validation_boundaries/format-impl-test.xml",
+          "injected_junit_sha256": "e5a11919eca16f391ea639085d27abef3938e9164396dd2b911eb6120b2f59de",
+          "executed_tests": 26,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "format_impl_test.utf8_decode_out_of_range",
+        "format_impl_test.utf8_decode_surrogate_halves"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "fmt_debug_control_escapes",
+      "dataset": "fmt",
+      "project": "fmt",
+      "split": "development",
+      "family": "debug_escaping",
+      "mutation_fingerprint_sha256": "cd82ff2a6bc86622724631f24873761e96ec4905384fcdfa7c35570858f9de64",
+      "case_entry_sha256": "e83799cf605a9a9901d53e5e8c69d2e277ebc7c8681d18c3937f58ef62eab2bb",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": "indirect-multi-hunk",
+      "native_full_suite_proof": [
+        {
+          "target": "format-test",
+          "clean_junit": ".auto-fix/expanded/proof/baseline/format-test.xml",
+          "clean_junit_sha256": "886e317f1c419c9118beb9800e845c3c394c8e0519c68732fd5987559ef8e5ba",
+          "injected_junit": ".auto-fix/expanded/proof/fmt_debug_control_escapes/format-test.xml",
+          "injected_junit_sha256": "e7acc99b3227287822793f015ae8f6539dd653a68824d8ed971a7ca15fe378e9",
+          "executed_tests": 137,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "format_test.debug_presentation",
+        "format_test.format_char",
+        "format_test.format_string",
+        "format_test.format_string_view"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "fmt_printf_dynamic_field_sign",
+      "dataset": "fmt",
+      "project": "fmt",
+      "split": "development",
+      "family": "printf_dynamic_fields",
+      "mutation_fingerprint_sha256": "9309da621ffca12eba499019b639fbee3f001d066128bd9114d135b5b2e37596",
+      "case_entry_sha256": "88c1d313fbf63d5800df76ea4fbb8dcd6b3f66cf935f975485255b98f3b0137e",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": "indirect-multi-hunk",
+      "native_full_suite_proof": [
+        {
+          "target": "printf-test",
+          "clean_junit": ".auto-fix/expanded/proof/baseline/printf-test.xml",
+          "clean_junit_sha256": "c7c1653ae04dec31d5d3d99bd8426033bfd04541f36abc3bb2f7dead7df796d9",
+          "injected_junit": ".auto-fix/expanded/proof/fmt_printf_dynamic_field_sign/printf-test.xml",
+          "injected_junit_sha256": "d31c032af6ccf33f1dd8d3ab5c2eb3f34cc3ab2d5a38d76e8ad693296b94325f",
+          "executed_tests": 42,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "printf_test.dynamic_width",
+        "printf_test.fixed_large_exponent",
+        "printf_test.positional_width"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "fmt_integer_precision_padding",
+      "dataset": "fmt",
+      "project": "fmt",
+      "split": "development",
+      "family": "integer_padding",
+      "mutation_fingerprint_sha256": "d1e156846e4a88e019b24c4d9edb384ec96146941be4230f00719ccaed048197",
+      "case_entry_sha256": "e10727966386b05a73142b437ab858d056fd2435a77b3d2dbe4c79d260e53e10",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": "indirect-multi-hunk",
+      "native_full_suite_proof": [
+        {
+          "target": "printf-test",
+          "clean_junit": ".auto-fix/expanded/proof/baseline/printf-test.xml",
+          "clean_junit_sha256": "c7c1653ae04dec31d5d3d99bd8426033bfd04541f36abc3bb2f7dead7df796d9",
+          "injected_junit": ".auto-fix/expanded/proof/fmt_integer_precision_padding/printf-test.xml",
+          "injected_junit_sha256": "4ac39f585935ec17bae5713e44f53f7db73df9595d783b8d8d23422c60f70549",
+          "executed_tests": 42,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "printf_test.dynamic_precision",
+        "printf_test.int_precision",
+        "printf_test.positional_precision",
+        "printf_test.positional_width_and_precision",
+        "printf_test.zero_flag"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "fmt_pre_epoch_fraction_normalization",
+      "dataset": "fmt",
+      "project": "fmt",
+      "split": "development",
+      "family": "chrono_subseconds",
+      "mutation_fingerprint_sha256": "325304c77dfa93dffb8d6c309881cbb2d1caa6f46820631a80f530110579bbe7",
+      "case_entry_sha256": "adc84b17700bf51b3ab5ef31812071cc987e4a9b05e940e528f1ac95167c44da",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": "indirect-multi-hunk",
+      "native_full_suite_proof": [
+        {
+          "target": "chrono-test",
+          "clean_junit": ".auto-fix/expanded/proof/baseline/chrono-test.xml",
+          "clean_junit_sha256": "503cb93f61baf7bbf52c540512ac8ccd87ff9810188021c903d24ae41029a801",
+          "injected_junit": ".auto-fix/expanded/proof/fmt_pre_epoch_fraction_normalization/final/chrono-test.xml",
+          "injected_junit_sha256": "0360a2b8a046fd50088d878f0c2115c776965f55891e1ef1d08888091cf61ae0",
+          "executed_tests": 35,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "chrono_test.timestamp_ratios",
+        "chrono_test.timestamp_sub_seconds",
+        "chrono_test.tp_align"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "fmt_diagnostic_fallback_capacity",
+      "dataset": "fmt",
+      "project": "fmt",
+      "split": "development",
+      "family": "diagnostic_fallback",
+      "mutation_fingerprint_sha256": "fe59ee5041fc918bfeb9781707fa0004bed1f48ffb67fd7c7f9ca566ee8269ad",
+      "case_entry_sha256": "37d354a2bfa5de652b7fe4ee579327f2ee42fa7141c965ceac8a33b3db28a444",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": "indirect-multi-hunk",
+      "native_full_suite_proof": [
+        {
+          "target": "format-impl-test",
+          "clean_junit": ".auto-fix/expanded/proof/baseline/format-impl-test.xml",
+          "clean_junit_sha256": "1a6ba57dabec21a38e2eec888955002bf7e1d220d8e883051c56813a5601e155",
+          "injected_junit": ".auto-fix/expanded/proof/fmt_diagnostic_fallback_capacity/format-impl-test.xml",
+          "injected_junit_sha256": "0e20150908e4950297d333bf2813921eef2b54e9806fec80f8a7b8cd975c8c90",
+          "executed_tests": 26,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "format_impl_test.format_error_code"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "fmt_east_asian_emoji_display_width",
+      "dataset": "fmt",
+      "project": "fmt",
+      "split": "holdout",
+      "family": "unicode_display_width",
+      "mutation_fingerprint_sha256": "25d5817e695f0724c81e309aeedae41329fc805733ca34e3b2a6e868771fd71b",
+      "case_entry_sha256": "80409b2fbb229dd2495ccd24d06d5bc21777c1fc4d53dd2a7e170b015095daec",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": "indirect-multi-hunk",
+      "native_full_suite_proof": [
+        {
+          "target": "format-test",
+          "clean_junit": ".auto-fix/expanded/proof/baseline/format-test.xml",
+          "clean_junit_sha256": "886e317f1c419c9118beb9800e845c3c394c8e0519c68732fd5987559ef8e5ba",
+          "injected_junit": ".auto-fix/expanded/proof/fmt_east_asian_emoji_display_width/format-test.xml",
+          "injected_junit_sha256": "019784a0ea778a661ac368d8a49c0bcd3187d60ce1db691d2932e64d548ea9be",
+          "executed_tests": 137,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "format_test.debug_presentation",
+        "format_test.width"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "fmt_binary_prefix_casing",
+      "dataset": "fmt",
+      "project": "fmt",
+      "split": "holdout",
+      "family": "numeric_prefixes",
+      "mutation_fingerprint_sha256": "8a45f4dcdd96cac7328d28104a1b96c6705699e0b5622b9ac21a604f6c8eb920",
+      "case_entry_sha256": "427ed8d18b5fabdb88ae5d41eac75ccd9e6fc5b857268a22ffbff38ab6bb760e",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": "indirect-multi-hunk",
+      "native_full_suite_proof": [
+        {
+          "target": "format-test",
+          "clean_junit": ".auto-fix/expanded/proof/baseline/format-test.xml",
+          "clean_junit_sha256": "886e317f1c419c9118beb9800e845c3c394c8e0519c68732fd5987559ef8e5ba",
+          "injected_junit": ".auto-fix/expanded/proof/fmt_binary_prefix_casing/format-test.xml",
+          "injected_junit_sha256": "36414f9060b7c3f79b0e29eb2d770ecab5c184c65bb8fd4c07427b901f0f76a6",
+          "executed_tests": 137,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "format_test.format_locale",
+        "format_test.hash_flag"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "fmt_printf_positional_fields",
+      "dataset": "fmt",
+      "project": "fmt",
+      "split": "holdout",
+      "family": "positional_arguments",
+      "mutation_fingerprint_sha256": "44e7a0af67084ea2987c6bb4120eb9babcdcdb41452a726f8e234b98e063c751",
+      "case_entry_sha256": "594bda8503a41916241d3db5f7e1e46cfe8e2186e05b4fe323a2de02bd1e3d96",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": "indirect-multi-hunk",
+      "native_full_suite_proof": [
+        {
+          "target": "printf-test",
+          "clean_junit": ".auto-fix/expanded/proof/baseline/printf-test.xml",
+          "clean_junit_sha256": "c7c1653ae04dec31d5d3d99bd8426033bfd04541f36abc3bb2f7dead7df796d9",
+          "injected_junit": ".auto-fix/expanded/proof/fmt_printf_positional_fields/printf-test.xml",
+          "injected_junit_sha256": "24e681e5adc47b064fdad3d13d663c9f20ef8d6ae81239e4ba492203bf69925a",
+          "executed_tests": 42,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "printf_test.positional_precision",
+        "printf_test.positional_width",
+        "printf_test.positional_width_and_precision",
+        "printf_test.zero_positional_width_precision"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "fmt_nested_range_delimiters",
+      "dataset": "fmt",
+      "project": "fmt",
+      "split": "holdout",
+      "family": "range_delimiters",
+      "mutation_fingerprint_sha256": "72e089839837db4df4041aeb9e776ea52af4fa28c91bf70aecce98c846277e79",
+      "case_entry_sha256": "92c625e848eb3aa63feade2de61535678587a9a8ad36e02efe82c722c079d6eb",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": "indirect-multi-hunk",
+      "native_full_suite_proof": [
+        {
+          "target": "ranges-test",
+          "clean_junit": ".auto-fix/expanded/proof/baseline/ranges-test.xml",
+          "clean_junit_sha256": "6c3cc672514bc644f2d8f89f74e6d9a2f65de49c14a751d3e0b9822f89e01637",
+          "injected_junit": ".auto-fix/expanded/proof/fmt_nested_range_delimiters/ranges-test.xml",
+          "injected_junit_sha256": "e6e4379db4c192b70c0b8d94074ddfb2bf43bfe0cbf4b20a35b1e9f1025b6bef",
+          "executed_tests": 40,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "ranges_test.format_map",
+        "ranges_test.format_map_custom_pair",
+        "ranges_test.format_pair",
+        "ranges_test.format_tuple"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "fmt_utf16_storage_and_surrogates",
+      "dataset": "fmt",
+      "project": "fmt",
+      "split": "holdout",
+      "family": "utf16_transcoding",
+      "mutation_fingerprint_sha256": "ee12c0a523bcb22178a0820b57114786049fb724807cc7148ee921e8f50a0a4b",
+      "case_entry_sha256": "19d7438f7c3b572a252fd40a8ab27bf65005ab8afa8a91d1d8ee677f5e7f09cf",
+      "mutation_hunks": 2,
+      "production_files": 2,
+      "multi_file": true,
+      "declared_complexity": "indirect-multi-hunk",
+      "native_full_suite_proof": [
+        {
+          "target": "format-test",
+          "clean_junit": ".auto-fix/expanded/proof/baseline/format-test.xml",
+          "clean_junit_sha256": "886e317f1c419c9118beb9800e845c3c394c8e0519c68732fd5987559ef8e5ba",
+          "injected_junit": ".auto-fix/expanded/proof/fmt_utf16_storage_and_surrogates/format-test.xml",
+          "injected_junit_sha256": "cd2d92b90c34c5e42269a26a5f575fd43090dda22cb3ad19b462e67d169df9c2",
+          "executed_tests": 137,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "util_test.utf8_to_utf16",
+        "util_test.utf8_to_utf16_empty_string"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    },
+    {
+      "id": "fmt_decimal_halfway_rounding",
+      "dataset": "fmt",
+      "project": "fmt",
+      "split": "holdout",
+      "family": "decimal_rounding",
+      "mutation_fingerprint_sha256": "28468fe3b425b93dc6ef8bc0113adadcd165900f4d2915ab73bb077742845dda",
+      "case_entry_sha256": "fb8e3ce8c362b69a0c5de68a7c2b3ab38ff6798aeb6c04e7fc9fb48459dd715c",
+      "mutation_hunks": 2,
+      "production_files": 1,
+      "multi_file": false,
+      "declared_complexity": "indirect-multi-hunk",
+      "native_full_suite_proof": [
+        {
+          "target": "format-test",
+          "clean_junit": ".auto-fix/expanded/proof/baseline/format-test.xml",
+          "clean_junit_sha256": "886e317f1c419c9118beb9800e845c3c394c8e0519c68732fd5987559ef8e5ba",
+          "injected_junit": ".auto-fix/expanded/proof/fmt_decimal_halfway_rounding/final/format-test.xml",
+          "injected_junit_sha256": "e3ede287d575e83859f57b284c8f26f7aa9af4f1a9dc715f5c2805acfe6d40a5",
+          "executed_tests": 137,
+          "unchanged_registered_and_executed_test_identities": true
+        }
+      ],
+      "native_failed_tests": [
+        "format_test.hash_flag",
+        "format_test.precision_rounding"
+      ],
+      "hunk_observability": {
+        "total": 2,
+        "native_test_assertion_observed": 2,
+        "native_crash_observed": 0,
+        "unobserved": 0
+      }
+    }
+  ],
+  "totals": {
+    "unique_cases": 45,
+    "unique_projects": 2,
+    "development_cases": 24,
+    "holdout_cases": 21,
+    "multi_file_cases": 8,
+    "single_location_cases": 5,
+    "multiple_mutation_location_cases": 40,
+    "unique_selected_native_test_identities": 680,
+    "test_instances_per_full_case_set": 2835,
+    "hunk_observability": {
+      "total": 90,
+      "native_test_assertion_observed": 88,
+      "native_crash_observed": 2,
+      "unobserved": 0
+    }
+  },
+  "audit": {
+    "all_case_injections_compile_and_fail_unchanged_full_native_suites": true,
+    "clean_baselines_and_exact_failure_identity_sets_independently_read": true,
+    "case_ids_and_project_mutation_fingerprints_unique": true,
+    "all_mutation_anchors_unique_in_pinned_original_sources": true,
+    "all_recent_change_files_are_unrelated_production_files": true,
+    "source_tests_and_build_files_not_in_any_mutation": true,
+    "all_families_assigned_to_one_split": true,
+    "holdout_model_outcomes_read": false,
+    "model_outcomes_used": false,
+    "repair_model_calls": 0,
+    "fmt_hunk_audit": {
+      "path": "evaluation/expanded/hunk-audit-fmt.json",
+      "sha256": "0dd81f9555a3423b34a69b58017311e38a7aa52721424fb35f359e21622f9c48"
+    },
+    "systems_hunk_evidence": ".auto-fix/expanded-authoring/systems/individual-hunks.json",
+    "strings_hunk_audit": {
+      "path": "evaluation/expanded/hunk-audit-strings.json",
+      "sha256": "ce7f661db988cbd00f5e483ffd8664482f96a6b2b2cb9bb934a7ab54fe320476"
+    },
+    "coverage_only_correction": {
+      "retained_case_ids_and_family_splits": true,
+      "prototype_unobserved_hunks_removed": 6,
+      "based_on_native_hunk_observability_only": true
+    },
+    "limitations": [
+      "Synthetic regressions in two upstream projects; not historical incidents or general repair accuracy.",
+      "Per-hunk probes establish selected-test observability, not that every accepted patch must match the inverse mutation.",
+      "No Windows live-model/native evidence is asserted by this macOS fixture-authoring registry."
+    ]
+  }
+}

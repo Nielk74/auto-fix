@@ -1,0 +1,2336 @@
+{
+  "schema_version": 1,
+  "dataset_version": 2,
+  "prototype_manifest": "evaluation/expanded/prototypes/v1/abseil_strings.json",
+  "prototype_sha256": "0060d1181bf00fd6653319b94d603fbc985082455920f01131bc3e4ce5306902",
+  "active_manifest": "evaluation/expanded/abseil_strings.json",
+  "active_sha256": "cb92bcda96467037072b534e3d8c57df66bc7197ccd5b4b9688fe85ba1209d50",
+  "coverage_decision": "Remove six individually unobserved mutations; preserve all seventeen case IDs and preassigned family partitions. Two placeholder-pass mutations individually crash and remain a genuinely coupled case whose combined injection emits ordinary assertion failures.",
+  "holdout_model_outcomes_inspected": false,
+  "rejected_mutations": [
+    {
+      "case": "absl_escape_hex_continuation",
+      "original_hunk": 2,
+      "mutation": {
+        "path": "absl/strings/escaping.cc",
+        "before": "    last_hex_escape = is_hex_escape;",
+        "after": "    last_hex_escape = last_hex_escape || is_hex_escape;"
+      },
+      "reason": "Mutation compiled but the complete existing upstream suite passed with this mutation alone. It cannot support an observed-fault or difficulty claim.",
+      "proof": ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_escape_hex_continuation/hunk-2/proof.json"
+    },
+    {
+      "case": "absl_base64_optional_padding_whitespace",
+      "original_hunk": 2,
+      "mutation": {
+        "path": "absl/strings/escaping.cc",
+        "before": "        if (absl::ascii_isspace(ch)) {\n          continue;",
+        "after": "        if (absl::ascii_isspace(ch)) {\n          return false;"
+      },
+      "reason": "Mutation compiled but the complete existing upstream suite passed with this mutation alone. It cannot support an observed-fault or difficulty claim.",
+      "proof": ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_optional_padding_whitespace/hunk-2/proof.json"
+    },
+    {
+      "case": "absl_integer_partial_results",
+      "original_hunk": 2,
+      "mutation": {
+        "path": "absl/strings/numbers.cc",
+        "before": "    if (digit >= base) {\n      *value_p = value;",
+        "after": "    if (digit >= base) {\n      *value_p = 0;"
+      },
+      "reason": "Mutation compiled but the complete existing upstream suite passed with this mutation alone. It cannot support an observed-fault or difficulty claim.",
+      "proof": ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_partial_results/hunk-2/proof.json"
+    },
+    {
+      "case": "absl_split_literal_and_chunk_boundaries",
+      "original_hunk": 2,
+      "mutation": {
+        "path": "absl/strings/str_split.cc",
+        "before": "  if (substr.length() <= static_cast<size_t>(length_))",
+        "after": "  if (substr.length() < static_cast<size_t>(length_))"
+      },
+      "reason": "Mutation compiled but the complete existing upstream suite passed with this mutation alone. It cannot support an observed-fault or difficulty claim.",
+      "proof": ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_split_literal_and_chunk_boundaries/hunk-2/proof.json"
+    },
+    {
+      "case": "absl_float_signed_special_values",
+      "original_hunk": 2,
+      "mutation": {
+        "path": "absl/strings/charconv.cc",
+        "before": "    *value = negative ? -std::numeric_limits<FloatType>::infinity()\n                      : std::numeric_limits<FloatType>::infinity();",
+        "after": "    *value = std::numeric_limits<FloatType>::infinity();"
+      },
+      "reason": "Mutation compiled but the complete existing upstream suite passed with this mutation alone. It cannot support an observed-fault or difficulty claim.",
+      "proof": ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_signed_special_values/hunk-2/proof.json"
+    },
+    {
+      "case": "absl_float_signed_special_values",
+      "original_hunk": 3,
+      "mutation": {
+        "path": "absl/strings/charconv.cc",
+        "before": "  if (input.mantissa == 0) {\n    *value = negative ? -0.0f : 0.0f;",
+        "after": "  if (input.mantissa == 0) {\n    *value = 0.0f;"
+      },
+      "reason": "Mutation compiled but the complete existing upstream suite passed with this mutation alone. It cannot support an observed-fault or difficulty claim.",
+      "proof": ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_signed_special_values/hunk-3/proof.json"
+    }
+  ],
+  "single_hunk_proofs": {
+    "hunks": [
+      {
+        "case": "absl_escape_byte_overflow",
+        "hunk": 1,
+        "path": "absl/strings/escaping.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "Unescape.BasicFunction"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 0.77,
+        "mutation": {
+          "path": "absl/strings/escaping.cc",
+          "before": "          if (ch > 0xff) {",
+          "after": "          if (ch > 0xff && leave_nulls_escaped) {"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 1,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_escape_byte_overflow/hunk-1/absl_escaping_test.xml": {
+            "sha256": "b7d144987ab79c647ae531947c3b4950b79340100fc3418f646b18b9218ffbaf",
+            "bytes": 7670
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_escape_byte_overflow/hunk-1/absl_escaping_test.log": {
+            "sha256": "14cbca264464f16d880467de98986a668383ce6e10f4f9290001596dfad9e3c6",
+            "bytes": 3326
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_escape_byte_overflow/hunk-1/proof.json": {
+            "sha256": "f5da7c7fb2283e5acfa4136fcea448e6fa498bfc1883bb8410a3e29bc5c0e937",
+            "bytes": 265
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_escape_byte_overflow/hunk-1/build.log": {
+            "sha256": "16eddd5d7129901aa4939b289748e1ca1d1049d56f950280727597631bd9349b",
+            "bytes": 273
+          }
+        }
+      },
+      {
+        "case": "absl_escape_byte_overflow",
+        "hunk": 2,
+        "path": "absl/strings/escaping.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "Unescape.BasicFunction"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 0.84,
+        "mutation": {
+          "path": "absl/strings/escaping.cc",
+          "before": "          if (ch > 0xFF) {",
+          "after": "          if (ch > 0xFF && leave_nulls_escaped) {"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 2,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_escape_byte_overflow/hunk-2/absl_escaping_test.xml": {
+            "sha256": "97753254b982415269e5cfe33503e2bc27e27ad5465ffe4d7dd3c65cd559702f",
+            "bytes": 7670
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_escape_byte_overflow/hunk-2/absl_escaping_test.log": {
+            "sha256": "14cbca264464f16d880467de98986a668383ce6e10f4f9290001596dfad9e3c6",
+            "bytes": 3326
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_escape_byte_overflow/hunk-2/proof.json": {
+            "sha256": "fc958b4921cbabf886d5cf1dc1fdb10542cb87faea25b0b234beb56301765b1b",
+            "bytes": 265
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_escape_byte_overflow/hunk-2/build.log": {
+            "sha256": "16eddd5d7129901aa4939b289748e1ca1d1049d56f950280727597631bd9349b",
+            "bytes": 273
+          }
+        }
+      },
+      {
+        "case": "absl_escape_hex_continuation",
+        "hunk": 1,
+        "path": "absl/strings/escaping.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "CEscape.EscapeAndUnescape"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 0.82,
+        "mutation": {
+          "path": "absl/strings/escaping.cc",
+          "before": "             (last_hex_escape && absl::ascii_isxdigit(uc)))) {",
+          "after": "             (last_hex_escape && !absl::ascii_isxdigit(uc)))) {"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 1,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_escape_hex_continuation/hunk-1/absl_escaping_test.xml": {
+            "sha256": "95d0bd12b937ded2dee938cc5c9263d711fdc25782e9e887e84c82a4129df5e2",
+            "bytes": 7821
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_escape_hex_continuation/hunk-1/absl_escaping_test.log": {
+            "sha256": "d641b71cb83cab616d6e39cf3a28e222fd51c3bbfac741230beeb4afa61b2512",
+            "bytes": 3362
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_escape_hex_continuation/hunk-1/proof.json": {
+            "sha256": "05aa465976d95f6b3fe26593d39d8c50bcfb106aee81a297f6765c1a2c2ca39f",
+            "bytes": 271
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_escape_hex_continuation/hunk-1/build.log": {
+            "sha256": "16eddd5d7129901aa4939b289748e1ca1d1049d56f950280727597631bd9349b",
+            "bytes": 273
+          }
+        }
+      },
+      {
+        "case": "absl_escape_hex_continuation",
+        "hunk": 2,
+        "path": "absl/strings/escaping.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          0
+        ],
+        "failed_tests": [],
+        "individually_observed": false,
+        "elapsed_seconds": 0.82,
+        "mutation": {
+          "path": "absl/strings/escaping.cc",
+          "before": "    last_hex_escape = is_hex_escape;",
+          "after": "    last_hex_escape = last_hex_escape || is_hex_escape;"
+        },
+        "retained_in_v2": false,
+        "active_anchor_index": null,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_escape_hex_continuation/hunk-2/absl_escaping_test.xml": {
+            "sha256": "473848d3c2a5970289bf63010a95a63e94339df1d3d84a652b71525a5626633d",
+            "bytes": 6339
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_escape_hex_continuation/hunk-2/absl_escaping_test.log": {
+            "sha256": "b002df95781393816b3624236082cb69871d63a17c632816d6cd4bc644b9880e",
+            "bytes": 2673
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_escape_hex_continuation/hunk-2/proof.json": {
+            "sha256": "e1811b5d801aaf802e6d93428f1ec6228a94f880a1656de95447d51a11226d01",
+            "bytes": 237
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_escape_hex_continuation/hunk-2/build.log": {
+            "sha256": "16eddd5d7129901aa4939b289748e1ca1d1049d56f950280727597631bd9349b",
+            "bytes": 273
+          }
+        }
+      },
+      {
+        "case": "absl_base64_tail_codec",
+        "hunk": 1,
+        "path": "absl/strings/internal/escaping.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "Base64.EscapeAndUnescape"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 0.83,
+        "mutation": {
+          "path": "absl/strings/internal/escaping.cc",
+          "before": "      cur_dest[1] = base64[in << 4];",
+          "after": "      cur_dest[1] = base64[in << 3];"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 1,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_tail_codec/hunk-1/absl_escaping_test.xml": {
+            "sha256": "79672e62f609cf2a0b7b0e10e4c07852bb56331a026496b5400b16814f74927e",
+            "bytes": 67757
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_tail_codec/hunk-1/absl_escaping_test.log": {
+            "sha256": "c9537d5d8a30daa60e4fa718329c95414196a1dfdbb35fcde8b6fe518e42a11d",
+            "bytes": 29371
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_tail_codec/hunk-1/proof.json": {
+            "sha256": "9c91ae4cd992ba6da20403d60a69669e7c009d52168f5050824fcaea6110529e",
+            "bytes": 273
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_tail_codec/hunk-1/build.log": {
+            "sha256": "44730b3ee50f7b6bb1cf70a482865bb384a06d01a618e690bac39cefaaa73e61",
+            "bytes": 445
+          }
+        }
+      },
+      {
+        "case": "absl_base64_tail_codec",
+        "hunk": 2,
+        "path": "absl/strings/internal/escaping.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "Base64.EscapeAndUnescape"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 0.67,
+        "mutation": {
+          "path": "absl/strings/internal/escaping.cc",
+          "before": "      cur_dest[2] = base64[in << 2];",
+          "after": "      cur_dest[2] = base64[in << 1];"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 2,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_tail_codec/hunk-2/absl_escaping_test.xml": {
+            "sha256": "e794251280987f9c5d91a5c79baefb7dc1f0eb4e3e052402767950c7c0dfd10c",
+            "bytes": 183349
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_tail_codec/hunk-2/absl_escaping_test.log": {
+            "sha256": "f0b0fbbe731771072a76c59591d1fa556977563ca5547ebb8fa5c91d86c72a18",
+            "bytes": 78064
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_tail_codec/hunk-2/proof.json": {
+            "sha256": "12c6936d5c3ec7068af025b14ca2fae341684f4e08b911a92d7ca2d556452a36",
+            "bytes": 273
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_tail_codec/hunk-2/build.log": {
+            "sha256": "47daedceb6c543c0c432ada4e170143ba0a51b0e7b72b5da5cab2dc95028d9e4",
+            "bytes": 300
+          }
+        }
+      },
+      {
+        "case": "absl_base64_tail_codec",
+        "hunk": 3,
+        "path": "absl/strings/escaping.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "Base64.EscapeAndUnescape",
+          "Base64.Padding"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 0.83,
+        "mutation": {
+          "path": "absl/strings/escaping.cc",
+          "before": "        temp >>= 4;\n        dest[destidx] = static_cast<char>(temp);",
+          "after": "        temp >>= 5;\n        dest[destidx] = static_cast<char>(temp);"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 3,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_tail_codec/hunk-3/absl_escaping_test.xml": {
+            "sha256": "10b9db861550cf4f4ac85904ea2aaf77211f083f675d403bdb654cf7d3fbee66",
+            "bytes": 39659
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_tail_codec/hunk-3/absl_escaping_test.log": {
+            "sha256": "8e8697e75704d747607d206ccccefd60f5751be8b37d77d0b9883d01a4c94bf4",
+            "bytes": 16759
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_tail_codec/hunk-3/proof.json": {
+            "sha256": "b8bf4d9574a55309e3490f3c32a3c45ab9bb2787aef57bc8c14aa95fced28434",
+            "bytes": 286
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_tail_codec/hunk-3/build.log": {
+            "sha256": "44730b3ee50f7b6bb1cf70a482865bb384a06d01a618e690bac39cefaaa73e61",
+            "bytes": 445
+          }
+        }
+      },
+      {
+        "case": "absl_base64_tail_codec",
+        "hunk": 4,
+        "path": "absl/strings/escaping.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "Base64.EscapeAndUnescape"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 0.76,
+        "mutation": {
+          "path": "absl/strings/escaping.cc",
+          "before": "        temp >>= 2;\n        dest[destidx + 1] = static_cast<char>(temp);",
+          "after": "        temp >>= 3;\n        dest[destidx + 1] = static_cast<char>(temp);"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 4,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_tail_codec/hunk-4/absl_escaping_test.xml": {
+            "sha256": "993c5d8346c0a6ae9c3719de86c234921308702f9b1534a8cb2a78e9986748b2",
+            "bytes": 88341
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_tail_codec/hunk-4/absl_escaping_test.log": {
+            "sha256": "a9a4fa1104f34312743ef801acb522e44afc7442d36ce776e1eaf6bb3fd02f04",
+            "bytes": 37223
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_tail_codec/hunk-4/proof.json": {
+            "sha256": "dd70a6cec811e1033c539b4bc4e409facca1621431036ea57abe89c889bce9b8",
+            "bytes": 264
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_tail_codec/hunk-4/build.log": {
+            "sha256": "16eddd5d7129901aa4939b289748e1ca1d1049d56f950280727597631bd9349b",
+            "bytes": 273
+          }
+        }
+      },
+      {
+        "case": "absl_base64_optional_padding_whitespace",
+        "hunk": 1,
+        "path": "absl/strings/escaping.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "Base64.EscapeAndUnescape",
+          "Base64.Padding"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 0.82,
+        "mutation": {
+          "path": "absl/strings/escaping.cc",
+          "before": "  const bool ok = (equals == 0 || equals == expected_equals);",
+          "after": "  const bool ok = (equals == expected_equals);"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 1,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_optional_padding_whitespace/hunk-1/absl_escaping_test.xml": {
+            "sha256": "359567058fa515bbe75ecee749e5c48d9412dba9cb6656e69944ae3a944ceaf0",
+            "bytes": 112633
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_optional_padding_whitespace/hunk-1/absl_escaping_test.log": {
+            "sha256": "262646b007bcc5fa967890e0c42a11fb870bc90228a881ecd668b2f8efc29da8",
+            "bytes": 48208
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_optional_padding_whitespace/hunk-1/proof.json": {
+            "sha256": "154f50a260d50ca3e54afab635724d4f3ba2e1845c57d903465d990e756ebff1",
+            "bytes": 303
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_optional_padding_whitespace/hunk-1/build.log": {
+            "sha256": "16eddd5d7129901aa4939b289748e1ca1d1049d56f950280727597631bd9349b",
+            "bytes": 273
+          }
+        }
+      },
+      {
+        "case": "absl_base64_optional_padding_whitespace",
+        "hunk": 2,
+        "path": "absl/strings/escaping.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          0
+        ],
+        "failed_tests": [],
+        "individually_observed": false,
+        "elapsed_seconds": 0.79,
+        "mutation": {
+          "path": "absl/strings/escaping.cc",
+          "before": "        if (absl::ascii_isspace(ch)) {\n          continue;",
+          "after": "        if (absl::ascii_isspace(ch)) {\n          return false;"
+        },
+        "retained_in_v2": false,
+        "active_anchor_index": null,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_optional_padding_whitespace/hunk-2/absl_escaping_test.xml": {
+            "sha256": "dab56ab8063cad1d12da2df2c340f575c6b2be97e9614d630bd1d568f0ba229a",
+            "bytes": 6339
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_optional_padding_whitespace/hunk-2/absl_escaping_test.log": {
+            "sha256": "b56cf233989cbe49a80d9e342972b148844e4b70e87221b04e739895a2319b2d",
+            "bytes": 2673
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_optional_padding_whitespace/hunk-2/proof.json": {
+            "sha256": "da5ee3bba35eba99c4ab5f73dc1c3918fe4606fb6d57d0307af424f34038086d",
+            "bytes": 248
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_optional_padding_whitespace/hunk-2/build.log": {
+            "sha256": "16eddd5d7129901aa4939b289748e1ca1d1049d56f950280727597631bd9349b",
+            "bytes": 273
+          }
+        }
+      },
+      {
+        "case": "absl_integer_bare_prefixes",
+        "hunk": 1,
+        "path": "absl/strings/numbers.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "StrToInt32Base.PrefixOnly",
+          "StrToUint32Base.PrefixOnly",
+          "StrToInt64Base.PrefixOnly",
+          "StrToUint64Base.PrefixOnly"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 2.5,
+        "mutation": {
+          "path": "absl/strings/numbers.cc",
+          "before": "      base = 16;\n      start += 2;\n      if (start >= end) {\n        // \"0x\" with no digits after is invalid.\n        return false;\n      }",
+          "after": "      base = 16;\n      start += 2;"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 1,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_bare_prefixes/hunk-1/absl_numbers_test.xml": {
+            "sha256": "7224b40d26ab243dee4e0898f8a1fa39f368085bdcb6dd6bae6382eee1dc0519",
+            "bytes": 26156
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_bare_prefixes/hunk-1/absl_numbers_test.log": {
+            "sha256": "ccbfc8186637ca5187924cb227fd5805e29255cea3332fc754f39258730a6e46",
+            "bytes": 12224
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_bare_prefixes/hunk-1/proof.json": {
+            "sha256": "6d073a5d6c066027389f9de3c06f5c477590f1f3b789ce03db8fa15877b67451",
+            "bytes": 368
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_bare_prefixes/hunk-1/build.log": {
+            "sha256": "e28c61e29f5d2ef2d3ce09a3c894e78f79c01e16f13c771334cc2da7caeb4f54",
+            "bytes": 474
+          }
+        }
+      },
+      {
+        "case": "absl_integer_bare_prefixes",
+        "hunk": 2,
+        "path": "absl/strings/numbers.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "StrToInt32Base.PrefixOnly",
+          "StrToUint32Base.PrefixOnly",
+          "StrToInt64Base.PrefixOnly",
+          "StrToUint64Base.PrefixOnly"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 2.45,
+        "mutation": {
+          "path": "absl/strings/numbers.cc",
+          "before": "  } else if (base == 16) {\n    if (end - start >= 2 && start[0] == '0' &&\n        (start[1] == 'x' || start[1] == 'X')) {\n      start += 2;\n      if (start >= end) {\n        // \"0x\" with no digits after is invalid.\n        return false;\n      }\n    }",
+          "after": "  } else if (base == 16) {\n    if (end - start >= 2 && start[0] == '0' &&\n        (start[1] == 'x' || start[1] == 'X')) {\n      start += 2;\n    }"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 2,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_bare_prefixes/hunk-2/absl_numbers_test.xml": {
+            "sha256": "af0bf7c0968ea7e465b20e95980829a90411d80ea5024b0f2dd328944125f562",
+            "bytes": 26190
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_bare_prefixes/hunk-2/absl_numbers_test.log": {
+            "sha256": "726e7b6fc66e3bf52551742d7aada652413e3b7c1aa46a875899ce8714832676",
+            "bytes": 12242
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_bare_prefixes/hunk-2/proof.json": {
+            "sha256": "39ff65da67f3a0905697d0cdc47dd9436955e9e3757349c584fb0605d84b0bd3",
+            "bytes": 369
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_bare_prefixes/hunk-2/build.log": {
+            "sha256": "db5069d253b1ee3f826a6ca5695cfd041958bf9ece10bbbe20f18047c7a8b003",
+            "bytes": 393
+          }
+        }
+      },
+      {
+        "case": "absl_integer_partial_results",
+        "hunk": 1,
+        "path": "absl/strings/numbers.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "stringtest.safe_strto8_leading_substring",
+          "stringtest.safe_strto16_leading_substring",
+          "stringtest.safe_strto32_leading_substring",
+          "stringtest.safe_strto64_leading_substring",
+          "StrToInt8.Partial",
+          "StrToUint8.Partial",
+          "StrToInt16.Partial",
+          "StrToUint16.Partial",
+          "StrToInt32.Partial",
+          "StrToUint32.Partial",
+          "StrToInt64.Partial",
+          "StrToUint64.Partial"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 2.44,
+        "mutation": {
+          "path": "absl/strings/numbers.cc",
+          "before": "    if (digit >= base_inttype) {\n      *value_p = value;",
+          "after": "    if (digit >= base_inttype) {\n      *value_p = 0;"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 1,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_partial_results/hunk-1/absl_numbers_test.xml": {
+            "sha256": "f8ebb5a6deb1766388f8c0011eba11dba62967e22f4e291cff0efed8083375b9",
+            "bytes": 37197
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_partial_results/hunk-1/absl_numbers_test.log": {
+            "sha256": "0c6acc88939f0722c46dde4f3662f8a8ed14571400c6ce2052f22898bac0e92b",
+            "bytes": 17196
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_partial_results/hunk-1/proof.json": {
+            "sha256": "b8a3dbf360356bc7c55ec9da5b44d4a7eb7257e12802e6ab4bbd3da1d3560f3b",
+            "bytes": 642
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_partial_results/hunk-1/build.log": {
+            "sha256": "db5069d253b1ee3f826a6ca5695cfd041958bf9ece10bbbe20f18047c7a8b003",
+            "bytes": 393
+          }
+        }
+      },
+      {
+        "case": "absl_integer_partial_results",
+        "hunk": 2,
+        "path": "absl/strings/numbers.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          0
+        ],
+        "failed_tests": [],
+        "individually_observed": false,
+        "elapsed_seconds": 2.45,
+        "mutation": {
+          "path": "absl/strings/numbers.cc",
+          "before": "    if (digit >= base) {\n      *value_p = value;",
+          "after": "    if (digit >= base) {\n      *value_p = 0;"
+        },
+        "retained_in_v2": false,
+        "active_anchor_index": null,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_partial_results/hunk-2/absl_numbers_test.xml": {
+            "sha256": "305616921fe8039523c4cb1f75eb044776c572300d4ca38b86893580bbe26b21",
+            "bytes": 16656
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_partial_results/hunk-2/absl_numbers_test.log": {
+            "sha256": "58163535ea33f82ee20d8d9ae5859212074ddafac7fbe96e3a2717b254d7e867",
+            "bytes": 7939
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_partial_results/hunk-2/proof.json": {
+            "sha256": "6860586f14cb1145f6a009585e217f472f1c2cf8871831c84405aaa001af5b79",
+            "bytes": 236
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_partial_results/hunk-2/build.log": {
+            "sha256": "db5069d253b1ee3f826a6ca5695cfd041958bf9ece10bbbe20f18047c7a8b003",
+            "bytes": 393
+          }
+        }
+      },
+      {
+        "case": "absl_integer_signed_boundaries",
+        "hunk": 1,
+        "path": "absl/strings/numbers.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "NumbersTest.Atoi",
+          "NumbersTest.Atoenum",
+          "NumbersTest.HexAtoi",
+          "stringtest.safe_strto8_base",
+          "stringtest.safe_strto8_leading_substring",
+          "stringtest.safe_strto16_random",
+          "stringtest.safe_strtou16_random",
+          "stringtest.safe_strtou8_exhaustive",
+          "stringtest.safe_strto8_exhaustive",
+          "stringtest.safe_strtou32_base",
+          "stringtest.safe_strtou32_base_length_delimited",
+          "stringtest.safe_strtou64_base",
+          "stringtest.safe_strtou64_base_length_delimited",
+          "StrToInt8.Partial"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 2.51,
+        "mutation": {
+          "path": "absl/strings/numbers.cc",
+          "before": "    if (value > vmax_over_base) {",
+          "after": "    if (value >= vmax_over_base) {"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 1,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_signed_boundaries/hunk-1/absl_numbers_test.xml": {
+            "sha256": "2c4dc9c02b6d4a52fd9542a0b5ed32bbe167ff5c747749f7cf8eb2b30000ace3",
+            "bytes": 738157
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_signed_boundaries/hunk-1/absl_numbers_test.xml.raw": {
+            "sha256": "06051430c0d8f7fc3ab00708927a1a1c3e40e68c72c336edb46850a1685ad080",
+            "bytes": 738141
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_signed_boundaries/hunk-1/absl_numbers_test.log": {
+            "sha256": "4901d222c6d0c2807609ef6da59feac095fc775c01d09c9fc1a504616dc1ed67",
+            "bytes": 318298
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_signed_boundaries/hunk-1/proof.json": {
+            "sha256": "b1cc6f24faf12db77d2c1b267ed85c7adc91d5d798b60b59f10c07b422ce334e",
+            "bytes": 767
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_signed_boundaries/hunk-1/build.log": {
+            "sha256": "db5069d253b1ee3f826a6ca5695cfd041958bf9ece10bbbe20f18047c7a8b003",
+            "bytes": 393
+          }
+        }
+      },
+      {
+        "case": "absl_integer_signed_boundaries",
+        "hunk": 2,
+        "path": "absl/strings/numbers.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "NumbersTest.Atoi",
+          "NumbersTest.Atoenum",
+          "NumbersTest.HexAtoi",
+          "stringtest.safe_strto8_base",
+          "stringtest.safe_strto8_range",
+          "stringtest.safe_strto16_range",
+          "stringtest.safe_strto32_range",
+          "stringtest.safe_strto64_range",
+          "stringtest.safe_strto16_random",
+          "stringtest.safe_strto8_exhaustive"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 2.49,
+        "mutation": {
+          "path": "absl/strings/numbers.cc",
+          "before": "    if (value < vmin_over_base) {",
+          "after": "    if (value <= vmin_over_base) {"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 2,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_signed_boundaries/hunk-2/absl_numbers_test.xml": {
+            "sha256": "1d4fab78789c90ec44de578010dfd0e7d5a81829243ee770508882d1bd261068",
+            "bytes": 374782
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_signed_boundaries/hunk-2/absl_numbers_test.xml.raw": {
+            "sha256": "97b419c2f317742a7ab3637ddfad8c1b5d386055a1fdef7c81e0f4b27b16efe8",
+            "bytes": 374766
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_signed_boundaries/hunk-2/absl_numbers_test.log": {
+            "sha256": "391f0283702c810a44fe8245252fd48baadc1edd46eee71925a6138d59f38937",
+            "bytes": 162095
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_signed_boundaries/hunk-2/proof.json": {
+            "sha256": "bced8a690acd9113457f4ec7aa0bffbaf1cbdd4ded0ca6750b97d951988c8994",
+            "bytes": 578
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_integer_signed_boundaries/hunk-2/build.log": {
+            "sha256": "db5069d253b1ee3f826a6ca5695cfd041958bf9ece10bbbe20f18047c7a8b003",
+            "bytes": 393
+          }
+        }
+      },
+      {
+        "case": "absl_replace_overlap_and_progress",
+        "hunk": 1,
+        "path": "absl/strings/str_replace.h",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "StrReplaceAll.ManyReplacements",
+          "StrReplaceAll.VariableNumber",
+          "StrReplaceAll.Inplace"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 1.07,
+        "mutation": {
+          "path": "absl/strings/str_replace.h",
+          "before": "    return old.size() > y.old.size();",
+          "after": "    return old.size() < y.old.size();"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 1,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_replace_overlap_and_progress/hunk-1/absl_str_replace_test.xml": {
+            "sha256": "87280e521d899af02298f11632446ccea574ffd5f8fd80c7115cf279bec1035a",
+            "bytes": 10615
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_replace_overlap_and_progress/hunk-1/absl_str_replace_test.log": {
+            "sha256": "b9c8368c58201dc20504348757ee535fcd53c905a76265bdc6f7ca83e9183a39",
+            "bytes": 4690
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_replace_overlap_and_progress/hunk-1/proof.json": {
+            "sha256": "8f43f8f2aedcb8659b852dc4c4d60a58984e51e821d9669145c43228f70c1d05",
+            "bytes": 348
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_replace_overlap_and_progress/hunk-1/build.log": {
+            "sha256": "6cbb94f95963d7192b401cebfa48e727957ff29e53b99fc191e5e4db3e74aa80",
+            "bytes": 381
+          }
+        }
+      },
+      {
+        "case": "absl_replace_overlap_and_progress",
+        "hunk": 2,
+        "path": "absl/strings/str_replace.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "StrReplaceAll.OneReplacement",
+          "StrReplaceAll.ManyReplacements",
+          "StrReplaceAll.ManyReplacementsInMap",
+          "StrReplaceAll.ReplacementsInPlace",
+          "StrReplaceAll.ReplacementsInPlaceInMap",
+          "StrReplaceAll.VariableNumber",
+          "StrReplaceAll.Inplace"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 1.07,
+        "mutation": {
+          "path": "absl/strings/str_replace.cc",
+          "before": "      pos = sub.offset + sub.old.size();",
+          "after": "      pos = sub.offset + (sub.old.size() + 1) / 2;"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 2,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_replace_overlap_and_progress/hunk-2/absl_str_replace_test.xml": {
+            "sha256": "b67717f00238b7536f663c12ed307ff2ec645a18200a2fe4fe76636641eaf86a",
+            "bytes": 15423
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_replace_overlap_and_progress/hunk-2/absl_str_replace_test.log": {
+            "sha256": "004f5e7df719d9e1ceb58eb8069a427a67716a3976dc56725327fc90f51c60c9",
+            "bytes": 6877
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_replace_overlap_and_progress/hunk-2/proof.json": {
+            "sha256": "ef7ed0b916077e630c43e43eda979a04f1be0c85e49e05bc150f36032213c599",
+            "bytes": 515
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_replace_overlap_and_progress/hunk-2/build.log": {
+            "sha256": "0eeac572a81ee2c6c88be09398c9418d268a15808645c23e99b6fa6aa575d32f",
+            "bytes": 301
+          }
+        }
+      },
+      {
+        "case": "absl_split_literal_and_chunk_boundaries",
+        "hunk": 1,
+        "path": "absl/strings/str_split.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "Split.APIExamples",
+          "Split.UTF8",
+          "Split.SubstrDelimiter"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 0.87,
+        "mutation": {
+          "path": "absl/strings/str_split.cc",
+          "before": "    return text.find(delimiter, pos);\n  }\n  static size_t Length(absl::string_view delimiter) {\n    return delimiter.length();",
+          "after": "    return text.find_first_of(delimiter, pos);\n  }\n  static size_t Length(absl::string_view delimiter) {\n    return delimiter.empty() ? 0 : 1;"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 1,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_split_literal_and_chunk_boundaries/hunk-1/absl_str_split_test.xml": {
+            "sha256": "cfcd82286b8cfcdbe2050e21eec8f9e1ea681e64fb0cbf3dcb9111a1a58dc95b",
+            "bytes": 15444
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_split_literal_and_chunk_boundaries/hunk-1/absl_str_split_test.log": {
+            "sha256": "d86885cd3f5700c3c9df97bee656b92a7b995873973a49dd05b1217a7e90f53b",
+            "bytes": 5782
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_split_literal_and_chunk_boundaries/hunk-1/proof.json": {
+            "sha256": "c45e780ae3b6c418c6dc6661661518b58cbc9aa92847f6e732f2dea7c958ae2e",
+            "bytes": 322
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_split_literal_and_chunk_boundaries/hunk-1/build.log": {
+            "sha256": "0e35984ef189357716dc2729cd8aadf1e5e6dffec48f3069338bab535f3bff2b",
+            "bytes": 359
+          }
+        }
+      },
+      {
+        "case": "absl_split_literal_and_chunk_boundaries",
+        "hunk": 2,
+        "path": "absl/strings/str_split.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          0
+        ],
+        "failed_tests": [],
+        "individually_observed": false,
+        "elapsed_seconds": 0.87,
+        "mutation": {
+          "path": "absl/strings/str_split.cc",
+          "before": "  if (substr.length() <= static_cast<size_t>(length_))",
+          "after": "  if (substr.length() < static_cast<size_t>(length_))"
+        },
+        "retained_in_v2": false,
+        "active_anchor_index": null,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_split_literal_and_chunk_boundaries/hunk-2/absl_str_split_test.xml": {
+            "sha256": "c480793bbeb4070966f777914d2a6623b82d5d182d7120f9bad873e10ea17f24",
+            "bytes": 9173
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_split_literal_and_chunk_boundaries/hunk-2/absl_str_split_test.log": {
+            "sha256": "7a12a3584f54bc7e9bb34edd689420efe376869599565be255bcaad47def4fd1",
+            "bytes": 3117
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_split_literal_and_chunk_boundaries/hunk-2/proof.json": {
+            "sha256": "e950def6055379da37629f953cf6f74c7d6aa32d4b3fd5d7c44df594956fe0d4",
+            "bytes": 249
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_split_literal_and_chunk_boundaries/hunk-2/build.log": {
+            "sha256": "ce692a1b7c43e83395eea780e4d7589c08d2bbd1312d961cd8c6a8aeeb1eca81",
+            "bytes": 275
+          }
+        }
+      },
+      {
+        "case": "absl_unicode_escape_validation_lengths",
+        "hunk": 1,
+        "path": "absl/strings/escaping.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "Unescape.BasicFunction"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 0.77,
+        "mutation": {
+          "path": "absl/strings/escaping.cc",
+          "before": "  if (c >= 0xD800 && c <= 0xDFFF) {",
+          "after": "  if (c >= 0xDC00 && c <= 0xDFFF) {"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 1,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_unicode_escape_validation_lengths/hunk-1/absl_escaping_test.xml": {
+            "sha256": "e062c4e0f89530dd3b09d93baa02c7076b9162688c22fd8995793bd5f40cdb12",
+            "bytes": 7670
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_unicode_escape_validation_lengths/hunk-1/absl_escaping_test.log": {
+            "sha256": "cc7aee6052c138bcdc1513c749424659d493d7d0beb8244fa52c7f075fe6e19e",
+            "bytes": 3326
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_unicode_escape_validation_lengths/hunk-1/proof.json": {
+            "sha256": "9800d20e14cf6d4a307055b4ae332b9123f6c5c0db42cd9b45948849dfa89ade",
+            "bytes": 278
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_unicode_escape_validation_lengths/hunk-1/build.log": {
+            "sha256": "401d2fcbfadbc42c1e5cfdc8167f3cd806d4823a4f05437be8edccefa27f07b1",
+            "bytes": 355
+          }
+        }
+      },
+      {
+        "case": "absl_unicode_escape_validation_lengths",
+        "hunk": 2,
+        "path": "absl/strings/internal/utf8.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "Unescape.BasicFunction"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 0.81,
+        "mutation": {
+          "path": "absl/strings/internal/utf8.cc",
+          "before": "    buffer[0] = static_cast<char>(0xE0 | utf8_char);\n    return 3;",
+          "after": "    buffer[0] = static_cast<char>(0xE0 | utf8_char);\n    return 2;"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 2,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_unicode_escape_validation_lengths/hunk-2/absl_escaping_test.xml": {
+            "sha256": "a9d476c81b7bc6655d89e8098a2bf30b47a246aa37ca2b9d77a66e1a9ea1f363",
+            "bytes": 6963
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_unicode_escape_validation_lengths/hunk-2/absl_escaping_test.log": {
+            "sha256": "4859d4e4a2b2b3aa5d4a99613ebaef5409dd85644ee8f21d127d2fa959f47075",
+            "bytes": 3013
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_unicode_escape_validation_lengths/hunk-2/proof.json": {
+            "sha256": "bae2475cbeaf49c4e53a1102b55864efa1dac409d1b95e3aa95dfee906c9b7ce",
+            "bytes": 283
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_unicode_escape_validation_lengths/hunk-2/build.log": {
+            "sha256": "70ee7b52fd62b01410ec09c9309064dfdec210540689f4d9f617a47bfb057f59",
+            "bytes": 441
+          }
+        }
+      },
+      {
+        "case": "absl_unicode_escape_validation_lengths",
+        "hunk": 3,
+        "path": "absl/strings/internal/utf8.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "Unescape.BasicFunction"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 0.52,
+        "mutation": {
+          "path": "absl/strings/internal/utf8.cc",
+          "before": "    buffer[0] = static_cast<char>(0xF0 | utf8_char);\n    return 4;",
+          "after": "    buffer[0] = static_cast<char>(0xF0 | utf8_char);\n    return 3;"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 3,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_unicode_escape_validation_lengths/hunk-3/absl_escaping_test.xml": {
+            "sha256": "f36b911298a8942c38fe4eda0e44acf7df87b589e36d0296fc92ffbebe20741e",
+            "bytes": 7609
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_unicode_escape_validation_lengths/hunk-3/absl_escaping_test.log": {
+            "sha256": "beeeb403f49c8b53c42bbba0942cde2591f126be50772c225b925503111f65af",
+            "bytes": 3285
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_unicode_escape_validation_lengths/hunk-3/proof.json": {
+            "sha256": "0b80a3dddc363e5b898dc6ef2cba6752a9851085b33967c2e46a28b672d85989",
+            "bytes": 283
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_unicode_escape_validation_lengths/hunk-3/build.log": {
+            "sha256": "d3de915443d0536c72362e925031e5ac445e839416e2624e477942781765e99b",
+            "bytes": 296
+          }
+        }
+      },
+      {
+        "case": "absl_unicode_safe_escape_modes",
+        "hunk": 1,
+        "path": "absl/strings/escaping.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "CEscape.BasicEscaping"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 0.82,
+        "mutation": {
+          "path": "absl/strings/escaping.cc",
+          "before": "        if ((!utf8_safe || uc < 0x80) &&",
+          "after": "        if ((!utf8_safe && uc < 0x80) &&"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 1,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_unicode_safe_escape_modes/hunk-1/absl_escaping_test.xml": {
+            "sha256": "42dfb63157f73d4a82492a87f38cc5fd428ac232d615e9fac7652655930e4f3a",
+            "bytes": 8659
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_unicode_safe_escape_modes/hunk-1/absl_escaping_test.log": {
+            "sha256": "c8d8ad3689c83dd862f47c64776707a36f5251ab77531994db214c29a938248c",
+            "bytes": 3764
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_unicode_safe_escape_modes/hunk-1/proof.json": {
+            "sha256": "8634fa9a5135e21ccf9bec06f39dd57315ce816b1969316612ad6043a000e813",
+            "bytes": 269
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_unicode_safe_escape_modes/hunk-1/build.log": {
+            "sha256": "70ee7b52fd62b01410ec09c9309064dfdec210540689f4d9f617a47bfb057f59",
+            "bytes": 441
+          }
+        }
+      },
+      {
+        "case": "absl_unicode_safe_escape_modes",
+        "hunk": 2,
+        "path": "absl/strings/escaping.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "CEscape.BasicEscaping"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 0.83,
+        "mutation": {
+          "path": "absl/strings/escaping.cc",
+          "before": "          if (use_hex) {\n            dest.append(\"\\\\\" \"x\");",
+          "after": "          if (use_hex && !utf8_safe) {\n            dest.append(\"\\\\\" \"x\");"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 2,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_unicode_safe_escape_modes/hunk-2/absl_escaping_test.xml": {
+            "sha256": "477c944bb0f4b2a0c444139d36f5f96212a693ca2562b8858663d9597b9f9978",
+            "bytes": 7737
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_unicode_safe_escape_modes/hunk-2/absl_escaping_test.log": {
+            "sha256": "b65694761042695361017a9e9b0d937ed16d978f33d63eac78d6504c20a7a609",
+            "bytes": 3359
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_unicode_safe_escape_modes/hunk-2/proof.json": {
+            "sha256": "8b790aefadd2eda9d6afb757923ad20911801fc509a46df402fb3988d152f260",
+            "bytes": 269
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_unicode_safe_escape_modes/hunk-2/build.log": {
+            "sha256": "16eddd5d7129901aa4939b289748e1ca1d1049d56f950280727597631bd9349b",
+            "bytes": 273
+          }
+        }
+      },
+      {
+        "case": "absl_float_lexical_whitespace_sign",
+        "hunk": 1,
+        "path": "absl/strings/numbers.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "NumbersTest.Prefixes"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 2.52,
+        "mutation": {
+          "path": "absl/strings/numbers.cc",
+          "before": "bool SimpleAtof(absl::string_view str, float* absl_nonnull out) {\n  *out = 0.0;\n  str = StripAsciiWhitespace(str);\n  if (str.empty()) {\n    // absl::from_chars doesn't accept empty strings.\n    return false;\n  }\n  // std::from_chars doesn't accept an initial +, but SimpleAtof does, so if one\n  // is present, skip it, while avoiding accepting \"+-0\" as valid.\n  if (str[0] == '+') {\n    str.remove_prefix(1);\n    if (str.empty() || str[0] == '-') {\n      return false;\n    }\n  }\n  auto result = absl::from_chars(str.data(), str.data() + str.size(), *out);\n  if (result.ec == std::errc::invalid_argument) {\n    return false;\n  }\n  if (result.ptr != str.data() + str.size()) {\n    // not all non-whitespace characters consumed\n    return false;\n  }\n  // from_chars() with DR 3081's current wording will return max() on\n  // overflow.  SimpleAtof returns infinity instead.\n  if (result.ec == std::errc::result_out_of_range) {\n    if (*out > 1.0) {\n      *out = std::numeric_limits<float>::infinity();\n    } else if (*out < -1.0) {\n      *out = -std::numeric_limits<float>::infinity();\n    }\n  }\n  return true;\n}\n\n",
+          "after": "bool SimpleAtof(absl::string_view str, float* absl_nonnull out) {\n  *out = 0.0;\n  str = StripLeadingAsciiWhitespace(str);\n  if (str.empty()) {\n    // absl::from_chars doesn't accept empty strings.\n    return false;\n  }\n  // std::from_chars doesn't accept an initial +, but SimpleAtof does, so if one\n  // is present, skip it, while avoiding accepting \"+-0\" as valid.\n  if (str[0] == '+') {\n    str.remove_prefix(1);\n    if (str.empty()) {\n      return false;\n    }\n  }\n  auto result = absl::from_chars(str.data(), str.data() + str.size(), *out);\n  if (result.ec == std::errc::invalid_argument) {\n    return false;\n  }\n  if (result.ptr != str.data() + str.size()) {\n    // not all non-whitespace characters consumed\n    return false;\n  }\n  // from_chars() with DR 3081's current wording will return max() on\n  // overflow.  SimpleAtof returns infinity instead.\n  if (result.ec == std::errc::result_out_of_range) {\n    if (*out > 1.0) {\n      *out = std::numeric_limits<float>::infinity();\n    } else if (*out < -1.0) {\n      *out = -std::numeric_limits<float>::infinity();\n    }\n  }\n  return true;\n}\n\n"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 1,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_lexical_whitespace_sign/hunk-1/absl_numbers_test.xml": {
+            "sha256": "f42707241329a04d8d44893aea689154f278afdc6a367155781f5f4b46652cc4",
+            "bytes": 17124
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_lexical_whitespace_sign/hunk-1/absl_numbers_test.log": {
+            "sha256": "ac3352b623c2c84efca578a03250e60fcf78099f187b76e500007ac57e52a2ba",
+            "bytes": 8216
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_lexical_whitespace_sign/hunk-1/proof.json": {
+            "sha256": "ecf58a43974977b4dc32b72a289bf97fa9f69be8439529d3f9135c10336062ae",
+            "bytes": 271
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_lexical_whitespace_sign/hunk-1/build.log": {
+            "sha256": "91cfd2005b10209de6bb3c104eabefbd6de81f98056511bd89cc190d7b07efa6",
+            "bytes": 474
+          }
+        }
+      },
+      {
+        "case": "absl_float_lexical_whitespace_sign",
+        "hunk": 2,
+        "path": "absl/strings/numbers.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "NumbersTest.Atod",
+          "NumbersTest.Prefixes"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 2.43,
+        "mutation": {
+          "path": "absl/strings/numbers.cc",
+          "before": "bool SimpleAtod(absl::string_view str, double* absl_nonnull out) {\n  *out = 0.0;\n  str = StripAsciiWhitespace(str);\n  if (str.empty()) {\n    // absl::from_chars doesn't accept empty strings.\n    return false;\n  }\n  // std::from_chars doesn't accept an initial +, but SimpleAtod does, so if one\n  // is present, skip it, while avoiding accepting \"+-0\" as valid.\n  if (str[0] == '+') {\n    str.remove_prefix(1);\n    if (str.empty() || str[0] == '-') {\n      return false;\n    }\n  }\n  auto result = absl::from_chars(str.data(), str.data() + str.size(), *out);\n  if (result.ec == std::errc::invalid_argument) {\n    return false;\n  }\n  if (result.ptr != str.data() + str.size()) {\n    // not all non-whitespace characters consumed\n    return false;\n  }\n  // from_chars() with DR 3081's current wording will return max() on\n  // overflow.  SimpleAtod returns infinity instead.\n  if (result.ec == std::errc::result_out_of_range) {\n    if (*out > 1.0) {\n      *out = std::numeric_limits<double>::infinity();\n    } else if (*out < -1.0) {\n      *out = -std::numeric_limits<double>::infinity();\n    }\n  }\n  return true;\n}\n\n",
+          "after": "bool SimpleAtod(absl::string_view str, double* absl_nonnull out) {\n  *out = 0.0;\n  str = StripLeadingAsciiWhitespace(str);\n  if (str.empty()) {\n    // absl::from_chars doesn't accept empty strings.\n    return false;\n  }\n  // std::from_chars doesn't accept an initial +, but SimpleAtod does, so if one\n  // is present, skip it, while avoiding accepting \"+-0\" as valid.\n  if (str[0] == '+') {\n    str.remove_prefix(1);\n    if (str.empty()) {\n      return false;\n    }\n  }\n  auto result = absl::from_chars(str.data(), str.data() + str.size(), *out);\n  if (result.ec == std::errc::invalid_argument) {\n    return false;\n  }\n  if (result.ptr != str.data() + str.size()) {\n    // not all non-whitespace characters consumed\n    return false;\n  }\n  // from_chars() with DR 3081's current wording will return max() on\n  // overflow.  SimpleAtod returns infinity instead.\n  if (result.ec == std::errc::result_out_of_range) {\n    if (*out > 1.0) {\n      *out = std::numeric_limits<double>::infinity();\n    } else if (*out < -1.0) {\n      *out = -std::numeric_limits<double>::infinity();\n    }\n  }\n  return true;\n}\n\n"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 2,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_lexical_whitespace_sign/hunk-2/absl_numbers_test.xml": {
+            "sha256": "99ebd145f760fd7605ee85743040f382534042b08049e8433bc64d85a0161942",
+            "bytes": 17606
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_lexical_whitespace_sign/hunk-2/absl_numbers_test.log": {
+            "sha256": "2b56c39da1a7b9bb368956774657ffad79ef33fe17cfec81e1f55ac694c0a650",
+            "bytes": 8446
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_lexical_whitespace_sign/hunk-2/proof.json": {
+            "sha256": "5919e91f2e4affc2d998bd27ff7b25527b54099d8fa5de5a7493592a707e7bb0",
+            "bytes": 295
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_lexical_whitespace_sign/hunk-2/build.log": {
+            "sha256": "db5069d253b1ee3f826a6ca5695cfd041958bf9ece10bbbe20f18047c7a8b003",
+            "bytes": 393
+          }
+        }
+      },
+      {
+        "case": "absl_float_signed_special_values",
+        "hunk": 1,
+        "path": "absl/strings/charconv.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "FromChars.NaNDoubles",
+          "FromChars.NaNFloats"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 1.37,
+        "mutation": {
+          "path": "absl/strings/charconv.cc",
+          "before": "    *value = negative ? -FloatTraits<FloatType>::MakeNan(nan_argument)\n                      : FloatTraits<FloatType>::MakeNan(nan_argument);",
+          "after": "    *value = FloatTraits<FloatType>::MakeNan(nan_argument);"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 1,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_signed_special_values/hunk-1/absl_charconv_test.xml": {
+            "sha256": "f5ea7fccae2661746179c9b662fb6c16c24162187c09388259ffb184cdaee7fa",
+            "bytes": 71243
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_signed_special_values/hunk-1/absl_charconv_test.log": {
+            "sha256": "a1a080fe85b36d5c687ae24a4b1f313f7dc4f821305d311fd3bb7c874ea74a0e",
+            "bytes": 32335
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_signed_special_values/hunk-1/proof.json": {
+            "sha256": "7d8f912c5998935623b01961e9499cc3e55f00cfe280149fa223af52640265d9",
+            "bytes": 297
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_signed_special_values/hunk-1/build.log": {
+            "sha256": "e7673cba95c45f2a76c31cd97d39e70c1861aad7f65d508f97f08507f9f68adb",
+            "bytes": 353
+          }
+        }
+      },
+      {
+        "case": "absl_float_signed_special_values",
+        "hunk": 2,
+        "path": "absl/strings/charconv.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          0
+        ],
+        "failed_tests": [],
+        "individually_observed": false,
+        "elapsed_seconds": 1.32,
+        "mutation": {
+          "path": "absl/strings/charconv.cc",
+          "before": "    *value = negative ? -std::numeric_limits<FloatType>::infinity()\n                      : std::numeric_limits<FloatType>::infinity();",
+          "after": "    *value = std::numeric_limits<FloatType>::infinity();"
+        },
+        "retained_in_v2": false,
+        "active_anchor_index": null,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_signed_special_values/hunk-2/absl_charconv_test.xml": {
+            "sha256": "49973281f6541e267d2a682547d03c5885088b1002c48ae35e24f915f7ba5692",
+            "bytes": 4643
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_signed_special_values/hunk-2/absl_charconv_test.log": {
+            "sha256": "39047fb5a60778d3310386b898bb6050bbd7090aaca0c65f998023b8ca2bae14",
+            "bytes": 1743
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_signed_special_values/hunk-2/proof.json": {
+            "sha256": "294fc11529a22f1bc7d464abdbeb2d62d9a97d5cf8954d4b1ef7824ae469e385",
+            "bytes": 241
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_signed_special_values/hunk-2/build.log": {
+            "sha256": "4cafe45311cfd8f9cae44dbe444efc650772d5bf6abd31104062f245afc44eb7",
+            "bytes": 273
+          }
+        }
+      },
+      {
+        "case": "absl_float_signed_special_values",
+        "hunk": 3,
+        "path": "absl/strings/charconv.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          0
+        ],
+        "failed_tests": [],
+        "individually_observed": false,
+        "elapsed_seconds": 1.32,
+        "mutation": {
+          "path": "absl/strings/charconv.cc",
+          "before": "  if (input.mantissa == 0) {\n    *value = negative ? -0.0f : 0.0f;",
+          "after": "  if (input.mantissa == 0) {\n    *value = 0.0f;"
+        },
+        "retained_in_v2": false,
+        "active_anchor_index": null,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_signed_special_values/hunk-3/absl_charconv_test.xml": {
+            "sha256": "5a5de5a48515f5a15dcc90e1c33056590441499f456232d5be04ca9f54cf05ef",
+            "bytes": 4643
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_signed_special_values/hunk-3/absl_charconv_test.log": {
+            "sha256": "1618ff0c4e0e1617cc5ea85dbd96acdf3558224d529c64102983836129fd2d93",
+            "bytes": 1743
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_signed_special_values/hunk-3/proof.json": {
+            "sha256": "47e74739186077d2b73da5a5abe8c7f20145e819dcfa763d0255bc7fb39d4982",
+            "bytes": 241
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_float_signed_special_values/hunk-3/build.log": {
+            "sha256": "4cafe45311cfd8f9cae44dbe444efc650772d5bf6abd31104062f245afc44eb7",
+            "bytes": 273
+          }
+        }
+      },
+      {
+        "case": "absl_substitute_placeholder_index",
+        "hunk": 1,
+        "path": "absl/strings/substitute.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          -11
+        ],
+        "failure_kind": "native_process_crash_before_junit",
+        "individually_observed": true,
+        "assertion_report_available": false,
+        "note": "Individual mismatch between size-estimation and rendering passes causes native crash. Combined regression compiles and emits ordinary upstream assertion failures.",
+        "mutation": {
+          "path": "absl/strings/substitute.cc",
+          "before": "        int index = format[i + 1] - '0';",
+          "after": "        int index = format[i + 1] - '1';"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 1,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_substitute_placeholder_index/hunk-1/crash-reproduction-build.log": {
+            "sha256": "58441ae63c5baa09836433444db23b6833eee0a6d48d30b3670651d785c3ad9d",
+            "bytes": 542
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_substitute_placeholder_index/hunk-1/crash-reproduction.log": {
+            "sha256": "582888ccc069449953b2dd12a1a47b32c213f80594acd9550137c175dafe2421",
+            "bytes": 222
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_substitute_placeholder_index/hunk-1/absl_substitute_test.log": {
+            "sha256": "582888ccc069449953b2dd12a1a47b32c213f80594acd9550137c175dafe2421",
+            "bytes": 222
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_substitute_placeholder_index/hunk-1/proof.json": {
+            "sha256": "141215959f3e9af887ee13be1436f0021d1f42486d0cbb19d44611c6194ab927",
+            "bytes": 466
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_substitute_placeholder_index/hunk-1/build.log": {
+            "sha256": "f6a7b63e913811fa017f0280dcabcc21bd9b5fe39a67105d020cec956fcaa767",
+            "bytes": 282
+          }
+        }
+      },
+      {
+        "case": "absl_substitute_placeholder_index",
+        "hunk": 2,
+        "path": "absl/strings/substitute.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          -11
+        ],
+        "failure_kind": "native_process_crash_before_junit",
+        "individually_observed": true,
+        "assertion_report_available": false,
+        "note": "Individual mismatch between size-estimation and rendering passes causes native crash. Combined regression compiles and emits ordinary upstream assertion failures.",
+        "mutation": {
+          "path": "absl/strings/substitute.cc",
+          "before": "              const absl::string_view src = args_array[format[i + 1] - '0'];",
+          "after": "              const absl::string_view src = args_array[format[i + 1] - '1'];"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 2,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_substitute_placeholder_index/hunk-2/crash-reproduction-build.log": {
+            "sha256": "45ccfb33241f9c2089d4ee7fb0546247aeb185c64962d12d0de511fce8dd420a",
+            "bytes": 201
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_substitute_placeholder_index/hunk-2/crash-reproduction.log": {
+            "sha256": "cdd72f714c56a210ffcabb8e44f2dcb48c1c312add2d9785e32142833bbb6ec8",
+            "bytes": 417
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_substitute_placeholder_index/hunk-2/absl_substitute_test.log": {
+            "sha256": "cdd72f714c56a210ffcabb8e44f2dcb48c1c312add2d9785e32142833bbb6ec8",
+            "bytes": 417
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_substitute_placeholder_index/hunk-2/proof.json": {
+            "sha256": "8cd8bca28a75056a2643feb456bdd6394067054872f0b15d883b884b97aab47a",
+            "bytes": 466
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_substitute_placeholder_index/hunk-2/build.log": {
+            "sha256": "45ccfb33241f9c2089d4ee7fb0546247aeb185c64962d12d0de511fce8dd420a",
+            "bytes": 201
+          }
+        }
+      },
+      {
+        "case": "absl_substitute_literal_dollars",
+        "hunk": 1,
+        "path": "absl/strings/substitute.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "SubstituteTest.Substitute"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 0.7,
+        "mutation": {
+          "path": "absl/strings/substitute.cc",
+          "before": "      } else if (format[i + 1] == '$') {\n        ++size;",
+          "after": "      } else if (format[i + 1] == '$') {\n        size += 2;"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 1,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_substitute_literal_dollars/hunk-1/absl_substitute_test.xml": {
+            "sha256": "232c1c8ef790f4c7535e1b4acf64ba7bca206ec9bcb22c937cbc8410419034dc",
+            "bytes": 3191
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_substitute_literal_dollars/hunk-1/absl_substitute_test.log": {
+            "sha256": "aad0ebe610284062d48f36352b2b5002ecd128552de81305a6fcca77936b1f9b",
+            "bytes": 1538
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_substitute_literal_dollars/hunk-1/proof.json": {
+            "sha256": "ffb54354958a56dfb3ada0f8889bd0330afb351068203fd46df4372f6cde1ad3",
+            "bytes": 275
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_substitute_literal_dollars/hunk-1/build.log": {
+            "sha256": "45ccfb33241f9c2089d4ee7fb0546247aeb185c64962d12d0de511fce8dd420a",
+            "bytes": 201
+          }
+        }
+      },
+      {
+        "case": "absl_substitute_literal_dollars",
+        "hunk": 2,
+        "path": "absl/strings/substitute.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "SubstituteTest.Substitute"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 0.66,
+        "mutation": {
+          "path": "absl/strings/substitute.cc",
+          "before": "            } else if (format[i + 1] == '$') {\n              *target++ = '$';",
+          "after": "            } else if (format[i + 1] == '$') {\n              *target++ = '$';\n              *target++ = '$';"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 2,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_substitute_literal_dollars/hunk-2/absl_substitute_test.xml": {
+            "sha256": "6df4c72d979ee69efaf92630dcf7d49e9ebbdf0f63b9ebd0a02c45fa8a46f40e",
+            "bytes": 2671
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_substitute_literal_dollars/hunk-2/absl_substitute_test.log": {
+            "sha256": "97b3d7089491b4eb3d28780c76a41565e2fd7aefee8a3d1c5d8ac8bfdc6500ae",
+            "bytes": 1324
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_substitute_literal_dollars/hunk-2/proof.json": {
+            "sha256": "8c5c8d86f7d95e21e2182f72d99b77de6db5da49443c00788f5fe7f0147f0d0f",
+            "bytes": 276
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_substitute_literal_dollars/hunk-2/build.log": {
+            "sha256": "45ccfb33241f9c2089d4ee7fb0546247aeb185c64962d12d0de511fce8dd420a",
+            "bytes": 201
+          }
+        }
+      },
+      {
+        "case": "absl_base64_alphabet_contract",
+        "hunk": 1,
+        "path": "absl/strings/internal/escaping.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "Base64.EscapeAndUnescape"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 0.72,
+        "mutation": {
+          "path": "absl/strings/internal/escaping.cc",
+          "before": "ABSL_CONST_INIT const char kBase64Chars[] =\n    \"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/\";",
+          "after": "ABSL_CONST_INIT const char kBase64Chars[] =\n    \"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_\";"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 1,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_alphabet_contract/hunk-1/absl_escaping_test.xml": {
+            "sha256": "13217b9731b6604c9c8e5b1111d4148e1879f00c06f67b24f01e042fe064337a",
+            "bytes": 128634
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_alphabet_contract/hunk-1/absl_escaping_test.log": {
+            "sha256": "264048680b59bc80ece90843bf199e749612d7a6600beb22a7edaafc40c1e7c9",
+            "bytes": 54714
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_alphabet_contract/hunk-1/proof.json": {
+            "sha256": "40310a6adaa54840378b9e542358085d04af610587d003d5ccc9882a4d1fe1f7",
+            "bytes": 280
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_alphabet_contract/hunk-1/build.log": {
+            "sha256": "6dde22ad4e7f4bd7de90d172adf077f04ff463ecb191e75a1ad7eb096ca7caf0",
+            "bytes": 447
+          }
+        }
+      },
+      {
+        "case": "absl_base64_alphabet_contract",
+        "hunk": 2,
+        "path": "absl/strings/internal/escaping.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "Base64.EscapeAndUnescape"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 0.59,
+        "mutation": {
+          "path": "absl/strings/internal/escaping.cc",
+          "before": "ABSL_CONST_INIT const char kWebSafeBase64Chars[] =\n    \"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_\";",
+          "after": "ABSL_CONST_INIT const char kWebSafeBase64Chars[] =\n    \"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/\";"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 2,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_alphabet_contract/hunk-2/absl_escaping_test.xml": {
+            "sha256": "b5041df001744e194326c5a5db74c249cb3a21a3029ebfe24d1597c2fec6133a",
+            "bytes": 75651
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_alphabet_contract/hunk-2/absl_escaping_test.log": {
+            "sha256": "f1f5e1b8c8f006f75e16f424b2483f2c01e6087d941582e5a37a3e8ddca3255a",
+            "bytes": 32364
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_alphabet_contract/hunk-2/proof.json": {
+            "sha256": "9bd565e418a8cb62e6176f21ae71f83d7fb6ed3274f2d02afa538618787d65a1",
+            "bytes": 280
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_alphabet_contract/hunk-2/build.log": {
+            "sha256": "47daedceb6c543c0c432ada4e170143ba0a51b0e7b72b5da5cab2dc95028d9e4",
+            "bytes": 300
+          }
+        }
+      },
+      {
+        "case": "absl_base64_alphabet_contract",
+        "hunk": 3,
+        "path": "absl/strings/escaping.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "Base64.EscapeAndUnescape"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 0.78,
+        "mutation": {
+          "path": "absl/strings/escaping.cc",
+          "before": "bool Base64Unescape(absl::string_view src, std::string* absl_nonnull dest) {\n  return Base64UnescapeInternal(src.data(), src.size(), dest, kUnBase64);",
+          "after": "bool Base64Unescape(absl::string_view src, std::string* absl_nonnull dest) {\n  return Base64UnescapeInternal(src.data(), src.size(), dest, kUnWebSafeBase64);"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 3,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_alphabet_contract/hunk-3/absl_escaping_test.xml": {
+            "sha256": "7dc44decdc4a7cb764ba41ecb03f25bd46c463c096de5cb8f281ddebb7cb6fee",
+            "bytes": 64104
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_alphabet_contract/hunk-3/absl_escaping_test.log": {
+            "sha256": "7927278e3c290129afb0b65efe3ea2db1a34138bedb0982e6e34f9ec199b096e",
+            "bytes": 27411
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_alphabet_contract/hunk-3/proof.json": {
+            "sha256": "50737942920b6753a25fa69be59c4172fa0ac90788631c6562352877eb61eb23",
+            "bytes": 271
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_alphabet_contract/hunk-3/build.log": {
+            "sha256": "32c8149cfe53fd7b98635762b9e7e40657ced96bf931f21673d2d6628fe6bece",
+            "bytes": 760
+          }
+        }
+      },
+      {
+        "case": "absl_base64_alphabet_contract",
+        "hunk": 4,
+        "path": "absl/strings/escaping.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1
+        ],
+        "failed_tests": [
+          "Base64.EscapeAndUnescape"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 0.77,
+        "mutation": {
+          "path": "absl/strings/escaping.cc",
+          "before": "bool WebSafeBase64Unescape(absl::string_view src,\n                           std::string* absl_nonnull dest) {\n  return Base64UnescapeInternal(src.data(), src.size(), dest, kUnWebSafeBase64);",
+          "after": "bool WebSafeBase64Unescape(absl::string_view src,\n                           std::string* absl_nonnull dest) {\n  return Base64UnescapeInternal(src.data(), src.size(), dest, kUnBase64);"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 4,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_alphabet_contract/hunk-4/absl_escaping_test.xml": {
+            "sha256": "d53bfda176869f07b9ce0d85e22418464f6f75b9fa25f9bffb03d546a16763a2",
+            "bytes": 64902
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_alphabet_contract/hunk-4/absl_escaping_test.log": {
+            "sha256": "17eedbaee9a28bb7dbca014f0f35c3ed2b3c3e820eb784bd5cb7fea2ec1b4c50",
+            "bytes": 27810
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_alphabet_contract/hunk-4/proof.json": {
+            "sha256": "29f410d264de9f9abf350e1f964faa28e767a888f6bcd96603b0b44b270aa630",
+            "bytes": 271
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_base64_alphabet_contract/hunk-4/build.log": {
+            "sha256": "dc10a20bd71552a813af3cbdd30b9b1e3b7849681fb2727ea72a9b0da9370000",
+            "bytes": 609
+          }
+        }
+      },
+      {
+        "case": "absl_decimal_padding_shared_contract",
+        "hunk": 1,
+        "path": "absl/strings/substitute.cc",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          0,
+          1
+        ],
+        "failed_tests": [
+          "SubstituteTest.Substitute"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 1.16,
+        "mutation": {
+          "path": "absl/strings/substitute.cc",
+          "before": "    if (neg && dec.fill == '0') {  // If filling with '0',",
+          "after": "    if (neg && dec.fill == ' ') {  // If filling with '0',"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 1,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_decimal_padding_shared_contract/hunk-1/absl_str_cat_test.log": {
+            "sha256": "9d3c4337671955523838c707c9df53f5310b15dbb8edf63e3dc6496cff3a756e",
+            "bytes": 2069
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_decimal_padding_shared_contract/hunk-1/absl_substitute_test.xml": {
+            "sha256": "c970ca70ed0064746c198672fc83182e763f1ca80f49578b8b30660740472d65",
+            "bytes": 3235
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_decimal_padding_shared_contract/hunk-1/absl_substitute_test.log": {
+            "sha256": "0b642019dead13d5f285a2ee057a33ac105edafc8028593a87cff0b5b7cd0541",
+            "bytes": 1606
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_decimal_padding_shared_contract/hunk-1/absl_str_cat_test.xml": {
+            "sha256": "0640a84dd35afe6e486f27a41d01d9a2fd202b8e8dfe9fa88ae2151fdc8314d7",
+            "bytes": 5676
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_decimal_padding_shared_contract/hunk-1/proof.json": {
+            "sha256": "fc41dfcb4cb79d887228a69cc32a1a6c8f25e1a18980f44b10e8a8cc11c4d498",
+            "bytes": 288
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_decimal_padding_shared_contract/hunk-1/build.log": {
+            "sha256": "15fd0feb9452add5b5297e6ecc08b61547b86bdf0e903f7d4dd91ce87d3bad43",
+            "bytes": 409
+          }
+        }
+      },
+      {
+        "case": "absl_decimal_padding_shared_contract",
+        "hunk": 2,
+        "path": "absl/strings/str_cat.h",
+        "build_exit_code": 0,
+        "test_exit_codes": [
+          1,
+          0
+        ],
+        "failed_tests": [
+          "Numbers.TestFunctionsMovedOverFromNumbersMain"
+        ],
+        "individually_observed": true,
+        "elapsed_seconds": 1.89,
+        "mutation": {
+          "path": "absl/strings/str_cat.h",
+          "before": "      if (dec.neg && dec.fill == '0') {  // If filling with '0',",
+          "after": "      if (dec.neg && dec.fill == ' ') {  // If filling with '0',"
+        },
+        "retained_in_v2": true,
+        "active_anchor_index": 2,
+        "evidence": {
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_decimal_padding_shared_contract/hunk-2/absl_str_cat_test.log": {
+            "sha256": "cf8b8eb32de96bb9e422e359074b3f58ec5a33b7c1d0d0048d27eb147db8a3d3",
+            "bytes": 120346
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_decimal_padding_shared_contract/hunk-2/absl_substitute_test.xml": {
+            "sha256": "fe4ceaa3b7cfcabab0f25e4e51a1a4b63e09f6cee8f1f8e34bcbb71120399fb2",
+            "bytes": 2139
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_decimal_padding_shared_contract/hunk-2/absl_substitute_test.log": {
+            "sha256": "67824ffa5b23975806e173a97bef545a9f60dbfd05f1a2ec23c1bbf86d210b72",
+            "bytes": 1021
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_decimal_padding_shared_contract/hunk-2/absl_str_cat_test.xml": {
+            "sha256": "164a6596e0242210f222d8276fabbd79307b7482302c78b729d2fe40fbb6d6c6",
+            "bytes": 284252
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_decimal_padding_shared_contract/hunk-2/proof.json": {
+            "sha256": "4b1952c68f0402e184d96112235176b4738368860833c238a259294a0fa80bd8",
+            "bytes": 304
+          },
+          ".auto-fix/expanded-proof/abseil-strings/single-hunks/absl_decimal_padding_shared_contract/hunk-2/build.log": {
+            "sha256": "c8fb6677f92b22be5777b63844a93bcf634a8468a3457f41d38f3ac156e92cf2",
+            "bytes": 759
+          }
+        }
+      }
+    ],
+    "observed": 34,
+    "total": 40,
+    "assertion_observed": 32,
+    "native_crash_observed": 2
+  },
+  "active_combined_native_proof": {
+    "complete": true,
+    "verified_cases": 17,
+    "distinct_suite_executed_tests": 147,
+    "distinct_suite_disabled_tests": 1,
+    "case_suite_test_executions": 417,
+    "protected_tests_unchanged": true,
+    "pinned_source_untouched": true,
+    "evidence_root": ".auto-fix/expanded-proof/abseil-strings",
+    "source_clone_restored": true,
+    "active_mutation_anchors": 34,
+    "individually_observed_active_anchors": 34,
+    "individual_native_crash_anchors": 2,
+    "removed_unobserved_anchors": 6
+  },
+  "active_case_partitions": {
+    "absl_escape_byte_overflow": {
+      "split": "development",
+      "family": "byte_escape_validation"
+    },
+    "absl_escape_hex_continuation": {
+      "split": "development",
+      "family": "byte_escape_validation"
+    },
+    "absl_base64_tail_codec": {
+      "split": "development",
+      "family": "base64_codec"
+    },
+    "absl_base64_optional_padding_whitespace": {
+      "split": "development",
+      "family": "base64_codec"
+    },
+    "absl_integer_bare_prefixes": {
+      "split": "development",
+      "family": "integer_parsing"
+    },
+    "absl_integer_partial_results": {
+      "split": "development",
+      "family": "integer_parsing"
+    },
+    "absl_integer_signed_boundaries": {
+      "split": "development",
+      "family": "integer_parsing"
+    },
+    "absl_replace_overlap_and_progress": {
+      "split": "development",
+      "family": "pattern_replacement"
+    },
+    "absl_split_literal_and_chunk_boundaries": {
+      "split": "development",
+      "family": "delimiter_parsing"
+    },
+    "absl_unicode_escape_validation_lengths": {
+      "split": "holdout",
+      "family": "unicode_escaping"
+    },
+    "absl_unicode_safe_escape_modes": {
+      "split": "holdout",
+      "family": "unicode_escaping"
+    },
+    "absl_float_lexical_whitespace_sign": {
+      "split": "holdout",
+      "family": "floating_point_parsing"
+    },
+    "absl_float_signed_special_values": {
+      "split": "holdout",
+      "family": "floating_point_parsing"
+    },
+    "absl_substitute_placeholder_index": {
+      "split": "holdout",
+      "family": "template_substitution"
+    },
+    "absl_substitute_literal_dollars": {
+      "split": "holdout",
+      "family": "template_substitution"
+    },
+    "absl_base64_alphabet_contract": {
+      "split": "development",
+      "family": "base64_codec"
+    },
+    "absl_decimal_padding_shared_contract": {
+      "split": "holdout",
+      "family": "decimal_formatting"
+    }
+  },
+  "active_combined_evidence": {
+    "absl_escape_byte_overflow": {
+      ".auto-fix/expanded-proof/abseil-strings/absl_escape_byte_overflow/mutated-absl_escaping_test.xml": {
+        "sha256": "390c250925a5cc844eee5b87824c09bcc2c1c243451790750684dcda87ad1759",
+        "bytes": 8987
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_escape_byte_overflow/mutated-build.log": {
+        "sha256": "16eddd5d7129901aa4939b289748e1ca1d1049d56f950280727597631bd9349b",
+        "bytes": 273
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_escape_byte_overflow/clean-absl_escaping_test.log": {
+        "sha256": "c941fb442e6f7645e62f43910729783f4c5599ed3ef400563758db2e7f540782",
+        "bytes": 2673
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_escape_byte_overflow/mutated-absl_escaping_test.log": {
+        "sha256": "27f96df87d4f0ccf56812324d42eca3aaeb4725497b3259185519035fb13e5ba",
+        "bytes": 3893
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_escape_byte_overflow/clean-absl_escaping_test.xml": {
+        "sha256": "8a0041bdfbeab06db933c344897a91e328a5dd0feb75cdd24dde301b2f5dcf10",
+        "bytes": 6339
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_escape_byte_overflow/clean-build.log": {
+        "sha256": "8c35b1682f73592d30612d7b0fabdb384fcfff35cb5a076cb48b85b1368aa794",
+        "bytes": 22
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_escape_byte_overflow/proof.json": {
+        "sha256": "d33f048bb42f155c030fe8512f3822445fd72349f6d45426c48a03d5eab00227",
+        "bytes": 445
+      }
+    },
+    "absl_escape_hex_continuation": {
+      ".auto-fix/expanded-proof/abseil-strings/absl_escape_hex_continuation/mutated-absl_escaping_test.xml": {
+        "sha256": "eb589a74f680b9b3eb079b9dfdeba6a673ac85a24f33e318c38c20ca0b07d56c",
+        "bytes": 7818
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_escape_hex_continuation/mutated-build.log": {
+        "sha256": "16eddd5d7129901aa4939b289748e1ca1d1049d56f950280727597631bd9349b",
+        "bytes": 273
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_escape_hex_continuation/clean-absl_escaping_test.log": {
+        "sha256": "c941fb442e6f7645e62f43910729783f4c5599ed3ef400563758db2e7f540782",
+        "bytes": 2673
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_escape_hex_continuation/mutated-absl_escaping_test.log": {
+        "sha256": "3d8a640c89a8fb951319399a4eaf18ba926b8ebda450d6585ebaddbf13655684",
+        "bytes": 3362
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_escape_hex_continuation/clean-absl_escaping_test.xml": {
+        "sha256": "340f463b4c01e8cbf99f0306f079535636f6fa042af4b79b8dd7a8fc60295f05",
+        "bytes": 6339
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_escape_hex_continuation/clean-build.log": {
+        "sha256": "16eddd5d7129901aa4939b289748e1ca1d1049d56f950280727597631bd9349b",
+        "bytes": 273
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_escape_hex_continuation/proof.json": {
+        "sha256": "6eb9c5592eb4dab977c77517bb3d0c131438cbf473ab49cc7d14c6c3012352e8",
+        "bytes": 451
+      }
+    },
+    "absl_base64_tail_codec": {
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_tail_codec/mutated-absl_escaping_test.xml": {
+        "sha256": "d69c643de69679a59c5975d88f3becb34d4dce5581fde7094f47c66089285da8",
+        "bytes": 316534
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_tail_codec/mutated-build.log": {
+        "sha256": "44730b3ee50f7b6bb1cf70a482865bb384a06d01a618e690bac39cefaaa73e61",
+        "bytes": 445
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_tail_codec/clean-absl_escaping_test.log": {
+        "sha256": "b002df95781393816b3624236082cb69871d63a17c632816d6cd4bc644b9880e",
+        "bytes": 2673
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_tail_codec/mutated-absl_escaping_test.log": {
+        "sha256": "9171dd1bbd08c6cfd63b0cba16fdef4a3c21ff95b116d5b03d9cba411a78775e",
+        "bytes": 134833
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_tail_codec/clean-absl_escaping_test.xml": {
+        "sha256": "0d9dbd4c68b61c95018839ff7fee513995aa1c638cde2b995a33d38ff9005e92",
+        "bytes": 6339
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_tail_codec/clean-build.log": {
+        "sha256": "16eddd5d7129901aa4939b289748e1ca1d1049d56f950280727597631bd9349b",
+        "bytes": 273
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_tail_codec/proof.json": {
+        "sha256": "a47fa395d0997b2f002325bcfecec40e5f113cfa9575c5c975c8df4225bcc75a",
+        "bytes": 468
+      }
+    },
+    "absl_base64_optional_padding_whitespace": {
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_optional_padding_whitespace/mutated-absl_escaping_test.xml": {
+        "sha256": "d5f23bcbfad1fc6e991b63d3a8145385c5985b0108c7ff9fa03dffba381572dc",
+        "bytes": 112627
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_optional_padding_whitespace/mutated-build.log": {
+        "sha256": "16eddd5d7129901aa4939b289748e1ca1d1049d56f950280727597631bd9349b",
+        "bytes": 273
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_optional_padding_whitespace/clean-absl_escaping_test.log": {
+        "sha256": "b002df95781393816b3624236082cb69871d63a17c632816d6cd4bc644b9880e",
+        "bytes": 2673
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_optional_padding_whitespace/mutated-absl_escaping_test.log": {
+        "sha256": "2152d3365e990e4e938d8aa1e532230cbe8772816d0fba38ab0d012a7c4fd8da",
+        "bytes": 48208
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_optional_padding_whitespace/clean-absl_escaping_test.xml": {
+        "sha256": "5236fda6ce7b87b28229701de54c9eeb2366b9fb5d8e6b4229397499a7c588d1",
+        "bytes": 6339
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_optional_padding_whitespace/clean-build.log": {
+        "sha256": "44730b3ee50f7b6bb1cf70a482865bb384a06d01a618e690bac39cefaaa73e61",
+        "bytes": 445
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_optional_padding_whitespace/proof.json": {
+        "sha256": "ddac1449a6319741236f031641956bb5f8013c2cca40b6e8f1fd624bd1280731",
+        "bytes": 485
+      }
+    },
+    "absl_integer_bare_prefixes": {
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_bare_prefixes/mutated-build.log": {
+        "sha256": "db5069d253b1ee3f826a6ca5695cfd041958bf9ece10bbbe20f18047c7a8b003",
+        "bytes": 393
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_bare_prefixes/mutated-absl_numbers_test.xml": {
+        "sha256": "eaa3397b91ea51dbf57581aa0fa56be31f3cb70e85001e52c34032e23007156d",
+        "bytes": 35636
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_bare_prefixes/clean-absl_numbers_test.log": {
+        "sha256": "1b6b9dc1bec4934e0486cd025a4dfcafa3e4924eae069124d6f6684b1178b093",
+        "bytes": 7939
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_bare_prefixes/mutated-absl_numbers_test.log": {
+        "sha256": "f0d2cdf2314988cde50daced3557cc8036416792784cc61ade15da62b3c9bb65",
+        "bytes": 16316
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_bare_prefixes/clean-absl_numbers_test.xml": {
+        "sha256": "f5dce631f2e1661f996c3f66d8489a4763c6632890049926c21cc446df8b9bfe",
+        "bytes": 16655
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_bare_prefixes/clean-build.log": {
+        "sha256": "06dd4a72007e8899c6cbc940623b3ef7165541a39a62ae2d5223f15c263b55cf",
+        "bytes": 394
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_bare_prefixes/proof.json": {
+        "sha256": "97b4535d9feb26e28a92c8e471e88fd52c5eb5239c3d4e4b6c7f15e961cee471",
+        "bytes": 556
+      }
+    },
+    "absl_integer_partial_results": {
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_partial_results/mutated-build.log": {
+        "sha256": "db5069d253b1ee3f826a6ca5695cfd041958bf9ece10bbbe20f18047c7a8b003",
+        "bytes": 393
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_partial_results/mutated-absl_numbers_test.xml": {
+        "sha256": "25c8c3dbb4b985bfe115753ba83ac2b3481f5d38c1f86c14c0dbd24e88e7ae9d",
+        "bytes": 37197
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_partial_results/clean-absl_numbers_test.log": {
+        "sha256": "1dd3cc25b0dded43cc367af935e56b2bbbf953dccedbe58a2f7a7dcd4f695ac6",
+        "bytes": 7939
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_partial_results/mutated-absl_numbers_test.log": {
+        "sha256": "3894f56b9ac703147f149dc5eba30986d0eaea8305a9615a3137746c5e3d936a",
+        "bytes": 17196
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_partial_results/clean-absl_numbers_test.xml": {
+        "sha256": "d9078f87a15ac4ec6b31d90764d3a161390d2a2fe334036e083ea304dd95bacc",
+        "bytes": 16654
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_partial_results/clean-build.log": {
+        "sha256": "db5069d253b1ee3f826a6ca5695cfd041958bf9ece10bbbe20f18047c7a8b003",
+        "bytes": 393
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_partial_results/proof.json": {
+        "sha256": "c5d33fa0bdc6554f032d40ffc7df72d0943718d8d637a10f2a62ece05464a289",
+        "bytes": 845
+      }
+    },
+    "absl_integer_signed_boundaries": {
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_signed_boundaries/mutated-build.log": {
+        "sha256": "db5069d253b1ee3f826a6ca5695cfd041958bf9ece10bbbe20f18047c7a8b003",
+        "bytes": 393
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_signed_boundaries/mutated-absl_numbers_test.xml": {
+        "sha256": "4a1e1ea90fa0c941bbd0e5084227fb98b836ae7bb9dbe3f41a791a892cb85958",
+        "bytes": 1095680
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_signed_boundaries/clean-absl_numbers_test.log": {
+        "sha256": "568dd356145fad59f638f63afdb93c6f9332b360c22c4f9015bcc0c6fb6c6f35",
+        "bytes": 7939
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_signed_boundaries/mutated-absl_numbers_test.xml.raw": {
+        "sha256": "826f5ef202b1d541a2e66d16bdcf99e0c6baef96377cde16746e85cb2f4e6065",
+        "bytes": 1095648
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_signed_boundaries/mutated-absl_numbers_test.log": {
+        "sha256": "fe920896ae734e07c8e4c934651bf34a6b04ed8d476a18d32dd9aa4b71b312ea",
+        "bytes": 471948
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_signed_boundaries/clean-absl_numbers_test.xml": {
+        "sha256": "bdd5a27ec122e552ad14e56196f0a776024abcbf13e8157eed26c3987f68c378",
+        "bytes": 16656
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_signed_boundaries/clean-build.log": {
+        "sha256": "db5069d253b1ee3f826a6ca5695cfd041958bf9ece10bbbe20f18047c7a8b003",
+        "bytes": 393
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_integer_signed_boundaries/proof.json": {
+        "sha256": "8e7add6206f5bb86710e37893bca75353cdd3f1f1b0e1abb8dd8b6d23aa0b687",
+        "bytes": 1425
+      }
+    },
+    "absl_replace_overlap_and_progress": {
+      ".auto-fix/expanded-proof/abseil-strings/absl_replace_overlap_and_progress/mutated-absl_str_replace_test.xml": {
+        "sha256": "8213eb3dfe4ca9f0dcb4ffb7c6efd2a8c36dd47c0abb6f3941717355020a4102",
+        "bytes": 14901
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_replace_overlap_and_progress/mutated-build.log": {
+        "sha256": "0eeac572a81ee2c6c88be09398c9418d268a15808645c23e99b6fa6aa575d32f",
+        "bytes": 301
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_replace_overlap_and_progress/clean-absl_str_replace_test.xml": {
+        "sha256": "0fc594c6452885b275ad13df0f8c9d627c73b552f634c80a1b7da255fc7bc961",
+        "bytes": 2263
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_replace_overlap_and_progress/clean-absl_str_replace_test.log": {
+        "sha256": "fe0528bcc53d4035869e5667d708f72b8423f61a89cf411dbf4182924953362d",
+        "bytes": 1018
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_replace_overlap_and_progress/clean-build.log": {
+        "sha256": "0aef0f1677f84e93d24164420023c46bbe2d5facc575de84064ff4e386a05868",
+        "bytes": 199
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_replace_overlap_and_progress/mutated-absl_str_replace_test.log": {
+        "sha256": "b8b587c780a30ee660af086e41b6b29e7fb75437391d4b735c752ce7f1c36a84",
+        "bytes": 6670
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_replace_overlap_and_progress/proof.json": {
+        "sha256": "8ee9a41ed9a469d785c1da530668973498e836ff3db9368f15c4c790b65aa363",
+        "bytes": 702
+      }
+    },
+    "absl_split_literal_and_chunk_boundaries": {
+      ".auto-fix/expanded-proof/abseil-strings/absl_split_literal_and_chunk_boundaries/mutated-build.log": {
+        "sha256": "ce692a1b7c43e83395eea780e4d7589c08d2bbd1312d961cd8c6a8aeeb1eca81",
+        "bytes": 275
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_split_literal_and_chunk_boundaries/clean-absl_str_split_test.log": {
+        "sha256": "8d0dd58fe2cd06824652fe067cf658bfd6aca1baf7b29ec5cc27efed46b94a5c",
+        "bytes": 3117
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_split_literal_and_chunk_boundaries/mutated-absl_str_split_test.log": {
+        "sha256": "62c9b61568e4bb670a931e256eccc8716ad9584fb2a459aded6c6e44e382454c",
+        "bytes": 5782
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_split_literal_and_chunk_boundaries/mutated-absl_str_split_test.xml": {
+        "sha256": "0b6e18a165c2a70df240cea413a1920af0330b08576488e282d10b4ca671e9be",
+        "bytes": 15444
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_split_literal_and_chunk_boundaries/clean-absl_str_split_test.xml": {
+        "sha256": "b8521c1225753109fa32655adec5d7dfc97393d543f378d61629e1c5cb9e5dec",
+        "bytes": 9174
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_split_literal_and_chunk_boundaries/clean-build.log": {
+        "sha256": "a4946f2532587e0355835973c39563d2dd51c4e6c8a39cee45ab69aa31e49ea8",
+        "bytes": 277
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_split_literal_and_chunk_boundaries/proof.json": {
+        "sha256": "1e27fd587ef17e76a0d67943df2f8e4c16811abd2000752d3570ccf6be5957b9",
+        "bytes": 505
+      }
+    },
+    "absl_unicode_escape_validation_lengths": {
+      ".auto-fix/expanded-proof/abseil-strings/absl_unicode_escape_validation_lengths/mutated-absl_escaping_test.xml": {
+        "sha256": "b55f387b12bb5b8af24568857e391952de343870e7969c97535257bb09c6f41c",
+        "bytes": 9536
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_unicode_escape_validation_lengths/mutated-build.log": {
+        "sha256": "70ee7b52fd62b01410ec09c9309064dfdec210540689f4d9f617a47bfb057f59",
+        "bytes": 441
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_unicode_escape_validation_lengths/clean-absl_escaping_test.log": {
+        "sha256": "714b153772f84cb32fc31fa0ce8a887269faba83595a23e98640e7ee1ed3cf9d",
+        "bytes": 2673
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_unicode_escape_validation_lengths/mutated-absl_escaping_test.log": {
+        "sha256": "a9741bddf38ee025ab4ff626181fdfc13dfe9d99de8f2ddb3af79d3667529e81",
+        "bytes": 4106
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_unicode_escape_validation_lengths/clean-absl_escaping_test.xml": {
+        "sha256": "ab2e376eb4c480d7bd0f8328906163e78e1b15a4471359b6e6300acae917f42e",
+        "bytes": 6339
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_unicode_escape_validation_lengths/clean-build.log": {
+        "sha256": "9eb7a6763f37e24856a7812000cc91eb3c9b11c49028342c1df17ef7e777bc92",
+        "bytes": 274
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_unicode_escape_validation_lengths/proof.json": {
+        "sha256": "b26f819fa5f7c88cef54cc2384a29aaaabcff68d7b0e63168f338af6cde18bdb",
+        "bytes": 457
+      }
+    },
+    "absl_unicode_safe_escape_modes": {
+      ".auto-fix/expanded-proof/abseil-strings/absl_unicode_safe_escape_modes/mutated-absl_escaping_test.xml": {
+        "sha256": "94c5fc9dad6a5f5e0cd163e6bad775f5254fea63627b8081ce573e7d2e1e8b7a",
+        "bytes": 8659
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_unicode_safe_escape_modes/mutated-build.log": {
+        "sha256": "16eddd5d7129901aa4939b289748e1ca1d1049d56f950280727597631bd9349b",
+        "bytes": 273
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_unicode_safe_escape_modes/clean-absl_escaping_test.log": {
+        "sha256": "b002df95781393816b3624236082cb69871d63a17c632816d6cd4bc644b9880e",
+        "bytes": 2673
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_unicode_safe_escape_modes/mutated-absl_escaping_test.log": {
+        "sha256": "4afd6f5bd9965a55aa34d5fea066e8b848c2f1e60f52b55f37e41e640b1d7c8a",
+        "bytes": 3764
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_unicode_safe_escape_modes/clean-absl_escaping_test.xml": {
+        "sha256": "d8362825c7a66310802aaad5e3e30e62e216bc404e316897dc9396dfb938bc79",
+        "bytes": 6339
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_unicode_safe_escape_modes/clean-build.log": {
+        "sha256": "70ee7b52fd62b01410ec09c9309064dfdec210540689f4d9f617a47bfb057f59",
+        "bytes": 441
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_unicode_safe_escape_modes/proof.json": {
+        "sha256": "4edcee2d743d38ff1a74419467e8552c576987dea7bd8ba789723befee5bf93d",
+        "bytes": 449
+      }
+    },
+    "absl_float_lexical_whitespace_sign": {
+      ".auto-fix/expanded-proof/abseil-strings/absl_float_lexical_whitespace_sign/mutated-build.log": {
+        "sha256": "db5069d253b1ee3f826a6ca5695cfd041958bf9ece10bbbe20f18047c7a8b003",
+        "bytes": 393
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_float_lexical_whitespace_sign/mutated-absl_numbers_test.xml": {
+        "sha256": "c64b053c53a7e1c48ec0666b65d9d21f624305251ebdc888be229702ebee1493",
+        "bytes": 18061
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_float_lexical_whitespace_sign/clean-absl_numbers_test.log": {
+        "sha256": "df9869aa180089d2c3b2e3be3317c733fa67521d3a8b00cde94412d8f70d504b",
+        "bytes": 7939
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_float_lexical_whitespace_sign/mutated-absl_numbers_test.log": {
+        "sha256": "0ddb608540bf6b56d3b45ba4228c46d3cb555c1b5407bd591362b4fb3574faf4",
+        "bytes": 8638
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_float_lexical_whitespace_sign/clean-absl_numbers_test.xml": {
+        "sha256": "86997c0d997ad5117035b6e69c5d12952ca32f60b24f60f419f9d913bd5a9d60",
+        "bytes": 16656
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_float_lexical_whitespace_sign/clean-build.log": {
+        "sha256": "06dd4a72007e8899c6cbc940623b3ef7165541a39a62ae2d5223f15c263b55cf",
+        "bytes": 394
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_float_lexical_whitespace_sign/proof.json": {
+        "sha256": "723cf59a2a1c0a94f698a1756d65e3c0932447ba7fffb22c6e98c28e3935381d",
+        "bytes": 478
+      }
+    },
+    "absl_float_signed_special_values": {
+      ".auto-fix/expanded-proof/abseil-strings/absl_float_signed_special_values/clean-absl_charconv_test.log": {
+        "sha256": "8de6ac70598999d188228f8e6c7aafa0865858db9009fce04d774f8a96f05866",
+        "bytes": 1743
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_float_signed_special_values/mutated-build.log": {
+        "sha256": "4cafe45311cfd8f9cae44dbe444efc650772d5bf6abd31104062f245afc44eb7",
+        "bytes": 273
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_float_signed_special_values/mutated-absl_charconv_test.xml": {
+        "sha256": "352eeae5d024a1c0ac24d5ee5dfc1fd9eb176a1789a447a2689357f9c8971c40",
+        "bytes": 71241
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_float_signed_special_values/clean-absl_charconv_test.xml": {
+        "sha256": "8df2adc549f9b9c23489231f3e9c428b27322ae4270ded4a2787a90f4ce49f42",
+        "bytes": 4643
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_float_signed_special_values/mutated-absl_charconv_test.log": {
+        "sha256": "edc2dcef05ac2c2ed22786d7fdce93bc858de7f8db5239e5dbfed47b3c0a8a22",
+        "bytes": 32335
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_float_signed_special_values/clean-build.log": {
+        "sha256": "b039c26cca1abaf2cba8758449ec0f4d89fc81c9137c10de9939c15f22297ab7",
+        "bytes": 272
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_float_signed_special_values/proof.json": {
+        "sha256": "ac4c43b47f142c4d962e77496dc1b74fcd63465faaee4aa9b71c1b014a6f0e0c",
+        "bytes": 479
+      }
+    },
+    "absl_substitute_placeholder_index": {
+      ".auto-fix/expanded-proof/abseil-strings/absl_substitute_placeholder_index/clean-absl_substitute_test.xml": {
+        "sha256": "f7df5d9e370bcafdda193ff2441adab990887c7cc3622c778a190571319b206a",
+        "bytes": 2139
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_substitute_placeholder_index/mutated-absl_substitute_test.log": {
+        "sha256": "3a75686870437fdbfdc8c58273c6ba6bcd9a9c5ecb48da32bce02ca2557a2137",
+        "bytes": 13940
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_substitute_placeholder_index/mutated-build.log": {
+        "sha256": "45ccfb33241f9c2089d4ee7fb0546247aeb185c64962d12d0de511fce8dd420a",
+        "bytes": 201
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_substitute_placeholder_index/clean-build.log": {
+        "sha256": "7dc2661524cbcb17205f211829f9a25193ee325f9ddbbbc446a0df9fbf7adf2d",
+        "bytes": 199
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_substitute_placeholder_index/clean-absl_substitute_test.log": {
+        "sha256": "67824ffa5b23975806e173a97bef545a9f60dbfd05f1a2ec23c1bbf86d210b72",
+        "bytes": 1021
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_substitute_placeholder_index/mutated-absl_substitute_test.xml": {
+        "sha256": "8614f65976203ae49901666ec4ad4560dc40200352aa6fbff21e7158a6f43e39",
+        "bytes": 32666
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_substitute_placeholder_index/proof.json": {
+        "sha256": "9c6c4ccb3088721df42d02abd61063f5bed1faf0492a813d73100fc3595d970e",
+        "bytes": 612
+      }
+    },
+    "absl_substitute_literal_dollars": {
+      ".auto-fix/expanded-proof/abseil-strings/absl_substitute_literal_dollars/clean-absl_substitute_test.xml": {
+        "sha256": "0035e2d611ea83829f3f0b25e463e6b37995da79f001947f206b2ac429f4d82d",
+        "bytes": 2139
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_substitute_literal_dollars/mutated-absl_substitute_test.log": {
+        "sha256": "6a9ef2631f1e0a16b794573f9a883a6d5f25fba1f0894d80eef7648c1db00c9f",
+        "bytes": 1536
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_substitute_literal_dollars/mutated-build.log": {
+        "sha256": "45ccfb33241f9c2089d4ee7fb0546247aeb185c64962d12d0de511fce8dd420a",
+        "bytes": 201
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_substitute_literal_dollars/clean-build.log": {
+        "sha256": "45ccfb33241f9c2089d4ee7fb0546247aeb185c64962d12d0de511fce8dd420a",
+        "bytes": 201
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_substitute_literal_dollars/clean-absl_substitute_test.log": {
+        "sha256": "67824ffa5b23975806e173a97bef545a9f60dbfd05f1a2ec23c1bbf86d210b72",
+        "bytes": 1021
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_substitute_literal_dollars/mutated-absl_substitute_test.xml": {
+        "sha256": "a76207b9322506b1d2c28b4bc93428277d8ca6f937eb3db9d8b3f550c3873016",
+        "bytes": 3187
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_substitute_literal_dollars/proof.json": {
+        "sha256": "fbeb51b6eadb09a7331a21f141c8116c75eaea76c07f762be84a6a1437da8986",
+        "bytes": 452
+      }
+    },
+    "absl_base64_alphabet_contract": {
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_alphabet_contract/mutated-absl_escaping_test.xml": {
+        "sha256": "846ad5c729e57e08ac91fc4b412aadb10f90c91c60539646e1396f16fdd17d09",
+        "bytes": 198730
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_alphabet_contract/mutated-build.log": {
+        "sha256": "44730b3ee50f7b6bb1cf70a482865bb384a06d01a618e690bac39cefaaa73e61",
+        "bytes": 445
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_alphabet_contract/clean-absl_escaping_test.log": {
+        "sha256": "f0d299c289fee574a633ec552614669f988b32863bedc70d1b1a8e2c41c8c0b9",
+        "bytes": 2673
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_alphabet_contract/mutated-absl_escaping_test.log": {
+        "sha256": "6d4696448748570d3db1093be48b2f3ae64012da7feac45e114fc5bfb8f68dda",
+        "bytes": 84717
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_alphabet_contract/clean-absl_escaping_test.xml": {
+        "sha256": "074ace878a4a4c1c0d095ade8f77a6c1030ff595e9cd19460a3a6bb2e363c1a7",
+        "bytes": 6339
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_alphabet_contract/clean-build.log": {
+        "sha256": "86ec72d5976280c7a5751cbe7951da8aad42fcf9df718883b7f0bc72c8d71aac",
+        "bytes": 275
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_base64_alphabet_contract/proof.json": {
+        "sha256": "2c53935874388c3f201aef119d03c0fcfe28b4a77821e09f61599ecdf3365aeb",
+        "bytes": 451
+      }
+    },
+    "absl_decimal_padding_shared_contract": {
+      ".auto-fix/expanded-proof/abseil-strings/absl_decimal_padding_shared_contract/clean-absl_substitute_test.xml": {
+        "sha256": "99c91c8871750bb1bf95583613456487bf8c6d1d4861b37165593ed3ad6aa9c5",
+        "bytes": 2139
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_decimal_padding_shared_contract/mutated-absl_substitute_test.log": {
+        "sha256": "0b642019dead13d5f285a2ee057a33ac105edafc8028593a87cff0b5b7cd0541",
+        "bytes": 1606
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_decimal_padding_shared_contract/mutated-build.log": {
+        "sha256": "c8fb6677f92b22be5777b63844a93bcf634a8468a3457f41d38f3ac156e92cf2",
+        "bytes": 759
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_decimal_padding_shared_contract/mutated-absl_str_cat_test.log": {
+        "sha256": "c6b0e17aa05c6559d1543733354aec23aa9a90bfcb5ba90a4c2a39656f07f250",
+        "bytes": 120346
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_decimal_padding_shared_contract/clean-absl_str_cat_test.xml": {
+        "sha256": "7e2c32837768cdb04ef190b78910d7d8a3f64fedab20c711fc8c5df17c71aa94",
+        "bytes": 5676
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_decimal_padding_shared_contract/mutated-absl_str_cat_test.xml": {
+        "sha256": "d522d3c3278c758c4486912713bb41db18b153bebb7d3b762d9a3e30cabbef4f",
+        "bytes": 284252
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_decimal_padding_shared_contract/clean-absl_str_cat_test.log": {
+        "sha256": "7e01919c5a925d2b6b60a53aba3d0f94cb0c8e668cbc325d8733a29544f7b139",
+        "bytes": 2069
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_decimal_padding_shared_contract/clean-build.log": {
+        "sha256": "2831a8b371f92a219056f4705d90014d3c25b9af9a7654f4643b12b6b4377509",
+        "bytes": 498
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_decimal_padding_shared_contract/clean-absl_substitute_test.log": {
+        "sha256": "67824ffa5b23975806e173a97bef545a9f60dbfd05f1a2ec23c1bbf86d210b72",
+        "bytes": 1021
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_decimal_padding_shared_contract/mutated-absl_substitute_test.xml": {
+        "sha256": "9fc389220c9f0dfea29069d1a352abf98bd11adc46479cca2e215f761c92111e",
+        "bytes": 3235
+      },
+      ".auto-fix/expanded-proof/abseil-strings/absl_decimal_padding_shared_contract/proof.json": {
+        "sha256": "596e9eb266f37c29747cf56d48182b3b141fdce3d272e12c71596dbf05c83088",
+        "bytes": 514
+      }
+    }
+  }
+}

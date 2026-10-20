@@ -1,0 +1,1671 @@
+{
+  "schema_version": 1,
+  "project_id": "abseil",
+  "group": "strings",
+  "partition_policy": "Predetermined by family before model evaluation: byte_escape_validation/base64_codec/integer_parsing/pattern_replacement/delimiter_parsing development; unicode_escaping/floating_point_parsing/template_substitution/decimal_formatting holdout. No family occurs in both sets.",
+  "source_project": "evaluation/project.json",
+  "cases": [
+    {
+      "id": "absl_escape_byte_overflow",
+      "project": "abseil",
+      "project_id": "abseil",
+      "title": "Octal and hexadecimal byte escapes accept out-of-range values",
+      "description": "Configuration imports accept malformed byte escape sequences and silently truncate them. Ordinary short escapes still decode.",
+      "exposure": "indirect",
+      "split": "development",
+      "family": "byte_escape_validation",
+      "complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 2,
+        "mutation_anchors": 2,
+        "production_files": 1,
+        "multi_location": true,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multiple_fault_sites"
+        ],
+        "category": "coupled_contract_regression",
+        "note": "The affected locations participate in one public contract; fixing one location may leave sibling paths failing."
+      },
+      "provenance": {
+        "kind": "synthetic_regression",
+        "historical_bug": false,
+        "source_repository": "https://github.com/abseil/abseil-cpp",
+        "source_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "source_tag": "20260107.1",
+        "source_license": "Apache-2.0",
+        "source_license_url": "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/LICENSE"
+      },
+      "mutations": [
+        {
+          "path": "absl/strings/escaping.cc",
+          "before": "          if (ch > 0xff) {",
+          "after": "          if (ch > 0xff && leave_nulls_escaped) {"
+        },
+        {
+          "path": "absl/strings/escaping.cc",
+          "before": "          if (ch > 0xFF) {",
+          "after": "          if (ch > 0xFF && leave_nulls_escaped) {"
+        }
+      ],
+      "build_targets": [
+        "absl_escaping_test"
+      ],
+      "ctest_regex": "^(absl_escaping_test)$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "Unescape.BasicFunction"
+      ],
+      "changed_files": [
+        "absl/strings/str_cat.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-3101",
+        "jira_summary": "Configuration imports accept malformed byte escape sequences and silently truncate them. Ordinary short escapes still decode.",
+        "commit_message": "CORE-3101: Update native runtime compatibility diagnostics",
+        "pr_title": "CORE-3101: Refresh ingestion worker diagnostic labels"
+      },
+      "source_metrics": [
+        {
+          "path": "absl/strings/escaping.cc",
+          "file_bytes": 39951,
+          "first_mutation_byte_offset": 5094
+        }
+      ],
+      "upstream_test_count": 19,
+      "upstream_executed_test_count": 18,
+      "upstream_disabled_test_count": 1,
+      "native_proof": {
+        "verified": true,
+        "platform": "darwin",
+        "clean_pass": true,
+        "mutation_build_pass": true,
+        "mutation_tests_fail": true,
+        "protected_test_hashes_unchanged": true,
+        "evidence_directory": ".auto-fix/expanded-proof/abseil-strings/absl_escape_byte_overflow",
+        "clean_executed_tests": 18,
+        "mutated_failed_tests": [
+          "Unescape.BasicFunction"
+        ],
+        "diagnostic_normalizations": []
+      }
+    },
+    {
+      "id": "absl_escape_hex_continuation",
+      "project": "abseil",
+      "project_id": "abseil",
+      "title": "Hexadecimal escaping mishandles printable continuation bytes",
+      "description": "A diagnostic string containing a control byte immediately followed by an ASCII hexadecimal digit fails an escape/unescape round trip.",
+      "exposure": "indirect",
+      "split": "development",
+      "family": "byte_escape_validation",
+      "complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 1,
+        "mutation_anchors": 1,
+        "production_files": 1,
+        "multi_location": false,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff"
+        ],
+        "category": "single_observed_regression",
+        "note": "Only the independently observed source fault is injected; uncovered secondary mutations were removed before formal evaluation."
+      },
+      "provenance": {
+        "kind": "synthetic_regression",
+        "historical_bug": false,
+        "source_repository": "https://github.com/abseil/abseil-cpp",
+        "source_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "source_tag": "20260107.1",
+        "source_license": "Apache-2.0",
+        "source_license_url": "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/LICENSE"
+      },
+      "mutations": [
+        {
+          "path": "absl/strings/escaping.cc",
+          "before": "             (last_hex_escape && absl::ascii_isxdigit(uc)))) {",
+          "after": "             (last_hex_escape && !absl::ascii_isxdigit(uc)))) {"
+        }
+      ],
+      "build_targets": [
+        "absl_escaping_test"
+      ],
+      "ctest_regex": "^(absl_escaping_test)$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "CEscape.EscapeAndUnescape"
+      ],
+      "changed_files": [
+        "absl/strings/str_cat.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-3102",
+        "jira_summary": "A diagnostic string containing a control byte immediately followed by an ASCII hexadecimal digit fails an escape/unescape round trip.",
+        "commit_message": "CORE-3102: Update native runtime compatibility diagnostics",
+        "pr_title": "CORE-3102: Refresh ingestion worker diagnostic labels"
+      },
+      "source_metrics": [
+        {
+          "path": "absl/strings/escaping.cc",
+          "file_bytes": 39951,
+          "first_mutation_byte_offset": 11940
+        }
+      ],
+      "upstream_test_count": 19,
+      "upstream_executed_test_count": 18,
+      "upstream_disabled_test_count": 1,
+      "native_proof": {
+        "verified": true,
+        "platform": "darwin",
+        "clean_pass": true,
+        "mutation_build_pass": true,
+        "mutation_tests_fail": true,
+        "protected_test_hashes_unchanged": true,
+        "evidence_directory": ".auto-fix/expanded-proof/abseil-strings/absl_escape_hex_continuation",
+        "clean_executed_tests": 18,
+        "mutated_failed_tests": [
+          "CEscape.EscapeAndUnescape"
+        ],
+        "diagnostic_normalizations": []
+      }
+    },
+    {
+      "id": "absl_base64_tail_codec",
+      "project": "abseil",
+      "project_id": "abseil",
+      "title": "Base64 short-tail encoding and decoding disagree on residual bits",
+      "description": "Binary telemetry payloads with one or two trailing bytes fail Base64 round trips; payloads divisible by three usually remain readable.",
+      "exposure": "indirect",
+      "split": "development",
+      "family": "base64_codec",
+      "complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 4,
+        "mutation_anchors": 4,
+        "production_files": 2,
+        "multi_location": true,
+        "multi_file": true,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multi_file",
+          "multiple_fault_sites"
+        ],
+        "category": "coupled_contract_regression",
+        "note": "The affected locations participate in one public contract; fixing one location may leave sibling paths failing."
+      },
+      "provenance": {
+        "kind": "synthetic_regression",
+        "historical_bug": false,
+        "source_repository": "https://github.com/abseil/abseil-cpp",
+        "source_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "source_tag": "20260107.1",
+        "source_license": "Apache-2.0",
+        "source_license_url": "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/LICENSE"
+      },
+      "mutations": [
+        {
+          "path": "absl/strings/internal/escaping.cc",
+          "before": "      cur_dest[1] = base64[in << 4];",
+          "after": "      cur_dest[1] = base64[in << 3];"
+        },
+        {
+          "path": "absl/strings/internal/escaping.cc",
+          "before": "      cur_dest[2] = base64[in << 2];",
+          "after": "      cur_dest[2] = base64[in << 1];"
+        },
+        {
+          "path": "absl/strings/escaping.cc",
+          "before": "        temp >>= 4;\n        dest[destidx] = static_cast<char>(temp);",
+          "after": "        temp >>= 5;\n        dest[destidx] = static_cast<char>(temp);"
+        },
+        {
+          "path": "absl/strings/escaping.cc",
+          "before": "        temp >>= 2;\n        dest[destidx + 1] = static_cast<char>(temp);",
+          "after": "        temp >>= 3;\n        dest[destidx + 1] = static_cast<char>(temp);"
+        }
+      ],
+      "build_targets": [
+        "absl_escaping_test"
+      ],
+      "ctest_regex": "^(absl_escaping_test)$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "Base64.EscapeAndUnescape",
+        "Base64.Padding"
+      ],
+      "changed_files": [
+        "absl/strings/str_cat.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-3103",
+        "jira_summary": "Binary telemetry payloads with one or two trailing bytes fail Base64 round trips; payloads divisible by three usually remain readable.",
+        "commit_message": "CORE-3103: Update native runtime compatibility diagnostics",
+        "pr_title": "CORE-3103: Refresh ingestion worker diagnostic labels"
+      },
+      "source_metrics": [
+        {
+          "path": "absl/strings/internal/escaping.cc",
+          "file_bytes": 7585,
+          "first_mutation_byte_offset": 5776
+        },
+        {
+          "path": "absl/strings/escaping.cc",
+          "file_bytes": 39951,
+          "first_mutation_byte_offset": 24190
+        }
+      ],
+      "upstream_test_count": 19,
+      "upstream_executed_test_count": 18,
+      "upstream_disabled_test_count": 1,
+      "native_proof": {
+        "verified": true,
+        "platform": "darwin",
+        "clean_pass": true,
+        "mutation_build_pass": true,
+        "mutation_tests_fail": true,
+        "protected_test_hashes_unchanged": true,
+        "evidence_directory": ".auto-fix/expanded-proof/abseil-strings/absl_base64_tail_codec",
+        "clean_executed_tests": 18,
+        "mutated_failed_tests": [
+          "Base64.EscapeAndUnescape",
+          "Base64.Padding"
+        ],
+        "diagnostic_normalizations": []
+      }
+    },
+    {
+      "id": "absl_base64_optional_padding_whitespace",
+      "project": "abseil",
+      "project_id": "abseil",
+      "title": "Base64 decoder rejects supported optional padding",
+      "description": "Unpadded Base64 telemetry that previously decoded successfully is rejected after the runtime update. Explicitly padded payloads remain usable.",
+      "exposure": "indirect",
+      "split": "development",
+      "family": "base64_codec",
+      "complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 1,
+        "mutation_anchors": 1,
+        "production_files": 1,
+        "multi_location": false,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff"
+        ],
+        "category": "single_observed_regression",
+        "note": "Only the independently observed source fault is injected; uncovered secondary mutations were removed before formal evaluation."
+      },
+      "provenance": {
+        "kind": "synthetic_regression",
+        "historical_bug": false,
+        "source_repository": "https://github.com/abseil/abseil-cpp",
+        "source_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "source_tag": "20260107.1",
+        "source_license": "Apache-2.0",
+        "source_license_url": "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/LICENSE"
+      },
+      "mutations": [
+        {
+          "path": "absl/strings/escaping.cc",
+          "before": "  const bool ok = (equals == 0 || equals == expected_equals);",
+          "after": "  const bool ok = (equals == expected_equals);"
+        }
+      ],
+      "build_targets": [
+        "absl_escaping_test"
+      ],
+      "ctest_regex": "^(absl_escaping_test)$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "Base64.EscapeAndUnescape",
+        "Base64.Padding"
+      ],
+      "changed_files": [
+        "absl/strings/str_cat.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-3104",
+        "jira_summary": "Unpadded Base64 telemetry that previously decoded successfully is rejected after the runtime update. Explicitly padded payloads remain usable.",
+        "commit_message": "CORE-3104: Update native runtime compatibility diagnostics",
+        "pr_title": "CORE-3104: Refresh ingestion worker diagnostic labels"
+      },
+      "source_metrics": [
+        {
+          "path": "absl/strings/escaping.cc",
+          "file_bytes": 39951,
+          "first_mutation_byte_offset": 25341
+        }
+      ],
+      "upstream_test_count": 19,
+      "upstream_executed_test_count": 18,
+      "upstream_disabled_test_count": 1,
+      "native_proof": {
+        "verified": true,
+        "platform": "darwin",
+        "clean_pass": true,
+        "mutation_build_pass": true,
+        "mutation_tests_fail": true,
+        "protected_test_hashes_unchanged": true,
+        "evidence_directory": ".auto-fix/expanded-proof/abseil-strings/absl_base64_optional_padding_whitespace",
+        "clean_executed_tests": 18,
+        "mutated_failed_tests": [
+          "Base64.EscapeAndUnescape",
+          "Base64.Padding"
+        ],
+        "diagnostic_normalizations": []
+      }
+    },
+    {
+      "id": "absl_integer_bare_prefixes",
+      "project": "abseil",
+      "project_id": "abseil",
+      "title": "Integer parsers accept hexadecimal prefixes without digits",
+      "description": "Configuration validation now treats a hexadecimal prefix with no numeric payload as a successful integer parse in both inferred-base and explicit-base entry points.",
+      "exposure": "indirect",
+      "split": "development",
+      "family": "integer_parsing",
+      "complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 2,
+        "mutation_anchors": 2,
+        "production_files": 1,
+        "multi_location": true,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multiple_fault_sites"
+        ],
+        "category": "coupled_contract_regression",
+        "note": "The affected locations participate in one public contract; fixing one location may leave sibling paths failing."
+      },
+      "provenance": {
+        "kind": "synthetic_regression",
+        "historical_bug": false,
+        "source_repository": "https://github.com/abseil/abseil-cpp",
+        "source_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "source_tag": "20260107.1",
+        "source_license": "Apache-2.0",
+        "source_license_url": "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/LICENSE"
+      },
+      "mutations": [
+        {
+          "path": "absl/strings/numbers.cc",
+          "before": "      base = 16;\n      start += 2;\n      if (start >= end) {\n        // \"0x\" with no digits after is invalid.\n        return false;\n      }",
+          "after": "      base = 16;\n      start += 2;"
+        },
+        {
+          "path": "absl/strings/numbers.cc",
+          "before": "  } else if (base == 16) {\n    if (end - start >= 2 && start[0] == '0' &&\n        (start[1] == 'x' || start[1] == 'X')) {\n      start += 2;\n      if (start >= end) {\n        // \"0x\" with no digits after is invalid.\n        return false;\n      }\n    }",
+          "after": "  } else if (base == 16) {\n    if (end - start >= 2 && start[0] == '0' &&\n        (start[1] == 'x' || start[1] == 'X')) {\n      start += 2;\n    }"
+        }
+      ],
+      "build_targets": [
+        "absl_numbers_test"
+      ],
+      "ctest_regex": "^(absl_numbers_test)$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "StrToInt32Base.PrefixOnly",
+        "StrToUint32Base.PrefixOnly",
+        "StrToInt64Base.PrefixOnly",
+        "StrToUint64Base.PrefixOnly"
+      ],
+      "changed_files": [
+        "absl/strings/str_cat.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-3105",
+        "jira_summary": "Configuration validation now treats a hexadecimal prefix with no numeric payload as a successful integer parse in both inferred-base and explicit-base entry points.",
+        "commit_message": "CORE-3105: Update native runtime compatibility diagnostics",
+        "pr_title": "CORE-3105: Refresh ingestion worker diagnostic labels"
+      },
+      "source_metrics": [
+        {
+          "path": "absl/strings/numbers.cc",
+          "file_bytes": 45875,
+          "first_mutation_byte_offset": 29148
+        }
+      ],
+      "upstream_test_count": 50,
+      "upstream_executed_test_count": 50,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "verified": true,
+        "platform": "darwin",
+        "clean_pass": true,
+        "mutation_build_pass": true,
+        "mutation_tests_fail": true,
+        "protected_test_hashes_unchanged": true,
+        "evidence_directory": ".auto-fix/expanded-proof/abseil-strings/absl_integer_bare_prefixes",
+        "clean_executed_tests": 50,
+        "mutated_failed_tests": [
+          "StrToInt32Base.PrefixOnly",
+          "StrToUint32Base.PrefixOnly",
+          "StrToInt64Base.PrefixOnly",
+          "StrToUint64Base.PrefixOnly"
+        ],
+        "diagnostic_normalizations": []
+      }
+    },
+    {
+      "id": "absl_integer_partial_results",
+      "project": "abseil",
+      "project_id": "abseil",
+      "title": "Positive integer parsers discard consumed digits on invalid suffixes",
+      "description": "Diagnostic parsing reports the expected failure for malformed positive numeric fields but loses the consumed numeric prefix used to explain the bad input. Negative values are unaffected.",
+      "exposure": "indirect",
+      "split": "development",
+      "family": "integer_parsing",
+      "complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 1,
+        "mutation_anchors": 1,
+        "production_files": 1,
+        "multi_location": false,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff"
+        ],
+        "category": "single_observed_regression",
+        "note": "Only the independently observed source fault is injected; uncovered secondary mutations were removed before formal evaluation."
+      },
+      "provenance": {
+        "kind": "synthetic_regression",
+        "historical_bug": false,
+        "source_repository": "https://github.com/abseil/abseil-cpp",
+        "source_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "source_tag": "20260107.1",
+        "source_license": "Apache-2.0",
+        "source_license_url": "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/LICENSE"
+      },
+      "mutations": [
+        {
+          "path": "absl/strings/numbers.cc",
+          "before": "    if (digit >= base_inttype) {\n      *value_p = value;",
+          "after": "    if (digit >= base_inttype) {\n      *value_p = 0;"
+        }
+      ],
+      "build_targets": [
+        "absl_numbers_test"
+      ],
+      "ctest_regex": "^(absl_numbers_test)$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "stringtest.safe_strto8_leading_substring",
+        "stringtest.safe_strto16_leading_substring",
+        "stringtest.safe_strto32_leading_substring",
+        "stringtest.safe_strto64_leading_substring",
+        "StrToInt8.Partial",
+        "StrToUint8.Partial",
+        "StrToInt16.Partial",
+        "StrToUint16.Partial",
+        "StrToInt32.Partial",
+        "StrToUint32.Partial",
+        "StrToInt64.Partial",
+        "StrToUint64.Partial"
+      ],
+      "changed_files": [
+        "absl/strings/str_cat.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-3106",
+        "jira_summary": "Diagnostic parsing reports the expected failure for malformed positive numeric fields but loses the consumed numeric prefix used to explain the bad input. Negative values are unaffected.",
+        "commit_message": "CORE-3106: Update native runtime compatibility diagnostics",
+        "pr_title": "CORE-3106: Refresh ingestion worker diagnostic labels"
+      },
+      "source_metrics": [
+        {
+          "path": "absl/strings/numbers.cc",
+          "file_bytes": 45875,
+          "first_mutation_byte_offset": 40682
+        }
+      ],
+      "upstream_test_count": 50,
+      "upstream_executed_test_count": 50,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "verified": true,
+        "platform": "darwin",
+        "clean_pass": true,
+        "mutation_build_pass": true,
+        "mutation_tests_fail": true,
+        "protected_test_hashes_unchanged": true,
+        "evidence_directory": ".auto-fix/expanded-proof/abseil-strings/absl_integer_partial_results",
+        "clean_executed_tests": 50,
+        "mutated_failed_tests": [
+          "stringtest.safe_strto8_leading_substring",
+          "stringtest.safe_strto16_leading_substring",
+          "stringtest.safe_strto32_leading_substring",
+          "stringtest.safe_strto64_leading_substring",
+          "StrToInt8.Partial",
+          "StrToUint8.Partial",
+          "StrToInt16.Partial",
+          "StrToUint16.Partial",
+          "StrToInt32.Partial",
+          "StrToUint32.Partial",
+          "StrToInt64.Partial",
+          "StrToUint64.Partial"
+        ],
+        "diagnostic_normalizations": []
+      }
+    },
+    {
+      "id": "absl_integer_signed_boundaries",
+      "project": "abseil",
+      "project_id": "abseil",
+      "title": "Integer conversion rejects valid extreme values across widths",
+      "description": "Numeric fields exactly at supported signed or unsigned type limits are reported as invalid even though nearby values parse. Several integer widths regress together.",
+      "exposure": "indirect",
+      "split": "development",
+      "family": "integer_parsing",
+      "complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 2,
+        "mutation_anchors": 2,
+        "production_files": 1,
+        "multi_location": true,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multiple_fault_sites"
+        ],
+        "category": "coupled_contract_regression",
+        "note": "The affected locations participate in one public contract; fixing one location may leave sibling paths failing."
+      },
+      "provenance": {
+        "kind": "synthetic_regression",
+        "historical_bug": false,
+        "source_repository": "https://github.com/abseil/abseil-cpp",
+        "source_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "source_tag": "20260107.1",
+        "source_license": "Apache-2.0",
+        "source_license_url": "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/LICENSE"
+      },
+      "mutations": [
+        {
+          "path": "absl/strings/numbers.cc",
+          "before": "    if (value > vmax_over_base) {",
+          "after": "    if (value >= vmax_over_base) {"
+        },
+        {
+          "path": "absl/strings/numbers.cc",
+          "before": "    if (value < vmin_over_base) {",
+          "after": "    if (value <= vmin_over_base) {"
+        }
+      ],
+      "build_targets": [
+        "absl_numbers_test"
+      ],
+      "ctest_regex": "^(absl_numbers_test)$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "NumbersTest.Atoi",
+        "NumbersTest.Atoenum",
+        "NumbersTest.HexAtoi",
+        "stringtest.safe_strto8_base",
+        "stringtest.safe_strto8_range",
+        "stringtest.safe_strto16_range",
+        "stringtest.safe_strto32_range",
+        "stringtest.safe_strto64_range",
+        "stringtest.safe_strto8_leading_substring",
+        "stringtest.safe_strto16_random",
+        "stringtest.safe_strtou16_random",
+        "stringtest.safe_strtou8_exhaustive",
+        "stringtest.safe_strto8_exhaustive",
+        "stringtest.safe_strtou32_base",
+        "stringtest.safe_strtou32_base_length_delimited",
+        "stringtest.safe_strtou64_base",
+        "stringtest.safe_strtou64_base_length_delimited",
+        "StrToInt8.Partial"
+      ],
+      "changed_files": [
+        "absl/strings/str_cat.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-3107",
+        "jira_summary": "Numeric fields exactly at supported signed or unsigned type limits are reported as invalid even though nearby values parse. Several integer widths regress together.",
+        "commit_message": "CORE-3107: Update native runtime compatibility diagnostics",
+        "pr_title": "CORE-3107: Refresh ingestion worker diagnostic labels"
+      },
+      "source_metrics": [
+        {
+          "path": "absl/strings/numbers.cc",
+          "file_bytes": 45875,
+          "first_mutation_byte_offset": 40765
+        }
+      ],
+      "native_proof": {
+        "verified": true,
+        "platform": "darwin",
+        "clean_pass": true,
+        "mutation_build_pass": true,
+        "mutation_tests_fail": true,
+        "protected_test_hashes_unchanged": true,
+        "evidence_directory": ".auto-fix/expanded-proof/abseil-strings/absl_integer_signed_boundaries",
+        "clean_executed_tests": 50,
+        "mutated_failed_tests": [
+          "NumbersTest.Atoi",
+          "NumbersTest.Atoenum",
+          "NumbersTest.HexAtoi",
+          "stringtest.safe_strto8_base",
+          "stringtest.safe_strto8_range",
+          "stringtest.safe_strto16_range",
+          "stringtest.safe_strto32_range",
+          "stringtest.safe_strto64_range",
+          "stringtest.safe_strto8_leading_substring",
+          "stringtest.safe_strto16_random",
+          "stringtest.safe_strtou16_random",
+          "stringtest.safe_strtou8_exhaustive",
+          "stringtest.safe_strto8_exhaustive",
+          "stringtest.safe_strtou32_base",
+          "stringtest.safe_strtou32_base_length_delimited",
+          "stringtest.safe_strtou64_base",
+          "stringtest.safe_strtou64_base_length_delimited",
+          "StrToInt8.Partial"
+        ],
+        "diagnostic_normalizations": [
+          {
+            "target": "absl_numbers_test",
+            "kind": "invalid_utf8_replaced",
+            "replacement": "U+FFFD",
+            "raw_report": "/Users/antoine/projects/auto-fix/.auto-fix/expanded-proof/abseil-strings/absl_integer_signed_boundaries/mutated-absl_numbers_test.xml.raw"
+          }
+        ]
+      },
+      "upstream_test_count": 50,
+      "upstream_executed_test_count": 50,
+      "upstream_disabled_test_count": 0
+    },
+    {
+      "id": "absl_replace_overlap_and_progress",
+      "project": "abseil",
+      "project_id": "abseil",
+      "title": "Replacement precedence and source advancement break overlapping patterns",
+      "description": "Text redaction applies shorter overlapping replacements and leaves fragments of matched source text. Replacement output is not supposed to be interpreted as new source.",
+      "exposure": "indirect",
+      "split": "development",
+      "family": "pattern_replacement",
+      "complexity": {
+        "level": "compound",
+        "logical_fault_sites": 2,
+        "mutation_anchors": 2,
+        "production_files": 2,
+        "multi_location": true,
+        "multi_file": true,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multi_file",
+          "multiple_fault_sites"
+        ],
+        "category": "compound_independent_regressions",
+        "note": "Multiple independent source faults must be repaired; site count alone is not evidence of algorithmic difficulty."
+      },
+      "provenance": {
+        "kind": "synthetic_regression",
+        "historical_bug": false,
+        "source_repository": "https://github.com/abseil/abseil-cpp",
+        "source_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "source_tag": "20260107.1",
+        "source_license": "Apache-2.0",
+        "source_license_url": "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/LICENSE"
+      },
+      "mutations": [
+        {
+          "path": "absl/strings/str_replace.h",
+          "before": "    return old.size() > y.old.size();",
+          "after": "    return old.size() < y.old.size();"
+        },
+        {
+          "path": "absl/strings/str_replace.cc",
+          "before": "      pos = sub.offset + sub.old.size();",
+          "after": "      pos = sub.offset + (sub.old.size() + 1) / 2;"
+        }
+      ],
+      "build_targets": [
+        "absl_str_replace_test"
+      ],
+      "ctest_regex": "^(absl_str_replace_test)$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "StrReplaceAll.OneReplacement",
+        "StrReplaceAll.ManyReplacements",
+        "StrReplaceAll.ManyReplacementsInMap",
+        "StrReplaceAll.ReplacementsInPlace",
+        "StrReplaceAll.ReplacementsInPlaceInMap",
+        "StrReplaceAll.VariableNumber",
+        "StrReplaceAll.Inplace"
+      ],
+      "changed_files": [
+        "absl/strings/str_cat.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-3108",
+        "jira_summary": "Text redaction applies shorter overlapping replacements and leaves fragments of matched source text. Replacement output is not supposed to be interpreted as new source.",
+        "commit_message": "CORE-3108: Update native runtime compatibility diagnostics",
+        "pr_title": "CORE-3108: Refresh ingestion worker diagnostic labels"
+      },
+      "source_metrics": [
+        {
+          "path": "absl/strings/str_replace.h",
+          "file_bytes": 8497,
+          "first_mutation_byte_offset": 6169
+        },
+        {
+          "path": "absl/strings/str_replace.cc",
+          "file_bytes": 3027,
+          "first_mutation_byte_offset": 1657
+        }
+      ],
+      "upstream_test_count": 7,
+      "upstream_executed_test_count": 7,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "verified": true,
+        "platform": "darwin",
+        "clean_pass": true,
+        "mutation_build_pass": true,
+        "mutation_tests_fail": true,
+        "protected_test_hashes_unchanged": true,
+        "evidence_directory": ".auto-fix/expanded-proof/abseil-strings/absl_replace_overlap_and_progress",
+        "clean_executed_tests": 7,
+        "mutated_failed_tests": [
+          "StrReplaceAll.OneReplacement",
+          "StrReplaceAll.ManyReplacements",
+          "StrReplaceAll.ManyReplacementsInMap",
+          "StrReplaceAll.ReplacementsInPlace",
+          "StrReplaceAll.ReplacementsInPlaceInMap",
+          "StrReplaceAll.VariableNumber",
+          "StrReplaceAll.Inplace"
+        ],
+        "diagnostic_normalizations": []
+      }
+    },
+    {
+      "id": "absl_split_literal_and_chunk_boundaries",
+      "project": "abseil",
+      "project_id": "abseil",
+      "title": "Literal separators are treated as sets of individual delimiters",
+      "description": "Imports using multi-character field separators split inside the separator text. Single-character separators still work.",
+      "exposure": "indirect",
+      "split": "development",
+      "family": "delimiter_parsing",
+      "complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 2,
+        "mutation_anchors": 1,
+        "production_files": 1,
+        "multi_location": true,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multiple_fault_sites"
+        ],
+        "category": "coupled_contract_regression",
+        "note": "Literal search and delimiter consumption form one coupled substring-splitting contract."
+      },
+      "provenance": {
+        "kind": "synthetic_regression",
+        "historical_bug": false,
+        "source_repository": "https://github.com/abseil/abseil-cpp",
+        "source_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "source_tag": "20260107.1",
+        "source_license": "Apache-2.0",
+        "source_license_url": "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/LICENSE"
+      },
+      "mutations": [
+        {
+          "path": "absl/strings/str_split.cc",
+          "before": "    return text.find(delimiter, pos);\n  }\n  static size_t Length(absl::string_view delimiter) {\n    return delimiter.length();",
+          "after": "    return text.find_first_of(delimiter, pos);\n  }\n  static size_t Length(absl::string_view delimiter) {\n    return delimiter.empty() ? 0 : 1;"
+        }
+      ],
+      "build_targets": [
+        "absl_str_split_test"
+      ],
+      "ctest_regex": "^(absl_str_split_test)$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "Split.APIExamples",
+        "Split.UTF8",
+        "Split.SubstrDelimiter"
+      ],
+      "changed_files": [
+        "absl/strings/str_cat.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-3109",
+        "jira_summary": "Imports using multi-character field separators split inside the separator text. Single-character separators still work.",
+        "commit_message": "CORE-3109: Update native runtime compatibility diagnostics",
+        "pr_title": "CORE-3109: Refresh ingestion worker diagnostic labels"
+      },
+      "source_metrics": [
+        {
+          "path": "absl/strings/str_split.cc",
+          "file_bytes": 4814,
+          "first_mutation_byte_offset": 2422
+        }
+      ],
+      "upstream_test_count": 31,
+      "upstream_executed_test_count": 31,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "verified": true,
+        "platform": "darwin",
+        "clean_pass": true,
+        "mutation_build_pass": true,
+        "mutation_tests_fail": true,
+        "protected_test_hashes_unchanged": true,
+        "evidence_directory": ".auto-fix/expanded-proof/abseil-strings/absl_split_literal_and_chunk_boundaries",
+        "clean_executed_tests": 31,
+        "mutated_failed_tests": [
+          "Split.APIExamples",
+          "Split.UTF8",
+          "Split.SubstrDelimiter"
+        ],
+        "diagnostic_normalizations": []
+      }
+    },
+    {
+      "id": "absl_unicode_escape_validation_lengths",
+      "project": "abseil",
+      "project_id": "abseil",
+      "title": "Unicode escape validation and UTF-8 output lengths diverge",
+      "description": "Escaped international names are truncated after decoding, while some invalid surrogate escapes are unexpectedly accepted. ASCII names remain unaffected.",
+      "exposure": "indirect",
+      "split": "holdout",
+      "family": "unicode_escaping",
+      "complexity": {
+        "level": "compound",
+        "logical_fault_sites": 3,
+        "mutation_anchors": 3,
+        "production_files": 2,
+        "multi_location": true,
+        "multi_file": true,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multi_file",
+          "multiple_fault_sites"
+        ],
+        "category": "compound_independent_regressions",
+        "note": "Multiple independent source faults must be repaired; site count alone is not evidence of algorithmic difficulty."
+      },
+      "provenance": {
+        "kind": "synthetic_regression",
+        "historical_bug": false,
+        "source_repository": "https://github.com/abseil/abseil-cpp",
+        "source_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "source_tag": "20260107.1",
+        "source_license": "Apache-2.0",
+        "source_license_url": "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/LICENSE"
+      },
+      "mutations": [
+        {
+          "path": "absl/strings/escaping.cc",
+          "before": "  if (c >= 0xD800 && c <= 0xDFFF) {",
+          "after": "  if (c >= 0xDC00 && c <= 0xDFFF) {"
+        },
+        {
+          "path": "absl/strings/internal/utf8.cc",
+          "before": "    buffer[0] = static_cast<char>(0xE0 | utf8_char);\n    return 3;",
+          "after": "    buffer[0] = static_cast<char>(0xE0 | utf8_char);\n    return 2;"
+        },
+        {
+          "path": "absl/strings/internal/utf8.cc",
+          "before": "    buffer[0] = static_cast<char>(0xF0 | utf8_char);\n    return 4;",
+          "after": "    buffer[0] = static_cast<char>(0xF0 | utf8_char);\n    return 3;"
+        }
+      ],
+      "build_targets": [
+        "absl_escaping_test"
+      ],
+      "ctest_regex": "^(absl_escaping_test)$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "Unescape.BasicFunction"
+      ],
+      "changed_files": [
+        "absl/strings/str_cat.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-3110",
+        "jira_summary": "Escaped international names are truncated after decoding, while some invalid surrogate escapes are unexpectedly accepted. ASCII names remain unaffected.",
+        "commit_message": "CORE-3110: Update native runtime compatibility diagnostics",
+        "pr_title": "CORE-3110: Refresh ingestion worker diagnostic labels"
+      },
+      "source_metrics": [
+        {
+          "path": "absl/strings/escaping.cc",
+          "file_bytes": 39951,
+          "first_mutation_byte_offset": 2076
+        },
+        {
+          "path": "absl/strings/internal/utf8.cc",
+          "file_bytes": 5882,
+          "first_mutation_byte_offset": 1382
+        }
+      ],
+      "upstream_test_count": 19,
+      "upstream_executed_test_count": 18,
+      "upstream_disabled_test_count": 1,
+      "native_proof": {
+        "verified": true,
+        "platform": "darwin",
+        "clean_pass": true,
+        "mutation_build_pass": true,
+        "mutation_tests_fail": true,
+        "protected_test_hashes_unchanged": true,
+        "evidence_directory": ".auto-fix/expanded-proof/abseil-strings/absl_unicode_escape_validation_lengths",
+        "clean_executed_tests": 18,
+        "mutated_failed_tests": [
+          "Unescape.BasicFunction"
+        ],
+        "diagnostic_normalizations": []
+      }
+    },
+    {
+      "id": "absl_unicode_safe_escape_modes",
+      "project": "abseil",
+      "project_id": "abseil",
+      "title": "UTF-8-safe and hexadecimal escaping modes lose their independent policies",
+      "description": "Escaped customer diagnostics alter UTF-8 bytes or use the wrong representation for ASCII controls depending on the selected escaping mode. Public mode names and signatures are unchanged.",
+      "exposure": "indirect",
+      "split": "holdout",
+      "family": "unicode_escaping",
+      "complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 2,
+        "mutation_anchors": 2,
+        "production_files": 1,
+        "multi_location": true,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multiple_fault_sites"
+        ],
+        "category": "coupled_contract_regression",
+        "note": "The affected locations participate in one public contract; fixing one location may leave sibling paths failing."
+      },
+      "provenance": {
+        "kind": "synthetic_regression",
+        "historical_bug": false,
+        "source_repository": "https://github.com/abseil/abseil-cpp",
+        "source_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "source_tag": "20260107.1",
+        "source_license": "Apache-2.0",
+        "source_license_url": "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/LICENSE"
+      },
+      "mutations": [
+        {
+          "path": "absl/strings/escaping.cc",
+          "before": "        if ((!utf8_safe || uc < 0x80) &&",
+          "after": "        if ((!utf8_safe && uc < 0x80) &&"
+        },
+        {
+          "path": "absl/strings/escaping.cc",
+          "before": "          if (use_hex) {\n            dest.append(\"\\\\\" \"x\");",
+          "after": "          if (use_hex && !utf8_safe) {\n            dest.append(\"\\\\\" \"x\");"
+        }
+      ],
+      "build_targets": [
+        "absl_escaping_test"
+      ],
+      "ctest_regex": "^(absl_escaping_test)$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "CEscape.BasicEscaping"
+      ],
+      "changed_files": [
+        "absl/strings/str_cat.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-3111",
+        "jira_summary": "Escaped customer diagnostics alter UTF-8 bytes or use the wrong representation for ASCII controls depending on the selected escaping mode. Public mode names and signatures are unchanged.",
+        "commit_message": "CORE-3111: Update native runtime compatibility diagnostics",
+        "pr_title": "CORE-3111: Refresh ingestion worker diagnostic labels"
+      },
+      "source_metrics": [
+        {
+          "path": "absl/strings/escaping.cc",
+          "file_bytes": 39951,
+          "first_mutation_byte_offset": 11858
+        }
+      ],
+      "upstream_test_count": 19,
+      "upstream_executed_test_count": 18,
+      "upstream_disabled_test_count": 1,
+      "native_proof": {
+        "verified": true,
+        "platform": "darwin",
+        "clean_pass": true,
+        "mutation_build_pass": true,
+        "mutation_tests_fail": true,
+        "protected_test_hashes_unchanged": true,
+        "evidence_directory": ".auto-fix/expanded-proof/abseil-strings/absl_unicode_safe_escape_modes",
+        "clean_executed_tests": 18,
+        "mutated_failed_tests": [
+          "CEscape.BasicEscaping"
+        ],
+        "diagnostic_normalizations": []
+      }
+    },
+    {
+      "id": "absl_float_lexical_whitespace_sign",
+      "project": "abseil",
+      "project_id": "abseil",
+      "title": "Float and double convenience parsers mishandle whitespace and doubled signs",
+      "description": "The same configuration value is accepted with a duplicated sign yet rejected when ordinary trailing whitespace is present. Both float and double settings are affected.",
+      "exposure": "indirect",
+      "split": "holdout",
+      "family": "floating_point_parsing",
+      "complexity": {
+        "level": "compound",
+        "logical_fault_sites": 4,
+        "mutation_anchors": 2,
+        "production_files": 1,
+        "multi_location": true,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multiple_fault_sites"
+        ],
+        "category": "compound_independent_regressions",
+        "note": "Multiple independent source faults must be repaired; site count alone is not evidence of algorithmic difficulty."
+      },
+      "provenance": {
+        "kind": "synthetic_regression",
+        "historical_bug": false,
+        "source_repository": "https://github.com/abseil/abseil-cpp",
+        "source_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "source_tag": "20260107.1",
+        "source_license": "Apache-2.0",
+        "source_license_url": "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/LICENSE"
+      },
+      "mutations": [
+        {
+          "path": "absl/strings/numbers.cc",
+          "before": "bool SimpleAtof(absl::string_view str, float* absl_nonnull out) {\n  *out = 0.0;\n  str = StripAsciiWhitespace(str);\n  if (str.empty()) {\n    // absl::from_chars doesn't accept empty strings.\n    return false;\n  }\n  // std::from_chars doesn't accept an initial +, but SimpleAtof does, so if one\n  // is present, skip it, while avoiding accepting \"+-0\" as valid.\n  if (str[0] == '+') {\n    str.remove_prefix(1);\n    if (str.empty() || str[0] == '-') {\n      return false;\n    }\n  }\n  auto result = absl::from_chars(str.data(), str.data() + str.size(), *out);\n  if (result.ec == std::errc::invalid_argument) {\n    return false;\n  }\n  if (result.ptr != str.data() + str.size()) {\n    // not all non-whitespace characters consumed\n    return false;\n  }\n  // from_chars() with DR 3081's current wording will return max() on\n  // overflow.  SimpleAtof returns infinity instead.\n  if (result.ec == std::errc::result_out_of_range) {\n    if (*out > 1.0) {\n      *out = std::numeric_limits<float>::infinity();\n    } else if (*out < -1.0) {\n      *out = -std::numeric_limits<float>::infinity();\n    }\n  }\n  return true;\n}\n\n",
+          "after": "bool SimpleAtof(absl::string_view str, float* absl_nonnull out) {\n  *out = 0.0;\n  str = StripLeadingAsciiWhitespace(str);\n  if (str.empty()) {\n    // absl::from_chars doesn't accept empty strings.\n    return false;\n  }\n  // std::from_chars doesn't accept an initial +, but SimpleAtof does, so if one\n  // is present, skip it, while avoiding accepting \"+-0\" as valid.\n  if (str[0] == '+') {\n    str.remove_prefix(1);\n    if (str.empty()) {\n      return false;\n    }\n  }\n  auto result = absl::from_chars(str.data(), str.data() + str.size(), *out);\n  if (result.ec == std::errc::invalid_argument) {\n    return false;\n  }\n  if (result.ptr != str.data() + str.size()) {\n    // not all non-whitespace characters consumed\n    return false;\n  }\n  // from_chars() with DR 3081's current wording will return max() on\n  // overflow.  SimpleAtof returns infinity instead.\n  if (result.ec == std::errc::result_out_of_range) {\n    if (*out > 1.0) {\n      *out = std::numeric_limits<float>::infinity();\n    } else if (*out < -1.0) {\n      *out = -std::numeric_limits<float>::infinity();\n    }\n  }\n  return true;\n}\n\n"
+        },
+        {
+          "path": "absl/strings/numbers.cc",
+          "before": "bool SimpleAtod(absl::string_view str, double* absl_nonnull out) {\n  *out = 0.0;\n  str = StripAsciiWhitespace(str);\n  if (str.empty()) {\n    // absl::from_chars doesn't accept empty strings.\n    return false;\n  }\n  // std::from_chars doesn't accept an initial +, but SimpleAtod does, so if one\n  // is present, skip it, while avoiding accepting \"+-0\" as valid.\n  if (str[0] == '+') {\n    str.remove_prefix(1);\n    if (str.empty() || str[0] == '-') {\n      return false;\n    }\n  }\n  auto result = absl::from_chars(str.data(), str.data() + str.size(), *out);\n  if (result.ec == std::errc::invalid_argument) {\n    return false;\n  }\n  if (result.ptr != str.data() + str.size()) {\n    // not all non-whitespace characters consumed\n    return false;\n  }\n  // from_chars() with DR 3081's current wording will return max() on\n  // overflow.  SimpleAtod returns infinity instead.\n  if (result.ec == std::errc::result_out_of_range) {\n    if (*out > 1.0) {\n      *out = std::numeric_limits<double>::infinity();\n    } else if (*out < -1.0) {\n      *out = -std::numeric_limits<double>::infinity();\n    }\n  }\n  return true;\n}\n\n",
+          "after": "bool SimpleAtod(absl::string_view str, double* absl_nonnull out) {\n  *out = 0.0;\n  str = StripLeadingAsciiWhitespace(str);\n  if (str.empty()) {\n    // absl::from_chars doesn't accept empty strings.\n    return false;\n  }\n  // std::from_chars doesn't accept an initial +, but SimpleAtod does, so if one\n  // is present, skip it, while avoiding accepting \"+-0\" as valid.\n  if (str[0] == '+') {\n    str.remove_prefix(1);\n    if (str.empty()) {\n      return false;\n    }\n  }\n  auto result = absl::from_chars(str.data(), str.data() + str.size(), *out);\n  if (result.ec == std::errc::invalid_argument) {\n    return false;\n  }\n  if (result.ptr != str.data() + str.size()) {\n    // not all non-whitespace characters consumed\n    return false;\n  }\n  // from_chars() with DR 3081's current wording will return max() on\n  // overflow.  SimpleAtod returns infinity instead.\n  if (result.ec == std::errc::result_out_of_range) {\n    if (*out > 1.0) {\n      *out = std::numeric_limits<double>::infinity();\n    } else if (*out < -1.0) {\n      *out = -std::numeric_limits<double>::infinity();\n    }\n  }\n  return true;\n}\n\n"
+        }
+      ],
+      "build_targets": [
+        "absl_numbers_test"
+      ],
+      "ctest_regex": "^(absl_numbers_test)$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "NumbersTest.Atod",
+        "NumbersTest.Prefixes"
+      ],
+      "changed_files": [
+        "absl/strings/str_cat.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-3112",
+        "jira_summary": "The same configuration value is accepted with a duplicated sign yet rejected when ordinary trailing whitespace is present. Both float and double settings are affected.",
+        "commit_message": "CORE-3112: Update native runtime compatibility diagnostics",
+        "pr_title": "CORE-3112: Refresh ingestion worker diagnostic labels"
+      },
+      "source_metrics": [
+        {
+          "path": "absl/strings/numbers.cc",
+          "file_bytes": 45875,
+          "first_mutation_byte_offset": 1493
+        }
+      ],
+      "upstream_test_count": 50,
+      "upstream_executed_test_count": 50,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "verified": true,
+        "platform": "darwin",
+        "clean_pass": true,
+        "mutation_build_pass": true,
+        "mutation_tests_fail": true,
+        "protected_test_hashes_unchanged": true,
+        "evidence_directory": ".auto-fix/expanded-proof/abseil-strings/absl_float_lexical_whitespace_sign",
+        "clean_executed_tests": 50,
+        "mutated_failed_tests": [
+          "NumbersTest.Atod",
+          "NumbersTest.Prefixes"
+        ],
+        "diagnostic_normalizations": []
+      }
+    },
+    {
+      "id": "absl_float_signed_special_values",
+      "project": "abseil",
+      "project_id": "abseil",
+      "title": "Floating conversion loses the sign on negative NaN values",
+      "description": "Negative NaN telemetry changes its sign bit after string conversion. Ordinary finite negative values still convert correctly.",
+      "exposure": "indirect",
+      "split": "holdout",
+      "family": "floating_point_parsing",
+      "complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 1,
+        "mutation_anchors": 1,
+        "production_files": 1,
+        "multi_location": false,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff"
+        ],
+        "category": "single_observed_regression",
+        "note": "Only the independently observed source fault is injected; uncovered secondary mutations were removed before formal evaluation."
+      },
+      "provenance": {
+        "kind": "synthetic_regression",
+        "historical_bug": false,
+        "source_repository": "https://github.com/abseil/abseil-cpp",
+        "source_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "source_tag": "20260107.1",
+        "source_license": "Apache-2.0",
+        "source_license_url": "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/LICENSE"
+      },
+      "mutations": [
+        {
+          "path": "absl/strings/charconv.cc",
+          "before": "    *value = negative ? -FloatTraits<FloatType>::MakeNan(nan_argument)\n                      : FloatTraits<FloatType>::MakeNan(nan_argument);",
+          "after": "    *value = FloatTraits<FloatType>::MakeNan(nan_argument);"
+        }
+      ],
+      "build_targets": [
+        "absl_charconv_test"
+      ],
+      "ctest_regex": "^(absl_charconv_test)$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "FromChars.NaNDoubles",
+        "FromChars.NaNFloats"
+      ],
+      "changed_files": [
+        "absl/strings/str_cat.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-3113",
+        "jira_summary": "Negative NaN telemetry changes its sign bit after string conversion. Ordinary finite negative values still convert correctly.",
+        "commit_message": "CORE-3113: Update native runtime compatibility diagnostics",
+        "pr_title": "CORE-3113: Refresh ingestion worker diagnostic labels"
+      },
+      "source_metrics": [
+        {
+          "path": "absl/strings/charconv.cc",
+          "file_bytes": 70782,
+          "first_mutation_byte_offset": 15753
+        }
+      ],
+      "upstream_test_count": 16,
+      "upstream_executed_test_count": 16,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "verified": true,
+        "platform": "darwin",
+        "clean_pass": true,
+        "mutation_build_pass": true,
+        "mutation_tests_fail": true,
+        "protected_test_hashes_unchanged": true,
+        "evidence_directory": ".auto-fix/expanded-proof/abseil-strings/absl_float_signed_special_values",
+        "clean_executed_tests": 16,
+        "mutated_failed_tests": [
+          "FromChars.NaNDoubles",
+          "FromChars.NaNFloats"
+        ],
+        "diagnostic_normalizations": []
+      }
+    },
+    {
+      "id": "absl_substitute_placeholder_index",
+      "project": "abseil",
+      "project_id": "abseil",
+      "title": "Substitution size estimation and rendering use the wrong argument numbering",
+      "description": "Native message templates select the wrong arguments or produce empty output when using the documented numbered placeholders. Literal text and non-template formatting still work.",
+      "exposure": "indirect",
+      "split": "holdout",
+      "family": "template_substitution",
+      "complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 2,
+        "mutation_anchors": 2,
+        "production_files": 1,
+        "multi_location": true,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multiple_fault_sites"
+        ],
+        "category": "coupled_contract_regression",
+        "note": "The affected locations participate in one public contract; fixing one location may leave sibling paths failing."
+      },
+      "provenance": {
+        "kind": "synthetic_regression",
+        "historical_bug": false,
+        "source_repository": "https://github.com/abseil/abseil-cpp",
+        "source_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "source_tag": "20260107.1",
+        "source_license": "Apache-2.0",
+        "source_license_url": "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/LICENSE"
+      },
+      "mutations": [
+        {
+          "path": "absl/strings/substitute.cc",
+          "before": "        int index = format[i + 1] - '0';",
+          "after": "        int index = format[i + 1] - '1';"
+        },
+        {
+          "path": "absl/strings/substitute.cc",
+          "before": "              const absl::string_view src = args_array[format[i + 1] - '0'];",
+          "after": "              const absl::string_view src = args_array[format[i + 1] - '1'];"
+        }
+      ],
+      "build_targets": [
+        "absl_substitute_test"
+      ],
+      "ctest_regex": "^(absl_substitute_test)$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "SubstituteTest.Substitute",
+        "SubstituteTest.SubstituteAndAppend",
+        "SubstituteTest.VectorBoolRef",
+        "SubstituteTest.Enums",
+        "SubstituteTest.AbslStringifyWithEnum"
+      ],
+      "changed_files": [
+        "absl/strings/str_cat.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-3114",
+        "jira_summary": "Native message templates select the wrong arguments or produce empty output when using the documented numbered placeholders. Literal text and non-template formatting still work.",
+        "commit_message": "CORE-3114: Update native runtime compatibility diagnostics",
+        "pr_title": "CORE-3114: Refresh ingestion worker diagnostic labels"
+      },
+      "source_metrics": [
+        {
+          "path": "absl/strings/substitute.cc",
+          "file_bytes": 6025,
+          "first_mutation_byte_offset": 1874
+        }
+      ],
+      "upstream_test_count": 6,
+      "upstream_executed_test_count": 6,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "verified": true,
+        "platform": "darwin",
+        "clean_pass": true,
+        "mutation_build_pass": true,
+        "mutation_tests_fail": true,
+        "protected_test_hashes_unchanged": true,
+        "evidence_directory": ".auto-fix/expanded-proof/abseil-strings/absl_substitute_placeholder_index",
+        "clean_executed_tests": 6,
+        "mutated_failed_tests": [
+          "SubstituteTest.Substitute",
+          "SubstituteTest.SubstituteAndAppend",
+          "SubstituteTest.VectorBoolRef",
+          "SubstituteTest.Enums",
+          "SubstituteTest.AbslStringifyWithEnum"
+        ],
+        "diagnostic_normalizations": []
+      }
+    },
+    {
+      "id": "absl_substitute_literal_dollars",
+      "project": "abseil",
+      "project_id": "abseil",
+      "title": "Escaped dollar literals are duplicated in both substitution passes",
+      "description": "Customer-facing message templates display doubled dollar signs where a single literal dollar was requested, including strings appended to an existing diagnostic.",
+      "exposure": "indirect",
+      "split": "holdout",
+      "family": "template_substitution",
+      "complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 2,
+        "mutation_anchors": 2,
+        "production_files": 1,
+        "multi_location": true,
+        "multi_file": false,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multiple_fault_sites"
+        ],
+        "category": "coupled_contract_regression",
+        "note": "The affected locations participate in one public contract; fixing one location may leave sibling paths failing."
+      },
+      "provenance": {
+        "kind": "synthetic_regression",
+        "historical_bug": false,
+        "source_repository": "https://github.com/abseil/abseil-cpp",
+        "source_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "source_tag": "20260107.1",
+        "source_license": "Apache-2.0",
+        "source_license_url": "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/LICENSE"
+      },
+      "mutations": [
+        {
+          "path": "absl/strings/substitute.cc",
+          "before": "      } else if (format[i + 1] == '$') {\n        ++size;",
+          "after": "      } else if (format[i + 1] == '$') {\n        size += 2;"
+        },
+        {
+          "path": "absl/strings/substitute.cc",
+          "before": "            } else if (format[i + 1] == '$') {\n              *target++ = '$';",
+          "after": "            } else if (format[i + 1] == '$') {\n              *target++ = '$';\n              *target++ = '$';"
+        }
+      ],
+      "build_targets": [
+        "absl_substitute_test"
+      ],
+      "ctest_regex": "^(absl_substitute_test)$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "SubstituteTest.Substitute"
+      ],
+      "changed_files": [
+        "absl/strings/str_cat.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-3115",
+        "jira_summary": "Customer-facing message templates display doubled dollar signs where a single literal dollar was requested, including strings appended to an existing diagnostic.",
+        "commit_message": "CORE-3115: Update native runtime compatibility diagnostics",
+        "pr_title": "CORE-3115: Refresh ingestion worker diagnostic labels"
+      },
+      "source_metrics": [
+        {
+          "path": "absl/strings/substitute.cc",
+          "file_bytes": 6025,
+          "first_mutation_byte_offset": 2394
+        }
+      ],
+      "upstream_test_count": 6,
+      "upstream_executed_test_count": 6,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "verified": true,
+        "platform": "darwin",
+        "clean_pass": true,
+        "mutation_build_pass": true,
+        "mutation_tests_fail": true,
+        "protected_test_hashes_unchanged": true,
+        "evidence_directory": ".auto-fix/expanded-proof/abseil-strings/absl_substitute_literal_dollars",
+        "clean_executed_tests": 6,
+        "mutated_failed_tests": [
+          "SubstituteTest.Substitute"
+        ],
+        "diagnostic_normalizations": []
+      }
+    },
+    {
+      "id": "absl_base64_alphabet_contract",
+      "project": "abseil",
+      "project_id": "abseil",
+      "title": "Standard and URL-safe Base64 alphabets are exchanged across the codec",
+      "description": "Telemetry identifiers use characters forbidden by the selected transport format. Decoding data from other components fails although some same-component round trips succeed.",
+      "exposure": "indirect",
+      "split": "development",
+      "family": "base64_codec",
+      "complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 4,
+        "mutation_anchors": 4,
+        "production_files": 2,
+        "multi_location": true,
+        "multi_file": true,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multi_file",
+          "multiple_fault_sites"
+        ],
+        "category": "coupled_contract_regression",
+        "note": "The affected locations participate in one public contract; fixing one location may leave sibling paths failing."
+      },
+      "provenance": {
+        "kind": "synthetic_regression",
+        "historical_bug": false,
+        "source_repository": "https://github.com/abseil/abseil-cpp",
+        "source_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "source_tag": "20260107.1",
+        "source_license": "Apache-2.0",
+        "source_license_url": "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/LICENSE"
+      },
+      "mutations": [
+        {
+          "path": "absl/strings/internal/escaping.cc",
+          "before": "ABSL_CONST_INIT const char kBase64Chars[] =\n    \"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/\";",
+          "after": "ABSL_CONST_INIT const char kBase64Chars[] =\n    \"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_\";"
+        },
+        {
+          "path": "absl/strings/internal/escaping.cc",
+          "before": "ABSL_CONST_INIT const char kWebSafeBase64Chars[] =\n    \"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_\";",
+          "after": "ABSL_CONST_INIT const char kWebSafeBase64Chars[] =\n    \"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/\";"
+        },
+        {
+          "path": "absl/strings/escaping.cc",
+          "before": "bool Base64Unescape(absl::string_view src, std::string* absl_nonnull dest) {\n  return Base64UnescapeInternal(src.data(), src.size(), dest, kUnBase64);",
+          "after": "bool Base64Unescape(absl::string_view src, std::string* absl_nonnull dest) {\n  return Base64UnescapeInternal(src.data(), src.size(), dest, kUnWebSafeBase64);"
+        },
+        {
+          "path": "absl/strings/escaping.cc",
+          "before": "bool WebSafeBase64Unescape(absl::string_view src,\n                           std::string* absl_nonnull dest) {\n  return Base64UnescapeInternal(src.data(), src.size(), dest, kUnWebSafeBase64);",
+          "after": "bool WebSafeBase64Unescape(absl::string_view src,\n                           std::string* absl_nonnull dest) {\n  return Base64UnescapeInternal(src.data(), src.size(), dest, kUnBase64);"
+        }
+      ],
+      "build_targets": [
+        "absl_escaping_test"
+      ],
+      "ctest_regex": "^(absl_escaping_test)$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "Base64.EscapeAndUnescape"
+      ],
+      "changed_files": [
+        "absl/strings/str_cat.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-3116",
+        "jira_summary": "Telemetry identifiers use characters forbidden by the selected transport format. Decoding data from other components fails although some same-component round trips succeed.",
+        "commit_message": "CORE-3116: Update native runtime compatibility diagnostics",
+        "pr_title": "CORE-3116: Refresh ingestion worker diagnostic labels"
+      },
+      "source_metrics": [
+        {
+          "path": "absl/strings/internal/escaping.cc",
+          "file_bytes": 7585,
+          "first_mutation_byte_offset": 1001
+        },
+        {
+          "path": "absl/strings/escaping.cc",
+          "file_bytes": 39951,
+          "first_mutation_byte_offset": 36971
+        }
+      ],
+      "upstream_test_count": 19,
+      "upstream_executed_test_count": 18,
+      "upstream_disabled_test_count": 1,
+      "native_proof": {
+        "verified": true,
+        "platform": "darwin",
+        "clean_pass": true,
+        "mutation_build_pass": true,
+        "mutation_tests_fail": true,
+        "protected_test_hashes_unchanged": true,
+        "evidence_directory": ".auto-fix/expanded-proof/abseil-strings/absl_base64_alphabet_contract",
+        "clean_executed_tests": 18,
+        "mutated_failed_tests": [
+          "Base64.EscapeAndUnescape"
+        ],
+        "diagnostic_normalizations": []
+      }
+    },
+    {
+      "id": "absl_decimal_padding_shared_contract",
+      "project": "abseil",
+      "project_id": "abseil",
+      "title": "Decimal zero-padding places the sign differently across formatting entry points",
+      "description": "Fixed-width negative decimal values place the minus sign among padding characters in concatenated and substituted native diagnostics. Space-padded and zero-padded formats no longer follow the same public contract.",
+      "exposure": "indirect",
+      "split": "holdout",
+      "family": "decimal_formatting",
+      "complexity": {
+        "level": "moderate",
+        "logical_fault_sites": 2,
+        "mutation_anchors": 2,
+        "production_files": 2,
+        "multi_location": true,
+        "multi_file": true,
+        "requires_indirect_retrieval": true,
+        "characteristics": [
+          "source_only",
+          "existing_upstream_tests",
+          "no_inverse_diff",
+          "multi_file",
+          "multiple_fault_sites"
+        ],
+        "category": "coupled_contract_regression",
+        "note": "The affected locations participate in one public contract; fixing one location may leave sibling paths failing."
+      },
+      "provenance": {
+        "kind": "synthetic_regression",
+        "historical_bug": false,
+        "source_repository": "https://github.com/abseil/abseil-cpp",
+        "source_commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+        "source_tag": "20260107.1",
+        "source_license": "Apache-2.0",
+        "source_license_url": "https://github.com/abseil/abseil-cpp/blob/255c84dadd029fd8ad25c5efb5933e47beaa00c7/LICENSE"
+      },
+      "mutations": [
+        {
+          "path": "absl/strings/substitute.cc",
+          "before": "    if (neg && dec.fill == '0') {  // If filling with '0',",
+          "after": "    if (neg && dec.fill == ' ') {  // If filling with '0',"
+        },
+        {
+          "path": "absl/strings/str_cat.h",
+          "before": "      if (dec.neg && dec.fill == '0') {  // If filling with '0',",
+          "after": "      if (dec.neg && dec.fill == ' ') {  // If filling with '0',"
+        }
+      ],
+      "build_targets": [
+        "absl_str_cat_test",
+        "absl_substitute_test"
+      ],
+      "ctest_regex": "^(absl_str_cat_test|absl_substitute_test)$",
+      "gtest_filter": "*",
+      "expected_failed_tests": [
+        "Numbers.TestFunctionsMovedOverFromNumbersMain",
+        "SubstituteTest.Substitute"
+      ],
+      "changed_files": [
+        "absl/strings/str_cat.cc"
+      ],
+      "context": {
+        "jira_key": "CORE-3117",
+        "jira_summary": "Fixed-width negative decimal values place the minus sign among padding characters in concatenated and substituted native diagnostics. Space-padded and zero-padded formats no longer follow the same public contract.",
+        "commit_message": "CORE-3117: Update native runtime compatibility diagnostics",
+        "pr_title": "CORE-3117: Refresh ingestion worker diagnostic labels"
+      },
+      "source_metrics": [
+        {
+          "path": "absl/strings/substitute.cc",
+          "file_bytes": 6025,
+          "first_mutation_byte_offset": 5562
+        },
+        {
+          "path": "absl/strings/str_cat.h",
+          "file_bytes": 24243,
+          "first_mutation_byte_offset": 10318
+        }
+      ],
+      "upstream_test_count": 25,
+      "upstream_executed_test_count": 25,
+      "upstream_disabled_test_count": 0,
+      "native_proof": {
+        "verified": true,
+        "platform": "darwin",
+        "clean_pass": true,
+        "mutation_build_pass": true,
+        "mutation_tests_fail": true,
+        "protected_test_hashes_unchanged": true,
+        "evidence_directory": ".auto-fix/expanded-proof/abseil-strings/absl_decimal_padding_shared_contract",
+        "clean_executed_tests": 25,
+        "mutated_failed_tests": [
+          "Numbers.TestFunctionsMovedOverFromNumbersMain",
+          "SubstituteTest.Substitute"
+        ],
+        "diagnostic_normalizations": []
+      }
+    }
+  ],
+  "native_validation": {
+    "complete": true,
+    "verified_cases": 17,
+    "distinct_suite_executed_tests": 147,
+    "distinct_suite_disabled_tests": 1,
+    "case_suite_test_executions": 417,
+    "protected_tests_unchanged": true,
+    "pinned_source_untouched": true,
+    "evidence_root": ".auto-fix/expanded-proof/abseil-strings",
+    "source_clone_restored": true,
+    "active_mutation_anchors": 34,
+    "individually_observed_active_anchors": 34,
+    "individual_native_crash_anchors": 2,
+    "removed_unobserved_anchors": 6
+  },
+  "dataset_version": 2,
+  "previous_prototype_sha256": "0060d1181bf00fd6653319b94d603fbc985082455920f01131bc3e4ce5306902",
+  "previous_prototype": "evaluation/expanded/prototypes/v1/abseil_strings.json",
+  "revision_policy": "Coverage-only correction before formal freeze; IDs, families, and development/holdout labels are unchanged. No holdout model outcomes were inspected."
+}
