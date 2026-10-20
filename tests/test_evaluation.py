@@ -4,13 +4,14 @@ import copy
 import json
 from datetime import datetime
 from pathlib import Path
+from types import SimpleNamespace
 from zoneinfo import ZoneInfo
 
 import pytest
 
 from auto_fix import evaluation
 from auto_fix.config import Settings
-from auto_fix.evaluation import _details, _git, _source, _upstream
+from auto_fix.evaluation import _build_config, _details, _git, _source, _upstream
 from auto_fix.integrations import Bitbucket, Jira, TeamCity
 from auto_fix.mock_services import (
     BB_URL,
@@ -28,6 +29,29 @@ from auto_fix.workflow import Workflow
 
 ORIGINAL = "return 0xA17F;"
 REGRESSION = "return 0xA16F;"
+
+
+@pytest.mark.parametrize("platform_name", ["nt", "posix"])
+def test_build_targets_remain_cmake_arguments_and_native_rebuild_is_scoped(
+    tmp_path, monkeypatch, platform_name
+):
+    # Replace only this module's platform view; changing the global os.name
+    # would make pathlib instantiate WindowsPath on a POSIX test runner.
+    monkeypatch.setattr(evaluation, "os", SimpleNamespace(name=platform_name))
+    targets = ["absl_ascii_test", "absl_escaping_test"]
+    build = _build_config({"cmake_options": []}, {"build_targets": targets}, tmp_path)
+    configure, command = build["configure"][0], build["build"][0]
+    cmake_arguments = command[: command.index("--")] if "--" in command else command
+    assert cmake_arguments[cmake_arguments.index("--target") + 1 :] == targets
+    assert "--clean-first" not in command
+    if platform_name == "nt":
+        assert "-G" not in configure
+        assert command[command.index("--") + 1 :] == ["/t:Rebuild"]
+        assert "/t:Rebuild" not in cmake_arguments
+    else:
+        assert configure[configure.index("-G") + 1] == "Ninja"
+        assert "--" not in command
+        assert "/t:Rebuild" not in command
 
 
 @pytest.fixture

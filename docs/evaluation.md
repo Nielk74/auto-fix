@@ -31,7 +31,7 @@ One additional escaping test is disabled by upstream. The [accepted response rec
 
 ## Run with GPT-6 Luna
 
-Install the project dependencies as described in the main README. Windows needs Visual Studio C++ build tools and a Developer PowerShell terminal. Linux and macOS additionally need Ninja; those platforms use Ninja to avoid stale objects when a source edit and object compilation share a timestamp second. Windows uses the default CMake generator, `--config Release`, and `--clean-first`.
+Install the project dependencies as described in the main README. Windows needs Visual Studio C++ build tools and a Developer PowerShell terminal. Linux and macOS additionally need Ninja; those platforms use Ninja to avoid stale objects when a source edit and object compilation share a timestamp second. Windows uses the default Visual Studio CMake generator, `--config Release`, and a targeted MSBuild `/t:Rebuild`. This forces compilation of the selected test project and its dependencies without cleaning the entire Abseil solution before every verification.
 
 Authenticate your installed Codex CLI, then run:
 
@@ -60,7 +60,7 @@ uv run --no-sync auto-fix evaluate --directory .auto-fix/evaluation/luna-legacy 
 uv run --no-sync auto-fix evaluate --directory .auto-fix/evaluation/luna-candidate --profile focused --backend codex
 ```
 
-Compare the per-case outcome and failed stage before looking at totals. A context retrieval failure, malformed model proposal, wrong patch, compilation failure, and publication failure require different fixes. Re-run the whole case set after changing a shared step; repeat live runs to assess variability. Manifest hashes identify the implementation and fixture used by each run.
+Compare the per-case outcome and failed stage before looking at totals. A context retrieval failure, malformed model proposal, wrong patch, compilation failure, and publication failure require different fixes. Re-run the whole case set after changing a shared step; repeat live runs to assess variability. Current runs capture manifest hashes identifying the implementation and fixture. The historical `focused-v1` round predates manifest instrumentation and retains `context-engine.py.txt` plus its model request packets instead.
 
 The evaluator knows the mutations to create and score a scenario. It does not send `cases.json` or explicit expected repair edits to the model. Direct-context cases expose the recent source diff, as a normal TeamCity change would; this can make their inverse patch easy. Indirect-context cases report a later unrelated change and require locating an older defective implementation. The clean upstream repository remains the evaluator's private input, rather than a model tool.
 

@@ -89,7 +89,10 @@ def _details(junit: Path) -> dict[str, str]:
 
 def _build_config(project: dict, case: dict, googletest: Path) -> dict:
     generator = [] if os.name == "nt" else ["-G", "Ninja"]
-    rebuild = ["--clean-first"] if os.name == "nt" else []
+    # VS maps CMake's global clean target to the whole solution. Rebuild only
+    # the selected project and dependencies, while forcing edited sources to
+    # compile even when Windows timestamps coincide within the same second.
+    native_rebuild = ["--", "/t:Rebuild"] if os.name == "nt" else []
     return {
         "configure": [
             [
@@ -110,11 +113,11 @@ def _build_config(project: dict, case: dict, googletest: Path) -> dict:
                 ".auto-fix-build",
                 "--config",
                 "Release",
-                *rebuild,
                 "--parallel",
                 "4",
                 "--target",
                 *case["build_targets"],
+                *native_rebuild,
             ]
         ],
         "test": [
