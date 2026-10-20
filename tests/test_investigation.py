@@ -195,3 +195,98 @@ def test_query_metadata_alone_obeys_final_json_budget(workspace):
     )
     assert not evidence["excerpts"]
     assert len(json.dumps(evidence)) <= 300
+
+
+def test_definition_reads_return_the_body_beyond_a_forward_declaration(workspace):
+    workspace.config.definition_reads = True
+    definition = (
+        "int LongContract(int value) {\n" + "  // body context\n" * 90 + "  return value + 7;\n}\n"
+    )
+    content = "int LongContract(int value);\n" + "\n" * 100 + definition + "int unrelated = 9;\n"
+    (workspace.path / "src/format.cc").write_text(content)
+    evidence = gather_evidence(
+        workspace,
+        request(reads=[SourceRead(path="src/format.cc", line=0, symbol="LongContract")]),
+        max_chars=20000,
+    )
+    assert not evidence["errors"]
+    assert len(evidence["excerpts"]) == 1
+    item = evidence["excerpts"][0]
+    assert item["content"] == definition
+    assert item["content"] == "".join(
+        content.splitlines(keepends=True)[item["start_line"] - 1 : item["end_line"]]
+    )
+    assert "unrelated" not in item["content"]
+
+
+def test_definition_reads_can_find_enclosing_function_at_an_interior_line(workspace):
+    workspace.config.definition_reads = True
+    definition = (
+        "int InteriorContract(int value) {\n" + "  // interior\n" * 85 + "  return value;\n}\n"
+    )
+    (workspace.path / "src/format.cc").write_text("\n" * 20 + definition)
+    evidence = gather_evidence(
+        workspace,
+        request(reads=[SourceRead(path="src/format.cc", line=80, symbol="")]),
+        max_chars=10000,
+    )
+    assert evidence["excerpts"][0]["content"] == definition
+
+
+def test_oversized_definition_falls_back_with_exact_bounds_and_explicit_warning(workspace):
+    workspace.config.definition_reads = True
+    content = (
+        "int LargeContract(int value) {\n"
+        + "  // bounded evidence still has to fit\n" * 250
+        + "  return value;\n}\n"
+    )
+    (workspace.path / "src/format.cc").write_text(content)
+    evidence = gather_evidence(
+        workspace,
+        request(reads=[SourceRead(path="src/format.cc", line=140, symbol="")]),
+        max_chars=4000,
+    )
+    assert len(json.dumps(evidence)) <= 4000
+    assert "partial neighborhood" in evidence["errors"][0]["error"]
+    assert evidence["errors"][0]["definition_start_line"] == 1
+    item = evidence["excerpts"][0]
+    assert item["content"] == "".join(
+        content.splitlines(keepends=True)[item["start_line"] - 1 : item["end_line"]]
+    )
+    assert item["start_line"] > 1 and item["end_line"] < len(content.splitlines())
+
+
+def test_definition_mode_does_not_grant_oracle_or_untracked_access(workspace):
+    workspace.config.definition_reads = True
+    evidence = gather_evidence(
+        workspace,
+        request(
+            reads=[
+                SourceRead(path="evaluation/oracle.cc", line=1, symbol=""),
+                SourceRead(path="src/untracked.cc", line=1, symbol=""),
+            ]
+        ),
+    )
+    assert evidence["excerpts"] == []
+    assert len(evidence["errors"]) == 2
+    assert "DO_NOT_INCLUDE" not in json.dumps(evidence)
+
+
+def test_parser_uncertainty_survives_actual_evidence_retention(workspace):
+    from auto_fix.investigation import merge_evidence
+
+    workspace.config.definition_reads = True
+    (workspace.path / "src/format.cc").write_text("int Malformed(int value) { return value + ; }\n")
+    evidence = gather_evidence(
+        workspace,
+        request(
+            reads=[
+                SourceRead(path="src/format.cc", line=1, symbol="Malformed"),
+            ]
+        ),
+    )
+    retained = merge_evidence(None, evidence)
+    assert retained["errors"][0]["has_error"] is True
+    assert retained["errors"][0]["body_has_error"] is True
+    assert "may be approximate" in retained["errors"][0]["error"]
+    assert retained["excerpts"][0]["content"] == "int Malformed(int value) { return value + ; }\n"

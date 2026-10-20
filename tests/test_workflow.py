@@ -452,6 +452,7 @@ def test_investigation_runs_before_repairs_and_carries_observed_evidence(make_fl
             report(passed=["math.add"]),
         ]
     )
+    flow.settings.llm.context_chars = 60000
     flow.settings.max_inspections = 2
     flow.model = InvestigatingModel([inspection(queries=["add"]), inspection()])
     observed = []
@@ -534,6 +535,7 @@ def test_inspection_round_limit_reserves_evidence_calls_for_failed_repair(make_f
 
 def test_applied_edits_invalidate_stale_source_evidence_for_retry(make_flow, monkeypatch):
     flow = make_flow()
+    flow.settings.llm.context_chars = 60000
     flow.settings.structured_diagnostics = True
     observed = []
 

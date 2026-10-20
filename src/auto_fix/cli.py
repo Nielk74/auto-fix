@@ -119,6 +119,8 @@ def main(argv: list[str] | None = None) -> int:
     evaluation.add_argument("--inspections-per-attempt", type=int, default=6)
     evaluation.add_argument("--max-attempts", type=int, default=2)
     evaluation.add_argument("--structured-diagnostics", action="store_true")
+    evaluation.add_argument("--context-chars", type=int, default=60000)
+    evaluation.add_argument("--definition-reads", action="store_true")
     evaluation.add_argument("--reasoning-effort", choices=["medium", "high"], default="medium")
     operations = commands.add_parser(
         "evaluate-operations", help="Exercise real Git/native workflow fault scenarios with Luna"
@@ -172,6 +174,8 @@ def main(argv: list[str] | None = None) -> int:
             max_attempts=args.max_attempts,
             reasoning_effort=args.reasoning_effort,
             structured_diagnostics=args.structured_diagnostics,
+            context_chars=args.context_chars,
+            definition_reads=args.definition_reads,
         )
     # Configuration-adjacent secrets work independently of Task Scheduler's working directory.
     load_dotenv(args.config.resolve().parent / ".env", override=False)

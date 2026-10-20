@@ -273,6 +273,28 @@ def test_replay_command_pins_backend_and_all_workflow_settings(recording, tmp_pa
     assert "--config" not in command and "--backend codex" not in " ".join(command)
 
 
+def test_replay_preserves_the_registered_source_and_adaptive_budgets(recording, tmp_path):
+    root, index, payload = recording
+    payload["entries"][0].update(
+        max_attempts=4,
+        max_inspections=6,
+        inspections_per_attempt=2,
+        context_chars=160000,
+        definition_reads=True,
+    )
+    write(index, payload)
+    case = replay.load_index(index, root).entries[0]
+    command = replay.replay_command(case, root, tmp_path / "output")
+    for flag, value in [
+        ("--max-attempts", "4"),
+        ("--max-inspections", "6"),
+        ("--inspections-per-attempt", "2"),
+        ("--context-chars", "160000"),
+    ]:
+        assert command[command.index(flag) + 1] == value
+    assert "--definition-reads" in command
+
+
 def git(path, *args):
     return subprocess.run(
         ["git", "-C", str(path), *args], check=True, capture_output=True, text=True

@@ -240,8 +240,15 @@ def gather_evidence(workspace: Workspace, request: Investigation, max_chars: int
             scanned += size
         return documents[path]
 
-    def append(path: str, lines: list[str], center: int, radius: int, kind: str) -> bool:
-        start, end = max(0, center - radius), min(len(lines), center + radius + 1)
+    def append(
+        path: str,
+        lines: list[str],
+        center: int,
+        radius: int,
+        kind: str,
+        bounds: tuple[int, int] | None = None,
+    ) -> bool:
+        start, end = bounds or (max(0, center - radius), min(len(lines), center + radius + 1))
         content = "".join(lines[start:end])
         item = {
             "path": path,
@@ -262,6 +269,48 @@ def gather_evidence(workspace: Workspace, request: Investigation, max_chars: int
     for wanted in request.reads:
         try:
             lines = read(wanted.path)
+            if workspace.config.definition_reads:
+                from auto_fix.cpp_symbols import definition_ranges
+
+                definitions = definition_ranges(
+                    "".join(lines), symbol=wanted.symbol or None, line=wanted.line or None
+                )
+                returned = False
+                for definition in definitions[:2]:
+                    if definition["has_error"] or definition["body_has_error"]:
+                        result["errors"].append(
+                            {
+                                "path": wanted.path,
+                                "error": "C++ syntax parser reported errors in this definition; "
+                                "its scope boundary may be approximate. Source lines are exact.",
+                                "definition_start_line": definition["start_line"],
+                                "definition_end_line": definition["end_line"],
+                                "has_error": definition["has_error"],
+                                "body_has_error": definition["body_has_error"],
+                            }
+                        )
+                    bounds = (definition["start_line"] - 1, definition["end_line"])
+                    returned |= append(
+                        wanted.path,
+                        lines,
+                        definition["focus_line"] - 1,
+                        35,
+                        "read",
+                        bounds=bounds,
+                    )
+                if returned:
+                    continue
+                if definitions:
+                    result["errors"].append(
+                        {
+                            "path": wanted.path,
+                            "error": "Complete definition exceeds the remaining evidence budget; "
+                            "returning a partial neighborhood. Request a specific interior line "
+                            "to inspect a different part.",
+                            "definition_start_line": definitions[0]["start_line"],
+                            "definition_end_line": definitions[0]["end_line"],
+                        }
+                    )
             line = wanted.line - 1 if wanted.line else 0
             if wanted.symbol:
                 hits = [i for i, text in enumerate(lines) if wanted.symbol in text]

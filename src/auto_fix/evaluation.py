@@ -11,6 +11,7 @@ import subprocess
 import sys
 import time
 from datetime import datetime
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -211,6 +212,8 @@ def run_evaluation(
     max_attempts: int = 2,
     reasoning_effort: str = "medium",
     structured_diagnostics: bool = False,
+    context_chars: int = 60000,
+    definition_reads: bool = False,
 ) -> int:
     if backend not in {"codex", "endpoint", "replay"}:
         raise ValueError("Unknown evaluation backend")
@@ -248,6 +251,12 @@ def run_evaluation(
         raise ValueError("Evaluation directory must be empty; prior evidence is preserved")
     directory.mkdir(parents=True, exist_ok=True)
     source_files = sorted(path.name for path in Path(__file__).parent.glob("*.py"))
+    packages = {}
+    for package in ("langgraph", "pydantic", "tree-sitter", "tree-sitter-cpp"):
+        try:
+            packages[package] = version(package)
+        except PackageNotFoundError:
+            packages[package] = None
     snapshot = directory / "implementation"
     snapshot.mkdir()
     for name in source_files:
@@ -265,6 +274,13 @@ def run_evaluation(
             "inspections_per_attempt": inspections_per_attempt,
             "reasoning_effort": reasoning_effort,
             "structured_diagnostics": structured_diagnostics,
+            "context_chars": context_chars,
+            "definition_reads": definition_reads,
+            "runtime": {
+                "python": platform.python_version(),
+                "platform": platform.platform(),
+                "packages": packages,
+            },
             "split": split,
             "case_ids": [case["id"] for case in cases],
             "source_sha256": {
@@ -365,11 +381,13 @@ def run_evaluation(
                     "url": "https://model.meridian.invalid/v1",
                     "model": model_name,
                     "prompt_version": prompt_version,
+                    "context_chars": context_chars,
                 },
                 "repository": {
                     "path": source,
                     "allowed_paths": allowed_paths,
                     "context_paths": context_paths,
+                    "definition_reads": definition_reads,
                 },
                 "build": config,
             }
@@ -478,6 +496,8 @@ def run_evaluation(
                     "inspections_per_attempt": inspections_per_attempt,
                     "reasoning_effort": reasoning_effort,
                     "structured_diagnostics": structured_diagnostics,
+                    "context_chars": context_chars,
+                    "definition_reads": definition_reads,
                     "split": split,
                     "model": model_name,
                     "backend": backend,

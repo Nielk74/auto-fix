@@ -343,9 +343,13 @@ class Workflow:
                 }
             if not request.queries and not request.reads:
                 return {**progress, "status": "blocked", "reason": request.summary}
-            evidence = gather_evidence(self.workspace, request, max_chars=10000)
+            evidence = gather_evidence(
+                self.workspace, request, max_chars=min(24000, self.settings.llm.context_chars // 6)
+            )
             previous = state.get("investigation", {}).get("evidence", [])
-            combined = merge_evidence(previous, evidence, max_chars=18000)
+            combined = merge_evidence(
+                previous, evidence, max_chars=min(48000, self.settings.llm.context_chars * 3 // 10)
+            )
             report = {"hypotheses": request.hypotheses, "evidence": [combined]}
             write_json(self.directory / f"inspection-evidence-{count}.json", report)
             return {
@@ -391,7 +395,7 @@ class Workflow:
                     invalidate_evidence(
                         state.get("investigation", {}).get("evidence", []),
                         {edit.path for edit in proposal.edits},
-                        max_chars=18000,
+                        max_chars=min(48000, self.settings.llm.context_chars * 3 // 10),
                     )
                 ],
             }
