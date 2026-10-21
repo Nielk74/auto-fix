@@ -4,7 +4,7 @@
 
 Linux runs every accepted index entry, with up to six jobs and a 30-minute limit per case. Windows runs entries explicitly tagged `windows-representative`, with up to three jobs and a 45-minute limit per case. An empty Windows selection skips those jobs. Both platforms use Python 3.12 and a short native output directory under `runner.temp/af` to limit Windows build paths. Job outputs feed the matrices using GitHub's [documented output-matrix pattern](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations#using-an-output-to-define-two-matrices).
 
-The index is populated only after selecting and freezing the measured workflow. When exporting accepted recordings, tag diverse portable cases from both Abseil and fmt, including multi-file repairs. To verify the additional duration guard on Windows, include a genuinely accepted `absl_time_test` case whose recorded project manifest enables `duration-min-unit`; tagging a case alone does not enable that guard. The index and recordings remain pending until genuine accepted runs are exported.
+The index is populated only after selecting and freezing the measured workflow. When exporting accepted recordings, tag diverse portable cases from both Abseil and fmt, including multi-file repairs. To verify the current additional duration guard on Windows, include a genuinely accepted `absl_time_test` case whose recorded V6 project manifest enables the ten-assertion `duration-rounding-boundaries` probe; tagging a case alone does not enable that guard. The older `duration-min-unit` manifest retains four assertions for historical replay. The index and recordings remain pending until genuine accepted runs are exported.
 
 Validate locally before dispatching:
 

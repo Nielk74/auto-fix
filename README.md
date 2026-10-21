@@ -13,7 +13,9 @@ flowchart TD
     C --> D[Isolated worktree at failing revision]
     D --> E[Rebase onto master]
     E --> F[Build and reproduce matching failures]
-    F --> R[Optional model-directed source searches and reads]
+    F --> Q[Repeat unchanged baseline and check complete stable evidence]
+    Q -->|Stable| R[Model-directed source searches and reads]
+    Q -->|Invalid or varying outcomes| Z[Save blocked result and evidence]
     R --> G[Model proposes bounded source edits]
     G --> H[Build, full configured suites and additional validation]
     H -->|Failure, within attempt limit| R
@@ -47,7 +49,7 @@ CI runs the checks and native C++ demo on both Windows and Linux with Python 3.1
 
 ## Evaluate against a substantial C++ repository
 
-The expanded evaluation adds **45 distinct synthetic regressions in Abseil and fmt**, with 24 development cases and 21 held-out cases. It includes multi-location and multi-file changes, indirect Git context, and operational faults across Git, model delivery and PR recovery. See the [expanded evaluation procedure](docs/expanded-evaluation.md), [frozen dataset](evaluation/expanded/dataset-index.json), and [audit artifact tools](docs/evidence-artifacts.md). The original four cases below remain a smoke benchmark.
+The expanded evaluation covers **45 distinct synthetic regressions in Abseil and fmt**, split by behavior family into 24 development cases and 21 held-out cases. It includes multi-location and multi-file changes, indirect Git context, and separate operational faults across Git, model delivery and PR recovery. Completed development phases comprise 384 trials and 1,162 actual Luna calls. The selected assertion-grounded policy repaired 24/24 development cases with 70 calls; one control-arm baseline safe stop and a separately measured control performance regression remain in the evidence. The registered 84-trial holdout experiment is next; development performance is not a production repair-rate estimate. See the [results and method](docs/expanded-evaluation.md), [frozen dataset](evaluation/expanded/dataset-index.json), and [audit artifacts](docs/evidence-artifacts.md). The original four cases below remain a smoke benchmark.
 
 The evaluation uses pinned **Abseil C++**, with 840 source/header files and 265,865 lines, and realistic synthetic TeamCity, Bitbucket and Jira data. Four independently injected source defects are checked by unchanged upstream tests. Git, native builds, rebases, and local branch publication run for real; enterprise services are mocked.
 
@@ -93,7 +95,7 @@ The validator requires the original failing test identities to appear as passing
 
 `repository.allowed_paths` controls which source files the model can edit; keep test, build and workflow files outside that list. `context_paths` controls the source files available for diagnosis. The default `context_strategy: focused` retrieves bounded excerpts around failure locations, symbols, and local includes, including relevant code deep inside large files. `legacy` retains the original file-prefix strategy for comparison. Context, model output, edit size, retries and command duration are bounded. Change `max_attempts` to adjust the default two repair attempts.
 
-The example configurations enable the investigation policy selected on Luna development cases: `contract-v3`, complete bounded C++ definition reads, four inspections shared across two repairs, at most two inspections per attempt, and a 160,000-character input budget. They also require two unchanged baselines. Qwen quality and your endpoint's context capacity are unmeasured; adjust `llm.context_chars` to the deployed capacity and evaluate that configuration. Provider-specific reasoning fields remain in `llm.extra_body` for your server's supported options.
+The example configurations enable the policy selected on Luna development cases: `assertion-v4`, complete bounded C++ definition reads, six inspections shared across up to four repairs, at most two inspections per attempt, and a 160,000-character input budget. They also require two unchanged baselines. Qwen quality and your endpoint's context capacity are unmeasured; adjust `llm.context_chars` to the deployed capacity and evaluate that configuration. Provider-specific reasoning fields remain in `llm.extra_body` for your server's supported options.
 
 “Today” uses the configured IANA timezone, defaulting to `Europe/Paris`. To investigate a specific date:
 

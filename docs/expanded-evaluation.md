@@ -2,7 +2,7 @@
 
 This benchmark tests the complete path from a reported C++ test failure to a verified pull request. Compilation, Git history, native test execution, and model inference are real. TeamCity, Bitbucket, and Jira are temporary, fictional on-premise services implemented with an HTTP mock transport. The benchmark never contacts company services or publishes a real repair PR.
 
-The frozen corpus and original procedure are [complex-cpp-v2](../evaluation/expanded/protocol.json). The [dataset index](../evaluation/expanded/dataset-index.json) records case IDs, development/holdout assignments, upstream pins, manifest hashes, complexity labels, and native proof hashes. Development addenda preserve that corpus while registering workflow changes and stronger validation. The pure-prompt and v3 investigation comparisons are complete; **later development arms and holdout results remain pending**.
+The frozen corpus and original procedure are [complex-cpp-v2](../evaluation/expanded/protocol.json). The [dataset index](../evaluation/expanded/dataset-index.json) records case IDs, development/holdout assignments, upstream pins, manifest hashes, complexity labels, and native proof hashes. Development addenda preserve that corpus while registering workflow changes and stronger validation. Development is complete: **384 trials and 1,162 actual Luna calls**, covering the same 24 development cases across 16 arms. The selected policy is frozen from development results; holdout inference has not started.
 
 ## What the workflow does
 
@@ -61,6 +61,8 @@ Case manifests, clean-source oracles, injected-edit descriptions, proof metadata
 
 The evaluated model is fixed to `gpt-6-luna`. [The official model reference](https://developers.openai.com/api/docs/models/gpt-6-luna) documents its reasoning settings. Each registered arm records effort, context, inspection and repair budgets explicitly. Different models, endpoint inference, and recorded replay are excluded from these live comparisons.
 
+These live trials use the Codex CLI adapter, with explicit model/reasoning settings, a per-call timeout and retained provider usage. They do not reproduce the custom HTTP endpoint's sampling or completion-token limit. The production endpoint adapter applies its configured `temperature`, `max_tokens` and `extra_body`; Qwen capacity and repair quality require a separate endpoint evaluation.
+
 The first phase measured three pure prompt arms on the same 24 development cases, with no inspections or structured diagnostics:
 
 | Arm | Change | Inspections | Structured diagnostics |
@@ -107,19 +109,63 @@ These results show why successful native tests need independent patch review. Th
 
 ## Later development changes
 
-The [v4 protocol](../evaluation/expanded/protocol-development-v4.json) and [plan](../evaluation/expanded/plans/development-evidence-lifecycle-v4.json) compare medium/high effort with retained source evidence, fresh assertion feedback and two inspections reserved per repair attempt. Both arms have a four-inspection total budget and two repairs. The medium arm completed 15/24 native publications with 107 live calls. The high arm remains in progress; independent review has already found two additional precision-boundary false positives, preserved separately from its original grades.
+The [v4 protocol](../evaluation/expanded/protocol-development-v4.json) and [plan](../evaluation/expanded/plans/development-evidence-lifecycle-v4.json) compare medium/high effort with retained source evidence, fresh assertion feedback and two inspections reserved per repair attempt. Both arms have a four-inspection total budget and two repairs. All 48 trials finished:
 
-The [v5 protocol](../evaluation/expanded/protocol-development-v5.json) and [plan](../evaluation/expanded/plans/development-source-context-v5.json) compare three high-effort arms: a 160,000-character source budget with fixed excerpts; the same budget with C++ definition reads; and definition reads with an adaptive four-repair/six-inspection total budget. The first two retain two repairs/four inspections. All reserve at most two inspections per repair attempt. These resource differences are explicit; the adaptive arm is not an equal-budget comparison. Results remain pending until every arm completes all 24 cases and every publication is reviewed.
+| V4 arm | Native publications / 24 | Actual Luna calls | Confirmed semantic regressions |
+| --- | ---: | ---: | ---: |
+| Medium effort | 15 | 107 | 0 |
+| High effort | 20 | 95 | 2 |
+
+The two high-effort false greens affect printf integer precision and dynamic zero precision. Independent native checks reproduce both; the original grades remain unchanged. A duration minimum/negative-unit difference was reviewed separately and is not classified as a demonstrated contract regression.
+
+The [v5 protocol](../evaluation/expanded/protocol-development-v5.json) and [plan](../evaluation/expanded/plans/development-source-context-v5.json) compare three high-effort arms at a 160,000-character context budget. All 72 trials finished:
+
+| V5 arm | Repairs / inspections | Native publications / 24 | Actual Luna calls |
+| --- | --- | ---: | ---: |
+| Fixed source excerpts | 2 / 4 | 22 | 81 |
+| Complete bounded C++ definitions | 2 / 4 | 24 | 73 |
+| Complete definitions, expanded budget | 4 / 6 | 24 | 78 |
+
+All reserve at most two inspections per attempt. The expanded arm is not an equal-budget comparison. All 70 publications received separate source/native-evidence review: 43 exact restorations, 20 equivalent implementations and seven documented-contract extensions, with no confirmed regression or pending review. Native property checks support the nonidentical hex and duration changes. These finite checks do not prove arbitrary-input correctness.
+
+The [development report](../evaluation/results/expanded-development/report.md) preserves all 288 pre-confirmation trials and 873 calls. The [registered selection](../evaluation/expanded/development-selection-v6.json) selected complete definitions with two repairs: it tied the expanded arm on publications with fewer calls. Its [independent selection audit](../evaluation/results/expanded-development/selection-audit.json) checks all 216 eligible guarded trials and 774 calls.
 
 The [v6 baseline-trust protocol](../evaluation/expanded/protocol-development-v6-baseline-trust.json) registers two repeated unchanged baselines, explicit evidence validity and stronger versioned development-derived guards. Real native mechanical controls demonstrated that a single flaky FAIL/PASS/PASS sequence and malformed additional baseline evidence could otherwise permit publication. These controls use scripted proposals and contribute zero live model evaluations.
 
-After all eligible development arms finish, select the registered recipe, freeze its source/input hashes, and run a fresh 24-case development confirmation on the safer v6 graph. Then freeze the exact implementation before any holdout inference. The registered holdout experiment has 21 baseline trials and three fresh 21-case winner rounds, 84 trials total. Each repeated round covers the same 21 unique cases; it does not add independent defects. The baseline and winner share the v6 validation rules and two-baseline requirement. Holdout outcomes cannot tune the workflow.
+The [fresh V6 confirmation](../evaluation/results/development-confirmation-v6/report.md) ported that recipe to the safer graph with two stable baselines, ten duration guards and twelve fmt guards. It completed **22/24 publications with 72 actual calls**; all 22 publications passed independent review. One final edit introduced a floating-duration template compile error. Another model response reversed an explicit expected-false/observed-true test contract, then produced an invalid empty edit path. Both stopped without publication. The original successful 24/24 selection result is therefore not a repeatability guarantee. Exact evidence is retained in the [failure diagnosis](../evaluation/results/development-confirmation-v6/blocked-failure-diagnosis.json).
+
+The diagnosis also found a diagnostic adapter bug: GoogleTest's `Which is` values for both named operands were incorrectly grouped under `actual`. Raw assertions and protected test source remained correct. V7 removes that inference and preserves named operand/value text without guessing expected/actual roles.
+
+The [V7 protocol](../evaluation/expanded/protocol-development-v7.json), [plan](../evaluation/expanded/plans/development-comparison-v7.json), [source freeze](../evaluation/expanded/development-freeze-v7.json) and [independent design audit](../evaluation/results/development-v7-design/audit.json) register 72 fresh development trials before inference:
+
+| V7 arm | Prompt | Repairs / inspections |
+| --- | --- | --- |
+| Confirmation budget | `contract-v3` | 2 / 4 |
+| Expanded budget | `contract-v3` | 4 / 6 |
+| Assertion grounding | `assertion-v4` | 4 / 6 |
+
+All three share corrected diagnostics, high effort, complete definitions, 160,000 characters, two inspections per attempt and the unchanged V6 native oracle. Comparing the first two isolates budget; comparing the last two isolates the new prompt at equal resources. Cross-phase V6/V7 results also include the shared diagnostic correction. The additive prompt requires named expected/observed evidence, rejects contradicted earlier hypotheses and checks C++ template operations across supported representations; old prompts remain byte-identical. No fixture-specific solution is supplied.
+
+
+All 72 V7 trials finished with 217 actual Luna calls; all 71 publications received closed native/source/Git review:
+
+| V7 arm | Functional native publications /24 | First-repair successes /24 | Actual Luna calls |
+| --- | ---: | ---: | ---: |
+| Confirmation budget | 23 | 18 | 75 |
+| Expanded budget | 24 | 20 | 72 |
+| Assertion grounding | 24 | 22 | 70 |
+
+The [final development report](../evaluation/results/development-comparison-v7/report.md) and [registered selection](../evaluation/expanded/development-selection-v7.json) select `assertion-v4` by the prospective call-count tie-break. All observed repairs used at most two attempts in this phase; the four-attempt cap remains a maximum. The small call-count difference is one fresh comparison, not a guarantee that the new prompt is always more efficient.
+
+The control's missing publication was a zero-model stability stop: an entropy-seeded upstream parser test hit different defect-triggering inputs in the two unchanged native runs. All other 49 outcomes agreed. This is random coverage under the injected defect, not evidence of clean-upstream flakiness or a failed model repair. Keep the miss in the 24-case workflow denominator; it does not prove extra budget or prompting caused the other arms' success.
+
+Separate native review found a measured performance regression in the control's broad substitution rewrite: on the recorded 1 MiB sparse-match input with eight present patterns, an optimized native benchmark measured 0.0001502709 seconds per call for the pin versus 0.0169978335 for the candidate, approximately 113.1 times slower. The same patch passed 114,303 functional configurations; duplicate-key tie priority differs but is unspecified by the API. Its original functional grade is retained, with the performance regression explicit. The other two arms restore the pinned substitution source exactly. No general asymptotic or performance-equivalence claim follows from these probes.
 
 Register any further development change as a new arm/version before its calls. Investigate failures from development results only.
 
-Select by the number of development cases reaching fully verified publication; break ties with fewer live calls, then lower measured latency. Freeze the selected arm, prompt hash, implementation hashes, case/project manifest hashes, validation rules, and job plan before any holdout inference. Run one baseline holdout round and three fresh rounds of the frozen selected workflow on the same 21 holdout cases. Those 63 selected-workflow trials still represent 21 distinct defects. Do not choose a different prompt from their results; a later change requires a new evaluation cycle.
+V7 selection requires all 72 trials and all publication reviews to finish. Rank semantically reviewed native publications, then fewer actual calls, then measured latency; keep raw grades and confirmed semantic regressions separate. Freeze the selected arm, prompt, implementation/input hashes and exact job plan before holdout inference. Run one baseline holdout round and three fresh selected-workflow rounds: 84 trials covering the same 21 unique holdout cases. The earlier V6 holdout plan was preserved without execution. Holdout outcomes cannot tune this implementation or select another prompt; a later change requires a new evaluation cycle.
 
-This procedure follows OpenAI's [evaluation best practices](https://developers.openai.com/api/docs/guides/evaluation-best-practices): use representative task-specific cases, explicit success criteria, retained logs, automated checks, and iterative measurement. Versioned prompts make workflow changes comparable, as discussed in the [prompt engineering guide](https://developers.openai.com/api/docs/guides/prompt-engineering). The native grader here is deterministic; no second model grades Luna's answer.
+This procedure follows OpenAI's [evaluation best practices](https://developers.openai.com/api/docs/guides/evaluation-best-practices): use representative task-specific cases, explicit success criteria, retained logs, automated checks, and iterative measurement. Versioned prompts make workflow changes comparable, as discussed in the [prompt engineering guide](https://developers.openai.com/api/docs/guides/prompt-engineering). Native grades come from the compiler, tests and Git receipts. Separate coding-agent reviews inspect successful patches and request native counterexamples for uncertain semantic changes; they do not replace native completion with an LLM score.
 
 ## Run a trial or a frozen plan
 
@@ -218,7 +264,9 @@ The reporter groups by arm, split, and project, and retains a per-case trial tab
 
 ## Operational failures are a separate experiment
 
-The **13 scenarios** in [operational_evaluation.py](../src/auto_fix/operational_evaluation.py) exercise real Git/native execution and injected service/workflow faults. The [operations-v2 addendum](../evaluation/expanded/protocol-operations-v2.json) preserves the original nine and registers four production CLI recovery scenarios before their live execution. They reuse the original simple ASCII regression and do not add 13 new source defects to the 45-case count. Operational results remain pending.
+The **13 scenarios** in [operational_evaluation.py](../src/auto_fix/operational_evaluation.py) exercise real Git/native execution and injected service/workflow faults. The [operations-v2 addendum](../evaluation/expanded/protocol-operations-v2.json) preserves the original nine and registers four production CLI recovery scenarios before their live execution. They reuse the original simple ASCII regression and do not add 13 new source defects to the 45-case count.
+
+The fresh [V6 operations protocol](../evaluation/expanded/protocol-operations-v6.json) completed all 13 scenarios with 24 actual Luna calls and six completed repairs. Independent native/Git/publication evidence confirms all 13 expected behaviors. The original raw grade is 12/13 because the old grader required a particular reason string for a correct invalid-baseline stop. The [grader correction](../evaluation/expanded/operations-v6-grader-correction.json) preserves that score, checks actual filtered/unfiltered native XML and verifies a fresh single-case safe stop with zero model calls. Correct stops and completed repairs are separate outcomes; this is not a 13/13 repair result.
 
 | Scenario | Expected behavior |
 | --- | --- |

@@ -32,7 +32,7 @@ Set `baseline_repetitions: 2` for two unchanged-source builds and test runs. The
 
 ## Investigation and repair
 
-Structured diagnostics retain original failing identities while sampling model-facing details to fit the context budget. Fresh JUnit assertion text and compiler feedback help the next attempt. Source retrieval uses local includes, failure locations, symbols and prior proposals. An optional C++ parser supplies complete bounded function definitions, including templates and operators; ambiguous or oversized reads carry explicit uncertainty.
+Structured diagnostics retain original failing identities while sampling model-facing details to fit the context budget. Fresh JUnit assertion text and compiler feedback help the next attempt. Expected/actual fields use explicit native labels; GoogleTest operand values remain attached to their named expressions in the assertion text, because operand order alone does not establish their roles. Source retrieval uses local includes, failure locations, symbols and prior proposals. An optional C++ parser supplies complete bounded function definitions, including templates and operators; ambiguous or oversized reads carry explicit uncertainty.
 
 The model can request allowlisted searches and reads. A total inspection budget and an optional per-attempt limit reserve investigation capacity for later repair attempts. After an edit, the workflow discards cached evidence for every modified path. Distinct unchanged reads remain available within the evidence budget.
 
