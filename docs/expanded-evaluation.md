@@ -2,7 +2,7 @@
 
 This benchmark tests the complete path from a reported C++ test failure to a verified pull request. Compilation, Git history, native test execution, and model inference are real. TeamCity, Bitbucket, and Jira are temporary, fictional on-premise services implemented with an HTTP mock transport. The benchmark never contacts company services or publishes a real repair PR.
 
-The frozen corpus and original procedure are [complex-cpp-v2](../evaluation/expanded/protocol.json). The [dataset index](../evaluation/expanded/dataset-index.json) records case IDs, development/holdout assignments, upstream pins, manifest hashes, complexity labels, and native proof hashes. Development addenda preserve that corpus while registering workflow changes and stronger validation. Development is complete: **384 trials and 1,162 actual Luna calls**, covering the same 24 development cases across 16 arms. The selected policy is frozen from development results; holdout inference has not started.
+The frozen corpus and original procedure are [complex-cpp-v2](../evaluation/expanded/protocol.json). The [dataset index](../evaluation/expanded/dataset-index.json) records case IDs, development/holdout assignments, upstream pins, manifest hashes, complexity labels, and native proof hashes. Development addenda preserve that corpus while registering workflow changes and stronger validation. All **468 formal C++ trials and 1,401 actual Luna calls** are complete: 384 development trials across 16 arms, then 84 frozen holdout trials. The [independent inventory](../evaluation/results/final-inventory.json) counts every original score and actual call once; operational faults remain a separate experiment.
 
 ## What the workflow does
 
@@ -34,6 +34,8 @@ The model receives a representative bounded diagnostic packet when needed; that 
 ## Dataset and native proof
 
 There are **45 new synthetic regression cases**, across two substantial public C++ repositories. These are injected faults in real code, not historical bug fixes. Assignment is frozen by behavior family, with 24 development cases and 21 holdout cases.
+
+The source is public, so model familiarity with these implementations cannot be ruled out. The experiment does not measure training-data contamination or show that the same repair rate transfers to a private C++ solution. Holding out behavior families prevents development selection on those case outcomes; it does not make the upstream source unknown to the model.
 
 | Group | Cases | Development | Holdout | Manifest |
 | --- | ---: | ---: | ---: | --- |
@@ -167,6 +169,28 @@ V7 selection requires all 72 trials and all publication reviews to finish. Rank 
 
 This procedure follows OpenAI's [evaluation best practices](https://developers.openai.com/api/docs/guides/evaluation-best-practices): use representative task-specific cases, explicit success criteria, retained logs, automated checks, and iterative measurement. Versioned prompts make workflow changes comparable, as discussed in the [prompt engineering guide](https://developers.openai.com/api/docs/guides/prompt-engineering). Native grades come from the compiler, tests and Git receipts. Separate coding-agent reviews inspect successful patches and request native counterexamples for uncertain semantic changes; they do not replace native completion with an LLM score.
 
+## Frozen holdout results
+
+The [registered V7 holdout](../evaluation/expanded/protocol-holdout-v7.json) ran the frozen implementation and selected recipe without tuning, replacement trials or changes to the native oracle. All 84 trials completed with 239 actual Luna calls. Every publication received closed source/native-evidence review; all failed trials remain in their original denominators.
+
+| Run | Native publications /21 | Without a confirmed functional defect /21 | Actual Luna calls |
+| --- | ---: | ---: | ---: |
+| Baseline | 3 | 3 | 31 |
+| Selected, first round | 21 | 19 | 68 |
+| Selected, second round | 21 | 18 | 77 |
+| Selected, third round | 21 | 17 | 63 |
+
+The primary comparison uses the first selected round on 21 distinct held-out cases: 19/21 after review, with a descriptive Wilson 95% interval of 71.1%–97.3%, versus baseline 3/21, 5.0%–34.6%. These recipes differ in prompt, reasoning effort, source context and investigation/repair budgets; this measures the combined workflow. The two further rounds repeat the same cases. Across all 63 selected runs, native publication was 63/63 and publication without a confirmed functional defect was 54/63. Repeats add observations, not independent defects.
+
+Nine native publications have confirmed contract defects, with their original green grades preserved:
+
+- Three fmt width patches miscount assigned Unicode-neutral symbols; one also miscounts Japanese text. Public formatting counterexamples and official Unicode data establish the failures.
+- Three Abseil escaping patches preserve round trips but let `CHexEscape` emit high bytes directly instead of hexadecimal escapes. A native property check over all 256 bytes exposes the missing representation contract.
+- One fmt internal UTF-16 converter loses its terminator after valid move assignment. Independent native builds confirm the object invariant failure; no current public caller or actual Windows application failure is claimed.
+- Two patches fix public unescape callers while leaving an internal UTF-8 helper's documented byte count wrong. An unchanged additional upstream suite passes 25/25 on the pin and fails one test in each candidate. The independent wide-string formatter uses another encoder and is unaffected.
+
+These findings belong to four distinct failure families. Independent semantic review is an evaluation step, not an automatic production graph node. The graph enforces configured native coverage and opens a candidate PR for review. Complete per-case outcomes, raw versus reviewed grades, proof hashes and review limits are in the [final report](../evaluation/results/holdout-v7/report.md) and [independent audit](../evaluation/results/holdout-v7/independent-native-semantic-audit.json). No holdout result changed the selected policy or its original scores.
+
 ## Run a trial or a frozen plan
 
 Install the locked development dependencies with `uv sync --locked --extra dev`. Have Git, CMake, a native C++ compiler, and an authenticated Codex CLI available. On Windows, use a terminal with the MSVC build environment available. Commands below run live inference; use a new directory for every intended trial.
@@ -268,6 +292,8 @@ The **13 scenarios** in [operational_evaluation.py](../src/auto_fix/operational_
 
 The fresh [V6 operations protocol](../evaluation/expanded/protocol-operations-v6.json) completed all 13 scenarios with 24 actual Luna calls and six completed repairs. Independent native/Git/publication evidence confirms all 13 expected behaviors. The original raw grade is 12/13 because the old grader required a particular reason string for a correct invalid-baseline stop. The [grader correction](../evaluation/expanded/operations-v6-grader-correction.json) preserves that score, checks actual filtered/unfiltered native XML and verifies a fresh single-case safe stop with zero model calls. Correct stops and completed repairs are separate outcomes; this is not a 13/13 repair result.
 
+The [fresh V7 confirmation](../evaluation/expanded/artifact-inputs-operations-v7.json) completed 13/13 expected behaviors with 24 actual Luna calls: six verified publications, four correct blocks and three correctly retained uncertain-publication states. The lost model response and its fresh retry are both counted. This fixed fault harness permits three repairs while the selected production recipe permits four; the difference is explicit in its [pre-inference protocol](../evaluation/expanded/protocol-operations-v7.json). Across the preserved historical runs, grader checks and this confirmation, operational evidence contains 41 trials and 73 actual calls on 13 scenarios, with no additional unique source defects.
+
 | Scenario | Expected behavior |
 | --- | --- |
 | Master advances during repair | Rebase and retest, then publish the verified new head |
@@ -296,7 +322,7 @@ Use the actual frozen candidate's settings; this example does not select it. The
 
 [replay-expanded.py](../scripts/replay-expanded.py) runs saved responses through the same real native build, test, Git, and mock-publication gates. It hard-codes `--backend replay` and Luna's recorded identity. This is a mechanical regression check, not fresh model inference or another model-quality evaluation. It reports zero live tokens and retains stdout/stderr plus `replay-result.json` for failures as well as successes.
 
-The eventual `evaluation/recordings/expanded/index.json` must contain only genuinely recorded, natively accepted cases. Its v1 schema has top-level `schema_version: 1`, `model: "gpt-6-luna"`, `live_inference_transport: "codex-cli"`, and `entries`. Every entry contains:
+The `evaluation/recordings/expanded/index.json` contains genuinely recorded cases accepted by native checks and closed independent review. Its [coverage rule](../evaluation/recordings/expanded/coverage-rule-v7.json) selects all 24 accepted selected-development cases, then the earliest accepted selected holdout round for each remaining case, in registered round order. Cases with no acceptable round remain explicit coverage gaps; selecting a recording never changes any live outcome. Its v1 schema has top-level `schema_version: 1`, `model: "gpt-6-luna"`, `live_inference_transport: "codex-cli"`, and `entries`. Every entry contains:
 
 - `id`, repository-relative `project_file`/`cases_file`, and their `project_sha256`/`cases_sha256` hashes.
 - Repository-relative `recordings_directory`, naming the case directory containing contiguous `call-1`, `call-2`, etc. Each call retains its original `metadata.json` and `response.json`.

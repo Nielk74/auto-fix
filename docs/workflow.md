@@ -42,6 +42,8 @@ Proposals contain exact old/new text replacements. Path restrictions, exact anch
 
 A successful candidate must retain and pass every originally executed baseline identity, including tests that were already passing. The workflow commits the candidate, fetches master again, rebases and repeats verification on the final source. A conflict or regression stops publication.
 
+These gates establish the configured native checks. They cannot establish behavior absent from those checks: independent evaluation review found Unicode width regressions in patches whose existing suites passed. That source and contract review is part of the evaluation procedure; the production graph does not contain an automatic semantic-review agent. A published PR remains a candidate for code review. Add relevant operator-owned suites through `build.additional_tests` when a missed contract matters for your solution.
+
 Publication uses the exact tested commit. Saved intent and receipts support reconciliation when a push or PR response is lost. A PR response must identify the expected source branch, source commit and destination branch. An uncertain external result is recorded as `publication_unknown` for reconciliation. The worker never merges the PR.
 
 The PR includes the explanation, original revision, final verified commit, test identities, TeamCity build, related PRs, Jira links and configured existing artifact URLs. New UI screenshot capture is an extension point; the current implementation links screenshots already stored in TeamCity.
