@@ -1,0 +1,60 @@
+{
+  "$defs": {
+    "Edit": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "old": {
+          "minLength": 1,
+          "title": "Old",
+          "type": "string"
+        },
+        "new": {
+          "title": "New",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "old",
+        "new"
+      ],
+      "title": "Edit",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "summary": {
+      "maxLength": 300,
+      "minLength": 1,
+      "title": "Summary",
+      "type": "string"
+    },
+    "explanation": {
+      "maxLength": 12000,
+      "minLength": 1,
+      "title": "Explanation",
+      "type": "string"
+    },
+    "edits": {
+      "items": {
+        "$ref": "#/$defs/Edit"
+      },
+      "maxItems": 8,
+      "minItems": 1,
+      "title": "Edits",
+      "type": "array"
+    }
+  },
+  "required": [
+    "summary",
+    "explanation",
+    "edits"
+  ],
+  "title": "Proposal",
+  "type": "object"
+}

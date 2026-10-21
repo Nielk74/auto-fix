@@ -1,0 +1,79 @@
+{
+  "$defs": {
+    "SourceRead": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "line": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Line",
+          "type": "integer"
+        },
+        "symbol": {
+          "maxLength": 160,
+          "title": "Symbol",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "line",
+        "symbol"
+      ],
+      "title": "SourceRead",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "summary": {
+      "maxLength": 1200,
+      "minLength": 1,
+      "title": "Summary",
+      "type": "string"
+    },
+    "hypotheses": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 6,
+      "title": "Hypotheses",
+      "type": "array"
+    },
+    "queries": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 4,
+      "title": "Queries",
+      "type": "array"
+    },
+    "reads": {
+      "items": {
+        "$ref": "#/$defs/SourceRead"
+      },
+      "maxItems": 4,
+      "title": "Reads",
+      "type": "array"
+    },
+    "ready": {
+      "title": "Ready",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "summary",
+    "hypotheses",
+    "queries",
+    "reads",
+    "ready"
+  ],
+  "title": "Investigation",
+  "type": "object"
+}
