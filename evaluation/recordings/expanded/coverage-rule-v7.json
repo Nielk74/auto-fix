@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "id": "selected-v7-recorded-native-ci-coverage",
+  "declared_at": "2026-10-21T00:17:01.301588+00:00",
+  "purpose": "Zero-inference recorded native CI coverage only. This is not live evaluation selection, holdout grading or score imputation.",
+  "source_commit": "7cf4c3536c1bd7f7bdfc4d9f2e151d1bbff0b4f0",
+  "model": "gpt-6-luna",
+  "live_recording_transport": "codex-cli",
+  "selection": {
+    "path": "evaluation/expanded/development-selection-v7.json",
+    "sha256": "04860cbe721ae882cf38fec6fa1d53a9bd0f7aec13e94aa90d6879b2efa5969a",
+    "selected_arm": "assertion-grounded-v7"
+  },
+  "holdout_registration": {
+    "path": "evaluation/expanded/protocol-holdout-v7.json",
+    "sha256": "97ee6e9fa31baca4cf12f643abf0b52740f144b6e49aeff408e7f3f0da378d50",
+    "plan_sha256": "0dfdaff5a24aed90907eba14ff9615ea767922907c7fa5dd1b51f787f6018f82",
+    "inference_already_started_at_rule_recording": true
+  },
+  "timing_disclosure": "The root agent assigned this fixed coverage rule after holdout inference started. Before this file was written, an audit agent communicated two width-patch residual descriptions. No holdout artifact was opened for this rule, and neither descriptions nor outcomes changed the rule. This is a CI coverage policy, not a preregistered holdout efficacy analysis.",
+  "development": {
+    "include": "All24 natively accepted, independently closed selected assertion-grounded-v7 development cases.",
+    "case_count": 24,
+    "excluded_source_arms": [
+      "confirmation-budget-v7",
+      "expanded-budget-v7",
+      "baseline-v7"
+    ]
+  },
+  "holdout": {
+    "registered_round_priority": [
+      "r1",
+      "r2",
+      "r3"
+    ],
+    "include": "For each of21 frozen held-out case IDs, take the earliest accepted selected trial in registered round order r1 then r2 then r3. Finish all registered trials and independent reviews before finalizing the index.",
+    "acceptance": "Original score success=true/status=published, native/Git/protected-source/publication verification passed, independent functional review closed with no confirmed functional contract regression. Preserve any separate quality observations.",
+    "no_accepted_trial": "Omit the case from CI recordings and list the coverage gap. Do not impute success, rerun, replace a trial or change original scores.",
+    "baseline_or_control_responses_included": false
+  },
+  "maximum_distinct_entries": 45,
+  "minimum_expected_development_entries": 24,
+  "linux": {
+    "entries": "Every accepted distinct recording entry.",
+    "max_parallel": 6,
+    "timeout_minutes": 30
+  },
+  "windows": {
+    "entries": [
+      "fmt_printf_dynamic_field_sign",
+      "fmt_utf8_validation_boundaries",
+      "absl_base64_tail_codec",
+      "duration_negative_unit_rounding",
+      "status_payload_clone_write_retention",
+      "status_lookup_conflict_dispatch"
+    ],
+    "exact_count": 6,
+    "all_from": "selected V7 DEVELOPMENT trials only",
+    "eligibility_receipt": {
+      "path": ".auto-fix/windows-development-matrix-eligibility.json",
+      "sha256": "9433f2e75ba2e2d582304fb53d6d198a431666c01cacae6f98adaf6badf78c84"
+    },
+    "chrono_pre_epoch_excluded": "MSVC gmtime_s does not support the negative calendar range required by the pinned chrono suite.",
+    "max_parallel": 3,
+    "timeout_minutes": 45
+  },
+  "analysis_separation": [
+    "Replay runs consume saved actual Luna responses and make zero live model calls.",
+    "Raw live first-round and repeat native scores remain unchanged, including failures and pre-inference safe stops.",
+    "Selecting an accepted recording for CI coverage is not evidence that the corresponding first live trial succeeded.",
+    "Repeated selected live trials remain21 unique held-out defects; CI replay adds no unique defects or live inference trials."
+  ],
+  "bytes_policy": "Export and commit exact recorded metadata, requests, responses, events and schemas with SHA256 hashes; never rewrite model packets or provenance."
+}
