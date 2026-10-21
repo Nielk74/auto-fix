@@ -356,3 +356,27 @@ def test_graph_nodes_and_model_calls_export_as_one_phoenix_session(run_flow, tmp
     assert model.parent.span_id == by_name["repair"].context.span_id
     assert {span.attributes.get("session.id") for span in spans} == {"tc-7-trace"}
     assert not any("token-value-5678" in str(span.attributes) for span in spans)
+
+
+class CountingModel(Model):
+    """Some adapters count calls with an integer instead of keeping call records."""
+
+    def propose(self, context):
+        proposal = super().propose(context)
+        self.calls = len(self.calls) if isinstance(self.calls, list) else self.calls + 1
+        return proposal
+
+
+def test_call_recording_never_breaks_a_repair_for_unexpected_adapter_fields(run_flow, tmp_path):
+    state = tmp_path / "state"
+    model = CountingModel()
+    model.last_usage = "not a dict"
+    flow = run_flow(
+        state,
+        "tc-7-gggg",
+        [report(failed=["math.add"]), report(passed=["math.add"]), report(passed=["math.add"])],
+        model=model,
+    )
+    assert json.loads((flow.directory / "result.json").read_text())["status"] == "ready"
+    calls = history.run_detail(state, "runs/tc-7-gggg")["model_calls"]
+    assert calls[0]["usage"] == {} and calls[0]["error"] is None

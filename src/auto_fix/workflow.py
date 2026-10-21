@@ -76,6 +76,17 @@ def write_json(path: Path, data: Any) -> None:
     temporary.replace(path)
 
 
+def model_usage(model: Any) -> dict[str, Any]:
+    """Latest call's token usage; recording must never fail a repair on an unknown adapter."""
+    recorded = getattr(model, "calls", None)
+    if isinstance(recorded, list) and recorded and isinstance(recorded[-1], dict):
+        # Codex and replay adapters keep one record per call.
+        usage = recorded[-1].get("usage") or recorded[-1].get("recorded_usage")
+    else:
+        usage = getattr(model, "last_usage", None)
+    return usage if isinstance(usage, dict) else {}
+
+
 def matched_names(settings: Settings, failure: Failure) -> set[str]:
     return {settings.build.test_name_map.get(t.name, t.name) for t in failure.tests}
 
@@ -181,12 +192,7 @@ class Workflow:
                 raise
             finally:
                 elapsed = round(time.monotonic() - clock, 3)
-                recorded = getattr(self.model, "calls", None)
-                usage = (
-                    recorded[-1].get("usage") or recorded[-1].get("recorded_usage") or {}
-                    if recorded
-                    else getattr(self.model, "last_usage", None) or {}
-                )
+                usage = model_usage(self.model)
                 output = response.model_dump() if response is not None else None
                 finish(output, usage, error)
                 write_json(
