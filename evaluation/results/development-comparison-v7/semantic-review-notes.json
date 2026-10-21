@@ -1,0 +1,214 @@
+{
+  "9550cfb7b283cc2a095fdb15440a92a58ed7b62af2c5c3def6f4942093f3f39e": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "The decoded scalar is uint32_t. For any unsigned scalar x, (x >> 11) == 0x1b is equivalent to 0xd800 <= x <= 0xdfff; hexadecimal literal case changes no value. Remaining full files match pinned upstream plus the declared unrelated fixture comment. No API change or input-specific workaround observed."
+  },
+  "78ac439d48830c7e83cfed317a264fa28d02c0f79c914f553233095db22c510e": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "The decoded scalar is uint32_t. For any unsigned scalar x, (x >> 11) == 0x1b is equivalent to 0xd800 <= x <= 0xdfff; hexadecimal literal case changes no value. Remaining full files match pinned upstream plus the declared unrelated fixture comment. No API change or input-specific workaround observed."
+  },
+  "855f825270f2bfe9e8f3d23ae8381c925ba560c8bc241c2efb8e031633afc7c9": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "The decoded scalar is uint32_t. For any unsigned scalar x, (x >> 11) == 0x1b is equivalent to 0xd800 <= x <= 0xdfff; hexadecimal literal case changes no value. Remaining full files match pinned upstream plus the declared unrelated fixture comment. No API change or input-specific workaround observed."
+  },
+  "007b7be17dc76c25f8069f317123c17783b687330dd5bd873515616e48d8f827": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "error_code_size is primitive size_t and the expression value is unused: ++x and x += 1 perform the same unsigned update. All remaining source is pinned upstream plus the declared unrelated fixture comment. No input-specific workaround observed."
+  },
+  "a9c106a45074fc204d9ba06ae250cee13ccd4ff4db4e3f1bac533165c6d6c03b": {
+    "classification": "contract_consistent_extension",
+    "hardcoding_observed": false,
+    "review": "Restores original octal/hex byte guards and adds a general pre-multiply bound. Before another hex digit, ch > 15 implies the next value exceeds 255. Arbitrarily many leading zeroes remain accepted. Pinned escaping.h documents arbitrarily many hex digits with value restricted to one byte. This also rejects formerly wrapped long values. Error detection is earlier and diagnostic wording changes for some invalid input; destination/error wording are not promised exact by the public contract. External native CMake proof .auto-fix/development-semantic-audit/escaping-hex-contract-v5/proof.json validates all 16,640 byte/zero-prefix forms and rejects all 260 oversized forms for this published variant; unchanged pinned upstream accepts 195 oversized forms. These are native validation checks, not new model evaluations or injected defects."
+  },
+  "46b570ef68ba7dd56896f18f61244f1a5bebddc948c669af06170fa86a4a5527": {
+    "classification": "contract_consistent_extension",
+    "hardcoding_observed": false,
+    "review": "Restores original octal byte guard, replacing the unsafe hex accumulator with a generic digit-aware 255 bound and sticky overflow flag. Valid byte values including arbitrarily many leading zeroes preserve decoding; once overflow occurs further arithmetic is suppressed while digits are consumed. Pinned escaping.h requires arbitrary-length hex values to fit one byte. Preventing wraparound is a contract-consistent extension over pinned behavior; original dynamic error wording remains. External native CMake proof .auto-fix/development-semantic-audit/escaping-hex-contract-v5/proof.json validates all 16,640 byte/zero-prefix forms and rejects all 260 oversized forms for this published variant; unchanged pinned upstream accepts 195 oversized forms. These are native validation checks, not new model evaluations or injected defects."
+  },
+  "a4d4e362c88f8291ecc28e5191eef78b9b9fa80dee7fd391ce5b88c4c92cbdc5": {
+    "classification": "contract_consistent_extension",
+    "hardcoding_observed": false,
+    "review": "Restores original octal/hex byte guards and uses general digit-aware overflow detection. The 0x100 sentinel is sticky across subsequent hex digits and cannot wrap to a valid byte. Valid byte values including arbitrary leading zeroes decode unchanged. Pinned escaping.h requires arbitrary-length hex values to fit one byte; rejecting wrapped values extends conformance. External native CMake proof .auto-fix/development-semantic-audit/escaping-hex-contract-v5/proof.json validates all 16,640 byte/zero-prefix forms and rejects all 260 oversized forms for this published variant; unchanged pinned upstream accepts 195 oversized forms. These are native validation checks, not new model evaluations or injected defects."
+  },
+  "bedc9ed4af5bccb3381afa6f84d9794e82abc0cc860d22da3e6f1bf9050ee69d": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "Both prefix bounds remain equivalent: the outer end-start>=2 check establishes start+2<=end, so start>=end and start==end are identical after consuming two prefix bytes. The two added text.empty() return-zero branches follow successful safe_parse_sign_and_base; this helper rejects empty/sign-only/hex-prefix-only inputs and only returns an empty digit span for a lone zero with inferred octal base. Both original positive and negative digit parsers execute zero loop iterations and return true with zero for that span, matching the added branch. The unsigned wrapper still rejects negative sign first. No change to accepted input, integer value, overflow handling, or diagnostic contract observed; the extra branches are redundant, not a special-case test workaround."
+  },
+  "a96d1244a20098f6da3fefbeaedf215d6d31ce405189d7ead5f04fbe180473e2": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "The only residual difference from pinned upstream is deleting two explanatory comments for the restored bare-hex-prefix rejection. All executable source is identical to pinned upstream. No input-specific workaround observed."
+  },
+  "e956fdea0c4ca7727e65bdc065835f2dfa1dd6e6e7caba1e69aa0c47f97e8fb1": {
+    "classification": "contract_consistent_extension",
+    "hardcoding_observed": false,
+    "review": "Trunc remains pinned, and ordinary nonzero-unit signed rounding is restored. Source differs at minimum finite negative unit because AbsDuration(unit) saturates positive magnitude to infinity in pinned source. Candidate instead retains representable negative correction (or explicitly handles the genuine unnegatable unit boundary), producing mathematical finite MIN for negative finite d where pinned Floor returns -inf. Separate native grid .auto-fix/development-semantic-audit/duration-sign-normalization-v5/proof.json SHA 31b0600959ee66b51d23bee11e88c94ae04d6ca91efc87767005a99e4f921ce9 checks 396 exact Python quarter-tick finite contracts per executable: all three actual candidates have zero violations; pinned has five. Each candidate differs from pinned only on those five Floor cases in the enumerated 14-by-13 input/unit grid; observed infinity behavior matches pinned. This is a pinned compatibility difference and contract-consistent improvement, not source equivalence or a confirmed semantic regression. The adaptive explicit MIN-unit handling covers all finite d and infinities, not only the original d=unit guard input. No test-specific output substitution observed; finite grid is not universal correctness proof."
+  },
+  "93cc2d77714b434acf900cd2421a22549619295f6971b0ac0e05f6b635e2d4d9": {
+    "classification": "contract_consistent_extension",
+    "hardcoding_observed": false,
+    "review": "Trunc remains pinned, and ordinary nonzero-unit signed rounding is restored. Source differs at minimum finite negative unit because AbsDuration(unit) saturates positive magnitude to infinity in pinned source. Candidate instead retains representable negative correction (or explicitly handles the genuine unnegatable unit boundary), producing mathematical finite MIN for negative finite d where pinned Floor returns -inf. Separate native grid .auto-fix/development-semantic-audit/duration-sign-normalization-v5/proof.json SHA 31b0600959ee66b51d23bee11e88c94ae04d6ca91efc87767005a99e4f921ce9 checks 396 exact Python quarter-tick finite contracts per executable: all three actual candidates have zero violations; pinned has five. Each candidate differs from pinned only on those five Floor cases in the enumerated 14-by-13 input/unit grid; observed infinity behavior matches pinned. This is a pinned compatibility difference and contract-consistent improvement, not source equivalence or a confirmed semantic regression. The adaptive explicit MIN-unit handling covers all finite d and infinities, not only the original d=unit guard input. No test-specific output substitution observed; finite grid is not universal correctness proof."
+  },
+  "52328354ec2d0f28b706281c3302babd0e0c49b52c3db78e6ddea7c5568a07d8": {
+    "classification": "contract_consistent_extension",
+    "hardcoding_observed": false,
+    "review": "Trunc remains pinned, and ordinary nonzero-unit signed rounding is restored. Source differs at minimum finite negative unit because AbsDuration(unit) saturates positive magnitude to infinity in pinned source. Candidate instead retains representable negative correction (or explicitly handles the genuine unnegatable unit boundary), producing mathematical finite MIN for negative finite d where pinned Floor returns -inf. Separate native grid .auto-fix/development-semantic-audit/duration-sign-normalization-v5/proof.json SHA 31b0600959ee66b51d23bee11e88c94ae04d6ca91efc87767005a99e4f921ce9 checks 396 exact Python quarter-tick finite contracts per executable: all three actual candidates have zero violations; pinned has five. Each candidate differs from pinned only on those five Floor cases in the enumerated 14-by-13 input/unit grid; observed infinity behavior matches pinned. This is a pinned compatibility difference and contract-consistent improvement, not source equivalence or a confirmed semantic regression. The adaptive explicit MIN-unit handling covers all finite d and infinities, not only the original d=unit guard input. No test-specific output substitution observed; finite grid is not universal correctness proof."
+  },
+  "c1616edc00a93147602ae94128125d2f21ec26b4d964e785cc7842f371c8885a": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "Both output conversions replace adding divisor-1 before unsigned division with rounding the fractional remainder up to a divisor multiple when nonzero. For bounded nonnegative x and divisor b, floor((x+b-1)/b) equals x/b plus (x%b!=0), exactly the new expression after division. Time nanosecond carry boundaries (4,000,000,000 ticks per second, divisible by 4) and timeval carry boundaries (1,000,000,000ns divisible by 1000) remain identical. The different intermediate low remainders are discarded by the unchanged divisions; finite rep_lo<4e9 keeps either addition below UINT32_MAX, and nsec+999 remains below signed 32-bit max. Infinite/narrowing branches are unchanged. Final POSIX seconds/fraction outputs are equivalent, including negative integral values and carry edges. No test-specific workaround observed."
+  },
+  "575d2f7b7640da76e161e1fdd780e9f2fe2b30f2c7c93ebea27d59387aa3130f": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "Both output conversions replace adding divisor-1 before unsigned division with rounding the fractional remainder up to a divisor multiple when nonzero. For bounded nonnegative x and divisor b, floor((x+b-1)/b) equals x/b plus (x%b!=0), exactly the new expression after division. Time nanosecond carry boundaries (4,000,000,000 ticks per second, divisible by 4) and timeval carry boundaries (1,000,000,000ns divisible by 1000) remain identical. The different intermediate low remainders are discarded by the unchanged divisions; finite rep_lo<4e9 keeps either addition below UINT32_MAX, and nsec+999 remains below signed 32-bit max. Infinite/narrowing branches are unchanged. Final POSIX seconds/fraction outputs are equivalent, including negative integral values and carry edges. No test-specific workaround observed. Additional residual differences only clarify comments."
+  },
+  "cfc875ad2a3690c2424c9a9e17f7810860baef1a3798f5921eb9fb0455f2ba97": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "Both output conversions replace adding divisor-1 before unsigned division with rounding the fractional remainder up to a divisor multiple when nonzero. For bounded nonnegative x and divisor b, floor((x+b-1)/b) equals x/b plus (x%b!=0), exactly the new expression after division. Time nanosecond carry boundaries (4,000,000,000 ticks per second, divisible by 4) and timeval carry boundaries (1,000,000,000ns divisible by 1000) remain identical. The different intermediate low remainders are discarded by the unchanged divisions; finite rep_lo<4e9 keeps either addition below UINT32_MAX, and nsec+999 remains below signed 32-bit max. Infinite/narrowing branches are unchanged. Final POSIX seconds/fraction outputs are equivalent, including negative integral values and carry edges. No test-specific workaround observed. The double-modulo expression yields zero when the remainder is zero and divisor-remainder otherwise, matching the previously reviewed conditional formulation."
+  },
+  "7cf15ca318aae21f0700644de28fa614d84fbc322476963a6908a061c5bd98c9": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "FloorToUnit predicate is the exact De Morgan complement of the pinned condition with the ternary arms exchanged, preserving its INT64_MIN underflow guard. For ToUnixSeconds, a finite Duration represents hi whole seconds plus a nonnegative fractional second: truncating division by one second returns hi for nonnegative/integral durations, or hi+1 with negative remainder for negative fractional durations, then FloorToUnit restores hi. At finite MIN and MAX boundaries and both infinities, IDivDuration saturation plus existing MIN guard returns the same GetRepHi bound. Removing absl:: qualification in ToUniversal resolves the same local anonymous-namespace FloorToUnit. No value/API contract change or test-specific workaround observed. Division replaces direct field access, so this review makes no performance-equivalence claim."
+  },
+  "9fa1d47f54fae855b2822577839cabb04af424d8dc347ea26003af39f08dcee9": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "The added !new_status.ok() skips assigning OK to an already-OK target. Pinned Status::ok() is exact equality to the canonical inline OK representation; when both objects are OK they have equal rep_. Both pinned copy and move assignment already do nothing when x.rep_ == old_rep, so the original does not consume the source in this both-OK case either. All error adoption, first-error preservation, payload sharing, and source move behavior are unchanged; self-update remains harmless. No test-specific workaround or observable value/ownership contract change found."
+  },
+  "f4fd53d302afb1cb88bab55da24e459ed14da5c59d9c20d75c0c8ad851c67069": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "The FloorToUnit implementation and INT64_MIN underflow guard remain pinned. For ToUnixSeconds, a finite Duration represents hi whole seconds plus a nonnegative fractional second: truncating division by one second returns hi for nonnegative/integral durations, or hi+1 with negative remainder for negative fractional durations, then FloorToUnit restores hi. At finite MIN and MAX boundaries and both infinities, IDivDuration saturation plus existing MIN guard returns the same GetRepHi bound. Removing absl:: qualification in ToUniversal resolves the same local anonymous-namespace FloorToUnit. No value/API contract change or test-specific workaround observed. Division replaces direct field access, so this review makes no performance-equivalence claim."
+  },
+  "942ef10799f7a5597f475f7fc027ddf9fd1b037dd202fc3f5648edfc0ad9931f": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "CloneAndUnref still copies every nonempty payload set. For an empty allocated Payloads container, it now leaves the clone payload pointer null, which GetPayload, ForEachPayload, ToString and equality already treat identically to an empty container. Later SetPayload allocates lazily and retains identical payload values; ErasePayload finds no key in either representation. Code/message/refcount semantics are unchanged. Allocation timing and address-dependent but explicitly unspecified payload iteration ordering may differ; no performance or allocation-count equivalence is claimed. No test-specific workaround found."
+  },
+  "baa45c84db1eaa93a58545d686a0588f130274bcaaa9888142bf1bf7ead88342": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "For a valid live StatusRep, the signed strong reference count starts at 1 and remains positive while any owning Status uses it. Under that representation invariant, <=1 and ==1 select exactly the same unique-owner fast path; shared refcounts >=2 still clone. Zero/dead objects, reference-count overflow/corruption, and concurrent mutation of the same Status are outside that invariant; this is not an all-bit-pattern equivalence claim. The acquire atomic ordering and shared-object cloning contract are preserved. No test-specific workaround observed."
+  },
+  "c7fa2065c64cf1162091a4c7e96bb4126adb7bc0c53db17895fcbc94e97d49cb": {
+    "classification": "contract_consistent_extension",
+    "hardcoding_observed": false,
+    "review": "The returned mutable StatusRep is now installed in rep_ immediately before SetPayload rather than immediately after. For every successful operation, the same cloned/unique representation receives the same payload and becomes the Status representation, preserving copy-on-write and payload values. Publishing ownership first also avoids leaving rep_ at the previous representation if payload allocation throws after PrepareToModify decrements its old reference; this is a static exception-path ownership observation, not a claimed native fault-injection proof. No new callback or shared-owner mutation path was introduced. No test-specific workaround found; resource-failure behavior is not claimed byte-equivalent to pinned upstream."
+  },
+  "4ba80b2d43c5d394095ec18822e94109786b97bd43bd34d7bdfb5eb7d79bb05e": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "All call sites of this private FloorToUnit helper pass positive constant units (nanosecond/microsecond/millisecond/second and 100ns). IDivDuration truncates toward zero and computes a same-sign remainder, including saturated quotient behavior; for positive units rem<0 implies d<0 and q<=0, so the removed q>0 disjunct is redundant. The INT64_MIN decrement guard remains. Replacing ToUnixSeconds direct rep_hi access with FloorToUnit(...,Seconds(1)) gives the same whole-second floor for every valid duration representation and both infinities; negative fractional input first truncates to hi+1 then decrements, and extreme integer values remain clamped. No test-specific workaround or value/API change found. Division replaces field access, so no performance-equivalence claim is made."
+  },
+  "0fbdaecb4b4bbffaeef14a8dd67ee9376de557115688b19b0860de1685bc47f3": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "Decoded scalar is uint32_t. The surrogate predicate (x>>11)==0x1b holds exactly for 0xd800<=x<=0xdfff, preserving all bit patterns. Remaining source matches pinned upstream plus declared fixture comment. No API behavior change or input-specific workaround observed."
+  },
+  "041afad97d257c3f2933e6722c359ab19c43b32481750e3471895562c893fee7": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "The generic integral printf visitor delegates directly to detail::write, exactly as its original write(value) helper. It copies specs and changes numeric alignment to right only when integer precision is nonnegative. In the public vprintf path, integral precision>=0 resets fill to space before numeric alignment can be assigned, and numeric alignment is otherwise assigned only when fill is zero. The added conditional is consequently redundant for ordinary public printf precision calls; Char branch remains unchanged. No public-contract counterexample found by two independent source reviews; this does not claim equivalence for manually constructed internal formatter state. Existing upstream suite and 12 trusted native fmt boundary checks pass. No test-specific workaround observed."
+  },
+  "8fab21242cae5167eb632038879efa9e56f82a1dc1ee6db692ea9aa8a857ea9d": {
+    "classification": "contract_consistent_extension",
+    "hardcoding_observed": false,
+    "review": "Restores octal byte bound and replaces unchecked hex accumulation with generic sticky overflow: before the next digit, ch>15 means the resulting value cannot fit one byte. Once overflow is detected arithmetic is suppressed while all further hex digits are consumed; arbitrarily many leading zeros remain valid. The original final ch>255 bound is retained. This prevents long values wrapping back into byte range, matching escaping.h documented arbitrary-length-one-byte contract. Separate external native CMake proof .auto-fix/development-semantic-audit/escaping-hex-contract-confirmation-v6/proof.json SHA401076a3ea66c2b68e45e5462ec84de6be9941220395747be94f59e4cbe7a2ef tests this exact fresh candidate: all 16,640 valid byte/zero-prefix forms decode exactly, all 260 oversized inputs reject. Clean pinned source accepts 195 oversized wraparound forms. The 33,800 total native input checks across clean and candidate executables are validation checks, not new model evaluations or unique defects. Generic bound has no test-specific values; exact invalid-input error wording is not a public guarantee."
+  },
+  "b1195b2f796fc04dc592b539dcc6cc7d6eec97a5de1ff0e9cfc2b70796ae7124": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "Every call to anonymous-namespace FloorToUnit passes a strictly positive finite unit (1ns,1us,1ms,1s,100ns). With these units, IDivDuration remainder has dividend sign, so q>0 implies nonnegative remainder; removing q>0 from the early-return predicate is redundant in this actual call graph. The MIN quotient underflow guard is retained, including negative infinity and saturated cases. ToUnixSeconds now uses FloorToUnit with 1s: for finite duration its high seconds field is mathematical floor, which the existing truncating quotient plus negative-remainder decrement reproduces; both infinities and finite MIN/MAX preserve saturated bounds. Internal hypothetical negative-unit calls are not claimed equivalent, and division has a different performance cost. No public value/API change or input-specific workaround observed."
+  },
+  "12b4cb1819b755729254cd685ce804ddedb7c688c2ef681726f1abb5e2d01af8": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "Decoded scalar is uint32_t. For every unsigned scalar x, (x>>11)==0x1b is exactly equivalent to 0xd800<=x<=0xdfff. Hexadecimal letter case and trailing alignment spaces do not affect values. Remaining source matches pinned upstream plus declared fixture comment. No API behavior change or input-specific workaround observed."
+  },
+  "de308e71a1b35b8dc3f7f4be0ee685a58b90cb5aa8d39f3c5a42df4ff7aedf53": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "vprintf initializes fresh specs with align::right for each conversion. Before the modified integer-precision block, parse_header and parse_flags may set left alignment or fill, but never numeric alignment; the sole numeric assignment in vprintf occurs later when zero fill remains. Consequently this new numeric-to-right conditional cannot fire in this public parsing path. Existing precision zero-fill reset and all other behavior remain pinned. No contract change or input-specific workaround observed; no performance claim is made."
+  },
+  "850835ac3fa6e278ef71cfe4dfe0e35c0de79ae2240a580ff06b6aba6fb5f043": {
+    "classification": "contract_consistent_extension",
+    "hardcoding_observed": false,
+    "review": "Restores octal bound and uses generic digit-aware pre-multiply byte bound ch>(255-digit)/16. For every hex digit 0..15 this is exactly the condition that16*ch+digit exceeds 255; no overflow arithmetic is executed. Arbitrarily long leading zeros remain accepted. Oversized sequences now reject before wraparound, matching the documented arbitrary-length-one-byte contract. Immediate rejection can shorten the quoted error substring versus pinned behavior, but exact diagnostic wording and destination after failure are not public guarantees. No input-specific workaround observed. External native CMake proof .auto-fix/development-semantic-audit/escaping-hex-contract-v7/proof.json SHA43a28968abef8031728bdae409bd8ad63d6ed39e32f2313bb36a7ff7d1dd6555 builds these three exact actual published candidates and pinned clean source read-only. Each candidate preserves all 16,640 valid byte/0..64-leading-zero forms and rejects all 260 oversized forms; pin accepts 195 wraparound forms. The 67,600 total native input checks are validation checks, not model evaluations, new defects, or retrospective grade changes."
+  },
+  "a9b051d6df074caaa73b2a7f75ae3639cd38b4dea39f902508d142be85575d25": {
+    "classification": "contract_consistent_extension",
+    "hardcoding_observed": false,
+    "review": "Restores octal/final byte bounds and uses a generic digit-aware pre-multiply check with sticky 0x100 sentinel. Once exceeded, ch=256 remains greater than every subsequent bound (255-digit)/16, so it cannot wrap back into byte range. All digits are consumed; valid bytes and arbitrarily many leading zeros decode unchanged. This improves conformance to documented arbitrary-length-one-byte contract over pinned wraparound behavior. No input-specific workaround observed. External native CMake proof .auto-fix/development-semantic-audit/escaping-hex-contract-v7/proof.json SHA43a28968abef8031728bdae409bd8ad63d6ed39e32f2313bb36a7ff7d1dd6555 builds these three exact actual published candidates and pinned clean source read-only. Each candidate preserves all 16,640 valid byte/0..64-leading-zero forms and rejects all 260 oversized forms; pin accepts 195 wraparound forms. The 67,600 total native input checks are validation checks, not model evaluations, new defects, or retrospective grade changes."
+  },
+  "f663d2ff2b76c83a1316a00d1032bd3ff5b257d4ab3c313d7e5b3312a861d75a": {
+    "classification": "contract_consistent_extension",
+    "hardcoding_observed": false,
+    "review": "Restores octal bound and adds a generic sticky exceeds-byte flag. Before another digit, ch>15 means the next value necessarily exceeds 255; once flagged arithmetic is suppressed while all digits are consumed. On unflagged paths ch always remains 0..255, making the removed final ch>255 test redundant. Valid byte inputs including arbitrary leading zeros preserve values. Preventing wraparound matches documented arbitrary-length-one-byte contract. No input-specific workaround observed. External native CMake proof .auto-fix/development-semantic-audit/escaping-hex-contract-v7/proof.json SHA43a28968abef8031728bdae409bd8ad63d6ed39e32f2313bb36a7ff7d1dd6555 builds these three exact actual published candidates and pinned clean source read-only. Each candidate preserves all 16,640 valid byte/0..64-leading-zero forms and rejects all 260 oversized forms; pin accepts 195 wraparound forms. The 67,600 total native input checks are validation checks, not model evaluations, new defects, or retrospective grade changes."
+  },
+  "dec0c8fe069e1471d575cb485f02f0614263f08f0265a049a9459ab0e994b461": {
+    "classification": "contract_consistent_extension",
+    "hardcoding_observed": false,
+    "review": "The negative-fraction minute-boundary fallback converts the original timepoint to time_t before decrementing one second, instead of subtracting a Duration-rounded second from the source representation. For finite ordinary fractional values that reach this branch it crosses the same integer-second boundary, preserving existing nonunit-ratio behavior. It also avoids source-Duration narrowing/overflow near minimum representation. Independent external native proof .auto-fix/v7-chrono-residual-independent/proof.json SHA4b121cffe2b631e8450e0eb7e0c546ddf92ab4ad120910efa60ef650969080e5 verifies 23 floating/nonunit-ratio/ns-boundary outputs byte-identical, while an int16 minimum sample fixes an incorrect positive date and an int32 minimum sample avoids pinned signed-overflow UBSan abort. Separate strict C++11 proof .auto-fix/v7-chrono-residual-independent/cpp11/proof.json SHA94f84ba00a1865d486aecc3037058b9b2859f0171f22b3f8e21ea1dd2de83998 reproduces compilation and native outcomes in the advertised minimum language mode. This is a generic contract improvement with a pinned boundary difference, not global source equivalence or a new benchmark defect. All proof source roots remain unchanged; no test-specific values appear in the production patch."
+  },
+  "57a299c63051f17517010511d6b008bed915d05ac0c18c02484588afb47944ac": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "Consolidates both empty-after-hex-prefix guards into one final empty-span rejection. The only other branch that formerly produced an empty span is inferred-octal lone zero; candidate keeps that zero digit instead of consuming it, so signed/unsigned digit parsing still succeeds with value zero. Multi-digit octal spans, whitespace/sign handling, inferred/explicit hex bases, invalid bases and overflow behavior stay unchanged. The helper is internal and its two callers only expose success, sign and parsed integer; their observable value/acceptance behavior is equivalent. Existing full upstream numbers suite passes. No input-specific output substitution observed; the lone-zero condition preserves the existing general parsing contract rather than hardcoding a testcase."
+  },
+  "519622961b64282cedce6f76a8bda7405faf81ca631be5b36b8427cf45db0bf9": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "The new flag is set exactly in the two existing branches that consume a hexadecimal prefix. Each branch first requires at least two remaining bytes, so advancing two gives start<=end; a final start==end check is equivalent to each original start>=end check. There are no externally visible writes or parsing actions between the old and deferred rejection points. Inferred lone-octal zero continues to produce the same accepted empty digit span because the hex flag stays false. Invalid bases, whitespace/sign handling, value/overflow parsing and helper output parameters preserve their original behavior. No API change or input-specific workaround observed."
+  },
+  "8b5bbfa1a3c8b807c1e8fe09cda68ef99f6f067a034ed8b6e600f6fadf222f5a": {
+    "classification": "contract_preserving_refactor",
+    "hardcoding_observed": false,
+    "review": "Replaces the match-frontier algorithm with a per-input-position scan over viable nonempty patterns and explicitly chooses the longest match at the earliest position. Public callers filter empty/missing patterns and in-place calls accumulate into a separate output before swapping, preserving input/replacement view validity. The rewrite preserves the documented functional contract in the checked domain but changes unspecified duplicate-key behavior and is substantially slower on the measured sparse workload. No test-specific output substitution observed. Independent external native proof .auto-fix/v7-replace-residual-independent/proof.json SHA0637be428ff6ee0d4b5b679590929ad119955b67a7c899e89507cfd33dae1cd3 checks 114,303 deterministic documented-contract configurations per source against an earliest/longest/nonrecursive reference, covering immutable and in-place outputs/counts, empty keys, expansion/removal, overlapping patterns, binary NUL and aliasing views. Pinned/candidate have zero mismatches and identical output fingerprint. Duplicate equal-key output differs (pinned YXYXY versus candidate YYYYY), and the public header specifies no equal-key tie priority; this is not a universal source-equivalence claim.",
+    "performance_review": {
+      "kind": "measured_performance_regression",
+      "proof_path": ".auto-fix/v7-replace-residual-independent/performance/proof.json",
+      "proof_sha256": "b3f447aaf375ad50dcc7ad5a6f2e232ad769484389759751a03df6954bcd3306",
+      "workload": "1 MiB prefix plus eight present-near-end patterns; one warmup and three batches of ten calls; outputs validated separately.",
+      "build": "Release -O3, same source dependency/toolchain",
+      "pinned_median_seconds_per_call": 0.0001502709,
+      "candidate_median_seconds_per_call": 0.0169978335,
+      "candidate_to_pinned_median_ratio": 113.11460502332788,
+      "limits": "One deterministic sparse workload under concurrent system load; timing/cache effects apply. The per-position/per-pattern scan introduces a substantial measured performance risk. Original native functional score and preregistered ranking rule are preserved."
+    }
+  },
+  "6b332678a17799677ddebab3f20a60da173e387cc1ae3d88c24bb298071dfd76": {
+    "classification": "contract_preserving_refactor",
+    "hardcoding_observed": false,
+    "review": "The reversed internal comparator remains different from its own comment/pinned implementation. In this candidate its only use is the initial viable-list sort; the rewritten scanner ignores stored offsets and chooses longest matches explicitly. Thus that internal priority no longer controls documented public earliest/longest behavior. Internal users outside the actual library call graph are not claimed equivalent, and maintenance risk remains. Other two arms restore this header and implementation exactly. Independent external native proof .auto-fix/v7-replace-residual-independent/proof.json SHA0637be428ff6ee0d4b5b679590929ad119955b67a7c899e89507cfd33dae1cd3 checks 114,303 deterministic documented-contract configurations per source against an earliest/longest/nonrecursive reference, covering immutable and in-place outputs/counts, empty keys, expansion/removal, overlapping patterns, binary NUL and aliasing views. Pinned/candidate have zero mismatches and identical output fingerprint. Duplicate equal-key output differs (pinned YXYXY versus candidate YYYYY), and the public header specifies no equal-key tie priority; this is not a universal source-equivalence claim.",
+    "performance_review": {
+      "kind": "measured_performance_regression",
+      "proof_path": ".auto-fix/v7-replace-residual-independent/performance/proof.json",
+      "proof_sha256": "b3f447aaf375ad50dcc7ad5a6f2e232ad769484389759751a03df6954bcd3306",
+      "workload": "1 MiB prefix plus eight present-near-end patterns; one warmup and three batches of ten calls; outputs validated separately.",
+      "build": "Release -O3, same source dependency/toolchain",
+      "pinned_median_seconds_per_call": 0.0001502709,
+      "candidate_median_seconds_per_call": 0.0169978335,
+      "candidate_to_pinned_median_ratio": 113.11460502332788,
+      "limits": "One deterministic sparse workload under concurrent system load; timing/cache effects apply. The per-position/per-pattern scan introduces a substantial measured performance risk. Original native functional score and preregistered ranking rule are preserved."
+    }
+  },
+  "4aa80cb0981ca5efe5012229fcde3ecfc78fa1b199dc34290899964d5c865e55": {
+    "classification": "contract_consistent_extension",
+    "hardcoding_observed": false,
+    "review": "Trunc is unchanged. Floor/Ceil compute truncation before normalizing sign and correct using the original representable negative unit directly when needed, avoiding AbsDuration(INT64_MIN seconds) saturating positive magnitude to infinity. Ordinary finite/nonzero unit values retain signed mathematical rounding; zero/infinite branches preserve existing behavior in the observed domain. Separate external native exact-integer quarter-tick proof .auto-fix/development-semantic-audit/duration-sign-normalization-v7-control/proof.json SHA3550c2cf6b2b05e0deb97770e4ec9a809902a95d6ffaf5749e521bcbf8b642d9 compiles this exact source SHA 1a6c105017796ec9969615fdb01a3961b466b8d9f0bb3d65bcca2581c6fbcf64 and passes 396 finite contracts, with only five mathematical-floor improvements versus pin at minimum negative units. Observed infinite-input/unit behavior matches pin. Control and expanded-budget candidates have identical full duration.cc bytes, so this exact-source proof applies to both. This is a generic contract improvement/pinned boundary difference, not test-specific output substitution or universal correctness proof."
+  },
+  "81aa14bcca3af1da5d12f51b6afaa2446a7d6ce49dd409235c13c6c5335afa35": {
+    "classification": "source_equivalent",
+    "hardcoding_observed": false,
+    "review": "All actual anonymous FloorToUnit callsites pass strictly positive finite units (1ns,1us,1ms,1s,100ns). With those units, positive quotient implies a nonnegative remainder, so removing q>0 from the return-q predicate is redundant; the minimum-quotient decrement guard remains. For finite durations, FloorToUnit with one second returns the high seconds field via truncation and a negative-remainder correction; both infinities and finite saturation bounds preserve the same values. ToUniversal resolves the same local helper after removing absl qualification. Existing full upstream time suite and trusted duration boundary checks pass. No value/API or input-specific behavior change observed; division has a different cost and hypothetical internal negative-unit calls are not claimed equivalent."
+  }
+}
