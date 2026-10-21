@@ -1,0 +1,1090 @@
+{
+  "schema_version": 1,
+  "id": "holdout-v7-artifact-inputs",
+  "created_at": "2026-10-21T00:50:03.628906+00:00",
+  "scope": "All 12 preregistered frozen V7 HOLDOUT runs; 84 trials across21 unique synthetic C++ defects: one baseline and three fresh selected-policy rounds. Native grades and separately confirmed semantic review failures are preserved. No heldout recipe tuning or replacement trials.",
+  "model": "gpt-6-luna",
+  "live_inference_transport": "codex-cli",
+  "holdout_model_outputs_read": true,
+  "groups": {
+    "holdout_v7": {
+      "runs": 12,
+      "trials": 84,
+      "unique_cases": 21,
+      "baseline_trials": 21,
+      "selected_repeat_trials": 63,
+      "raw_native_publications": 66,
+      "completed_nonpublications": 18,
+      "confirmed_functional_semantic_false_greens": 9,
+      "semantic_false_green_subtypes": {
+        "documented_public_formatting_contract": 3,
+        "internal_object_invariant": 1,
+        "documented_public_escaping_contract": 3,
+        "retained_documented_internal_utf8_return_value_defect": 2
+      },
+      "known_measured_performance_regressions": 0,
+      "publications_without_confirmed_functional_semantic_regression": 57
+    }
+  },
+  "arms": {
+    "baseline-v7": {
+      "trials": 21,
+      "raw_native_publications": 3,
+      "actual_luna_calls": 31,
+      "confirmed_semantic_false_greens": 0
+    },
+    "selected-recipe-v7": {
+      "trials": 63,
+      "raw_native_publications": 63,
+      "actual_luna_calls": 208,
+      "confirmed_semantic_false_greens": 9
+    }
+  },
+  "comparison_groups": {
+    "baseline": {
+      "trials": 21,
+      "unique_defects": 21,
+      "raw_native_publications": 3,
+      "completed_nonpublications": 18,
+      "confirmed_functional_semantic_false_greens": 0,
+      "publications_without_confirmed_functional_semantic_regression": 3,
+      "known_measured_performance_regressions": 0,
+      "actual_luna_calls": 31,
+      "calls_by_kind": {
+        "repair": 31
+      },
+      "nonpublication_cases": [
+        {
+          "case": "fmt_east_asian_emoji_display_width",
+          "reason": "Repair budget exhausted: Unsafe repository-relative path: ''",
+          "actual_luna_calls": 2
+        },
+        {
+          "case": "fmt_binary_prefix_casing",
+          "reason": "Repair budget exhausted: Expected old text exactly once in include/fmt/format.h; found 0",
+          "actual_luna_calls": 2
+        },
+        {
+          "case": "fmt_printf_positional_fields",
+          "reason": "Repair budget exhausted: v7/jobs/holdout-v7-baseline-fmt/run/fmt_printf_positional_fields/state/worktrees/tc-284763-103e068a2c89\", \"-DCMAKE_BUILD_TYPE=Release\"]\n-- Configuring done (0.0s)\n-- Generating done (0.0s)\n-- Build files have been written to: /Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/holdout-v7/jobs/holdout-v7-baseline-fmt/run/fmt_printf_positional_fields/state/worktrees/tc-284763-103e068a2c89/.auto-fix-build/sg/fmt/b\n\nFmt probe command: [\"cmake\", \"--build\", \"/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/holdout-v7/jobs/holdout-v7-baseline-fmt/run/fmt_printf_positional_fields/state/worktrees/tc-284763-103e068a2c89/.auto-fix-build/sg/fmt/b\", \"--config\", \"Release\", \"--parallel\", \"2\", \"--clean-first\", \"--target\", \"af_fmt_probe\"]\n[1/1] Cleaning all built files...\nCleaning... 2 files.\n[1/2] Building CXX object CMakeFiles/af_fmt_probe.dir/probe.cc.o\n[2/2] Linking CXX executable bin/af_fmt_probe\n\nFmt probe command: [\"/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/holdout-v7/jobs/holdout-v7-baseline-fmt/run/fmt_printf_positional_fields/state/worktrees/tc-284763-103e068a2c89/.auto-fix-build/sg/fmt/b/bin/af_fmt_probe\"]\nAUTO_FIX_FMT\tDynamicStringPositive\tPASS\t616263\t616263\nAUTO_FIX_FMT\tDynamicStringZero\tPASS\t\t\nAUTO_FIX_FMT\tDynamicStringNegative\tPASS\t\t\nAUTO_FIX_FMT\tDynamicFloatPositive\tPASS\t312e3235\t312e3235\nAUTO_FIX_FMT\tDynamicFloatZero\tPASS\t31\t31\nAUTO_FIX_FMT\tDynamicFloatNegative\tPASS\t31\t31\nAUTO_FIX_FMT\tStaticIntegerPrecisionThree\tPASS\t303132\t303132\nAUTO_FIX_FMT\tDynamicIntegerPrecisionThree\tPASS\t303132\t303132\nAUTO_FIX_FMT\tStaticIntegerPrecisionFour\tPASS\t30303132\t30303132\nAUTO_FIX_FMT\tDynamicIntegerPrecisionFour\tPASS\t30303132\t30303132\nAUTO_FIX_FMT\tChronoNanosecondsMinimum\tPASS\t313637372d30392d32312030303a31323a34332e313435323234313932\t313637372d30392d32312030303a31323a34332e313435323234313932\nAUTO_FIX_FMT\tChronoNanosecondsMaximum\tPASS\t323236322d30342d31312032333a34373a31362e383534373735383037\t323236322d30342d31312032333a34373a31362e383534373735383037\n\n",
+          "actual_luna_calls": 2
+        },
+        {
+          "case": "fmt_nested_range_delimiters",
+          "reason": "Repair budget exhausted: Expected old text exactly once in include/fmt/ranges.h; found 0",
+          "actual_luna_calls": 2
+        },
+        {
+          "case": "fmt_utf16_storage_and_surrogates",
+          "reason": "Repair budget exhausted: Edit makes no change: src/format.cc",
+          "actual_luna_calls": 2
+        },
+        {
+          "case": "fmt_decimal_halfway_rounding",
+          "reason": "Repair budget exhausted: v7/jobs/holdout-v7-baseline-fmt/run/fmt_decimal_halfway_rounding/state/worktrees/tc-284766-d10ab9e79ee4\", \"-DCMAKE_BUILD_TYPE=Release\"]\n-- Configuring done (0.0s)\n-- Generating done (0.0s)\n-- Build files have been written to: /Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/holdout-v7/jobs/holdout-v7-baseline-fmt/run/fmt_decimal_halfway_rounding/state/worktrees/tc-284766-d10ab9e79ee4/.auto-fix-build/sg/fmt/b\n\nFmt probe command: [\"cmake\", \"--build\", \"/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/holdout-v7/jobs/holdout-v7-baseline-fmt/run/fmt_decimal_halfway_rounding/state/worktrees/tc-284766-d10ab9e79ee4/.auto-fix-build/sg/fmt/b\", \"--config\", \"Release\", \"--parallel\", \"2\", \"--clean-first\", \"--target\", \"af_fmt_probe\"]\n[1/1] Cleaning all built files...\nCleaning... 2 files.\n[1/2] Building CXX object CMakeFiles/af_fmt_probe.dir/probe.cc.o\n[2/2] Linking CXX executable bin/af_fmt_probe\n\nFmt probe command: [\"/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/holdout-v7/jobs/holdout-v7-baseline-fmt/run/fmt_decimal_halfway_rounding/state/worktrees/tc-284766-d10ab9e79ee4/.auto-fix-build/sg/fmt/b/bin/af_fmt_probe\"]\nAUTO_FIX_FMT\tDynamicStringPositive\tPASS\t616263\t616263\nAUTO_FIX_FMT\tDynamicStringZero\tPASS\t\t\nAUTO_FIX_FMT\tDynamicStringNegative\tPASS\t\t\nAUTO_FIX_FMT\tDynamicFloatPositive\tPASS\t312e3235\t312e3235\nAUTO_FIX_FMT\tDynamicFloatZero\tPASS\t31\t31\nAUTO_FIX_FMT\tDynamicFloatNegative\tPASS\t31\t31\nAUTO_FIX_FMT\tStaticIntegerPrecisionThree\tPASS\t303132\t303132\nAUTO_FIX_FMT\tDynamicIntegerPrecisionThree\tPASS\t303132\t303132\nAUTO_FIX_FMT\tStaticIntegerPrecisionFour\tPASS\t30303132\t30303132\nAUTO_FIX_FMT\tDynamicIntegerPrecisionFour\tPASS\t30303132\t30303132\nAUTO_FIX_FMT\tChronoNanosecondsMinimum\tPASS\t313637372d30392d32312030303a31323a34332e313435323234313932\t313637372d30392d32312030303a31323a34332e313435323234313932\nAUTO_FIX_FMT\tChronoNanosecondsMaximum\tPASS\t323236322d30342d31312032333a34373a31362e383534373735383037\t323236322d30342d31312032333a34373a31362e383534373735383037\n\n",
+          "actual_luna_calls": 2
+        },
+        {
+          "case": "absl_unicode_escape_validation_lengths",
+          "reason": "Repair budget exhausted: UnescapeTest.Unescapes3CharOctalNull\n[       OK ] CUnescapeTest.Unescapes3CharOctalNull (0 ms)\n[ RUN      ] CUnescapeTest.Unescapes1CharHexNull\n[       OK ] CUnescapeTest.Unescapes1CharHexNull (0 ms)\n[ RUN      ] CUnescapeTest.Unescapes2CharHexNull\n[       OK ] CUnescapeTest.Unescapes2CharHexNull (0 ms)\n[ RUN      ] CUnescapeTest.Unescapes3CharHexNull\n[       OK ] CUnescapeTest.Unescapes3CharHexNull (0 ms)\n[ RUN      ] CUnescapeTest.Unescapes4CharUnicodeNull\n[       OK ] CUnescapeTest.Unescapes4CharUnicodeNull (0 ms)\n[ RUN      ] CUnescapeTest.Unescapes8CharUnicodeNull\n[       OK ] CUnescapeTest.Unescapes8CharUnicodeNull (0 ms)\n[ RUN      ] CUnescapeTest.UnescapesMultipleOctalNulls\n[       OK ] CUnescapeTest.UnescapesMultipleOctalNulls (0 ms)\n[ RUN      ] CUnescapeTest.UnescapesMultipleHexNulls\n[       OK ] CUnescapeTest.UnescapesMultipleHexNulls (0 ms)\n[ RUN      ] CUnescapeTest.UnescapesMultipleUnicodeNulls\n[       OK ] CUnescapeTest.UnescapesMultipleUnicodeNulls (0 ms)\n[----------] 11 tests from CUnescapeTest (0 ms total)\n\n[----------] 2 tests from Base64\n[ RUN      ] Base64.EscapeAndUnescape\n[       OK ] Base64.EscapeAndUnescape (0 ms)\n[ RUN      ] Base64.Padding\n[       OK ] Base64.Padding (0 ms)\n[ DISABLED ] Base64.DISABLED_HugeData\n[----------] 2 tests from Base64 (0 ms total)\n\n[----------] 1 test from Escaping\n[ RUN      ] Escaping.HexStringToBytesBackToHex\n[       OK ] Escaping.HexStringToBytesBackToHex (0 ms)\n[----------] 1 test from Escaping (0 ms total)\n\n[----------] 1 test from HexAndBack\n[ RUN      ] HexAndBack.HexStringToBytes_and_BytesToHexString\n[       OK ] HexAndBack.HexStringToBytes_and_BytesToHexString (0 ms)\n[----------] 1 test from HexAndBack (0 ms total)\n\n[----------] Global test environment tear-down\n[==========] 18 tests from 6 test suites ran. (2 ms total)\n[  PASSED  ] 17 tests.\n[  FAILED  ] 1 test, listed below:\n[  FAILED  ] Unescape.BasicFunction\n\n 1 FAILED TEST\n  YOU HAVE 1 DISABLED TEST\n\n\nTest command (primary) failed with exit code 1.",
+          "actual_luna_calls": 2
+        },
+        {
+          "case": "absl_unicode_safe_escape_modes",
+          "reason": "Repair budget exhausted: Edit makes no change: absl/strings/escaping.cc",
+          "actual_luna_calls": 2
+        },
+        {
+          "case": "absl_float_lexical_whitespace_sign",
+          "reason": "Repair budget exhausted: Expected old text exactly once in absl/strings/numbers.cc; found 2",
+          "actual_luna_calls": 2
+        },
+        {
+          "case": "absl_float_signed_special_values",
+          "reason": "Context exceeds configured model budget",
+          "actual_luna_calls": 0
+        },
+        {
+          "case": "absl_substitute_placeholder_index",
+          "reason": "Context exceeds configured model budget",
+          "actual_luna_calls": 0
+        },
+        {
+          "case": "absl_decimal_padding_shared_contract",
+          "reason": "Context exceeds configured model budget",
+          "actual_luna_calls": 0
+        },
+        {
+          "case": "timezone_civil_ambiguity_pre_post",
+          "reason": "Context exceeds configured model budget",
+          "actual_luna_calls": 0
+        },
+        {
+          "case": "time_format_fraction_interchange_scale",
+          "reason": "Repair budget exhausted: ir/internal/cctz/src/time_zone_posix.cc.o\n[44/56] Linking CXX static library abseil/absl/strings/libabsl_strings.a\n[45/56] Building CXX object abseil/absl/time/CMakeFiles/absl_time_zone.dir/internal/cctz/src/time_zone_info.cc.o\n[46/56] Building CXX object abseil/absl/time/CMakeFiles/absl_time_zone.dir/internal/cctz/src/zone_info_source.cc.o\n[47/56] Building CXX object abseil/absl/time/CMakeFiles/absl_time.dir/clock.cc.o\n[48/56] Building CXX object abseil/absl/time/CMakeFiles/absl_time.dir/civil_time.cc.o\n[49/56] Linking CXX static library abseil/absl/time/libabsl_civil_time.a\n[50/56] Building CXX object abseil/absl/time/CMakeFiles/absl_time.dir/duration.cc.o\n[51/56] Building CXX object abseil/absl/time/CMakeFiles/absl_time.dir/format.cc.o\n[52/56] Linking CXX static library abseil/absl/time/libabsl_time_zone.a\n[53/56] Building CXX object abseil/absl/time/CMakeFiles/absl_time.dir/time.cc.o\n[54/56] Linking CXX static library abseil/absl/time/libabsl_time.a\n[55/56] Building CXX object CMakeFiles/auto_fix_duration_min_unit.dir/probe.cc.o\n[56/56] Linking CXX executable bin/auto_fix_duration_min_unit\nSemantic probe command: [\"/Users/antoine/projects/auto-fix/.auto-fix/expanded-formal/holdout-v7/jobs/holdout-v7-baseline-systems/run/time_format_fraction_interchange_scale/state/worktrees/tc-284762-dae2f4dff8ad/.auto-fix-build/semantic-probes/duration-rounding/build/bin/auto_fix_duration_min_unit\"]\nAUTO_FIX_PROBE\tInputFinite\tPASS\t-2562047788015215h30m8s\nAUTO_FIX_PROBE\tTruncExactMinimumUnit\tPASS\t-2562047788015215h30m8s\nAUTO_FIX_PROBE\tFloorExactMinimumUnit\tPASS\t-2562047788015215h30m8s\nAUTO_FIX_PROBE\tCeilExactMinimumUnit\tPASS\t-2562047788015215h30m8s\nAUTO_FIX_PROBE\tFloorMinimumPositiveThree\tPASS\t-inf\nAUTO_FIX_PROBE\tCeilMinimumPositiveThree\tPASS\t-2562047788015215h30m6s\nAUTO_FIX_PROBE\tFloorMinimumNegativeThree\tPASS\t-inf\nAUTO_FIX_PROBE\tCeilMinimumNegativeThree\tPASS\t-2562047788015215h30m6s\nAUTO_FIX_PROBE\tFloorMinimumInfiniteUnit\tPASS\t-inf\nAUTO_FIX_PROBE\tCeilMinimumInfiniteUnit\tPASS\t0\n",
+          "actual_luna_calls": 2
+        },
+        {
+          "case": "uint128_floating_word_layout",
+          "reason": "Repair budget exhausted:  from Int128IntegerConversionTest/11 (0 ms total)\n\n[----------] 1 test from Int128IntegerConversionTest/12, where TypeParam = unsigned long\n[ RUN      ] Int128IntegerConversionTest/12.RoundTripTest\n[       OK ] Int128IntegerConversionTest/12.RoundTripTest (0 ms)\n[----------] 1 test from Int128IntegerConversionTest/12 (0 ms total)\n\n[----------] 1 test from Int128IntegerConversionTest/13, where TypeParam = long long\n[ RUN      ] Int128IntegerConversionTest/13.RoundTripTest\n[       OK ] Int128IntegerConversionTest/13.RoundTripTest (0 ms)\n[----------] 1 test from Int128IntegerConversionTest/13 (0 ms total)\n\n[----------] 1 test from Int128IntegerConversionTest/14, where TypeParam = unsigned long long\n[ RUN      ] Int128IntegerConversionTest/14.RoundTripTest\n[       OK ] Int128IntegerConversionTest/14.RoundTripTest (0 ms)\n[----------] 1 test from Int128IntegerConversionTest/14 (0 ms total)\n\n[----------] 1 test from Int128FloatConversionTest/0, where TypeParam = float\n[ RUN      ] Int128FloatConversionTest/0.ConstructAndCastTest\n[       OK ] Int128FloatConversionTest/0.ConstructAndCastTest (0 ms)\n[----------] 1 test from Int128FloatConversionTest/0 (0 ms total)\n\n[----------] 1 test from Int128FloatConversionTest/1, where TypeParam = double\n[ RUN      ] Int128FloatConversionTest/1.ConstructAndCastTest\n[       OK ] Int128FloatConversionTest/1.ConstructAndCastTest (0 ms)\n[----------] 1 test from Int128FloatConversionTest/1 (0 ms total)\n\n[----------] 1 test from Int128FloatConversionTest/2, where TypeParam = long double\n[ RUN      ] Int128FloatConversionTest/2.ConstructAndCastTest\n[       OK ] Int128FloatConversionTest/2.ConstructAndCastTest (0 ms)\n[----------] 1 test from Int128FloatConversionTest/2 (0 ms total)\n\n[----------] Global test environment tear-down\n[==========] 92 tests from 57 test suites ran. (40 ms total)\n[  PASSED  ] 91 tests.\n[  FAILED  ] 1 test, listed below:\n[  FAILED  ] Uint128.ConversionTests\n\n 1 FAILED TEST\n\nTest command (primary) failed with exit code 1.",
+          "actual_luna_calls": 2
+        },
+        {
+          "case": "int128_stream_internal_padding",
+          "reason": "Context exceeds configured model budget",
+          "actual_luna_calls": 0
+        },
+        {
+          "case": "uint128_multichunk_zero_padding",
+          "reason": "Repair budget exhausted: Expected old text exactly once in absl/numeric/int128.cc; found 2",
+          "actual_luna_calls": 2
+        },
+        {
+          "case": "cctz_numeric_offset_validation_sign",
+          "reason": "Repair budget exhausted: Edit makes no change: absl/time/internal/cctz/src/time_zone_format.cc",
+          "actual_luna_calls": 2
+        }
+      ],
+      "semantic_false_green_cases": [],
+      "raw_native_publication_wilson95": {
+        "method": "Wilson score",
+        "confidence": 0.95,
+        "successes": 3,
+        "trials": 21,
+        "lower": 0.04981012499725268,
+        "upper": 0.34636060280620945,
+        "scope": "Descriptive interval for this 21-defect synthetic sample; not general production repair accuracy."
+      },
+      "reviewed_publication_without_confirmed_functional_error_wilson95": {
+        "method": "Wilson score",
+        "confidence": 0.95,
+        "successes": 3,
+        "trials": 21,
+        "lower": 0.04981012499725268,
+        "upper": 0.34636060280620945,
+        "scope": "Descriptive interval for this 21-defect synthetic sample; not general production repair accuracy."
+      }
+    },
+    "selected-r1": {
+      "trials": 21,
+      "unique_defects": 21,
+      "raw_native_publications": 21,
+      "completed_nonpublications": 0,
+      "confirmed_functional_semantic_false_greens": 2,
+      "publications_without_confirmed_functional_semantic_regression": 19,
+      "known_measured_performance_regressions": 0,
+      "actual_luna_calls": 68,
+      "calls_by_kind": {
+        "investigation": 42,
+        "repair": 26
+      },
+      "nonpublication_cases": [],
+      "semantic_false_green_cases": [
+        {
+          "case": "fmt_east_asian_emoji_display_width",
+          "job": "holdout-v7-selected-r1-fmt",
+          "head": "1d7a39d5125b56478861abb8c85551594f3a3f3d"
+        },
+        {
+          "case": "absl_unicode_safe_escape_modes",
+          "job": "holdout-v7-selected-r1-strings",
+          "head": "4ef04bdd320bc80e5b32db3d96f6776d37e5f400"
+        }
+      ],
+      "raw_native_publication_wilson95": {
+        "method": "Wilson score",
+        "confidence": 0.95,
+        "successes": 21,
+        "trials": 21,
+        "lower": 0.8453609810751531,
+        "upper": 1.0,
+        "scope": "Descriptive interval for this 21-defect synthetic sample; not general production repair accuracy."
+      },
+      "reviewed_publication_without_confirmed_functional_error_wilson95": {
+        "method": "Wilson score",
+        "confidence": 0.95,
+        "successes": 19,
+        "trials": 21,
+        "lower": 0.7108586092608176,
+        "upper": 0.9734812325619255,
+        "scope": "Descriptive interval for this 21-defect synthetic sample; not general production repair accuracy."
+      }
+    },
+    "selected-r2": {
+      "trials": 21,
+      "unique_defects": 21,
+      "raw_native_publications": 21,
+      "completed_nonpublications": 0,
+      "confirmed_functional_semantic_false_greens": 3,
+      "publications_without_confirmed_functional_semantic_regression": 18,
+      "known_measured_performance_regressions": 0,
+      "actual_luna_calls": 77,
+      "calls_by_kind": {
+        "investigation": 47,
+        "repair": 30
+      },
+      "nonpublication_cases": [],
+      "semantic_false_green_cases": [
+        {
+          "case": "fmt_east_asian_emoji_display_width",
+          "job": "holdout-v7-selected-r2-fmt",
+          "head": "a969c0ea8104758d36318ec7c960299c94a057c6"
+        },
+        {
+          "case": "absl_unicode_escape_validation_lengths",
+          "job": "holdout-v7-selected-r2-strings",
+          "head": "c75613c7bd0b7b1823df2f00b0e2a526f46e3f59"
+        },
+        {
+          "case": "absl_unicode_safe_escape_modes",
+          "job": "holdout-v7-selected-r2-strings",
+          "head": "98e8408e60ddd6a2ed15c229f5724fefa39955ea"
+        }
+      ],
+      "raw_native_publication_wilson95": {
+        "method": "Wilson score",
+        "confidence": 0.95,
+        "successes": 21,
+        "trials": 21,
+        "lower": 0.8453609810751531,
+        "upper": 1.0,
+        "scope": "Descriptive interval for this 21-defect synthetic sample; not general production repair accuracy."
+      },
+      "reviewed_publication_without_confirmed_functional_error_wilson95": {
+        "method": "Wilson score",
+        "confidence": 0.95,
+        "successes": 18,
+        "trials": 21,
+        "lower": 0.6536393971937906,
+        "upper": 0.9501898750027473,
+        "scope": "Descriptive interval for this 21-defect synthetic sample; not general production repair accuracy."
+      }
+    },
+    "selected-r3": {
+      "trials": 21,
+      "unique_defects": 21,
+      "raw_native_publications": 21,
+      "completed_nonpublications": 0,
+      "confirmed_functional_semantic_false_greens": 4,
+      "publications_without_confirmed_functional_semantic_regression": 17,
+      "known_measured_performance_regressions": 0,
+      "actual_luna_calls": 63,
+      "calls_by_kind": {
+        "investigation": 39,
+        "repair": 24
+      },
+      "nonpublication_cases": [],
+      "semantic_false_green_cases": [
+        {
+          "case": "fmt_east_asian_emoji_display_width",
+          "job": "holdout-v7-selected-r3-fmt",
+          "head": "043ee895043f72a157dbb44854fc59c54294d7e1"
+        },
+        {
+          "case": "fmt_utf16_storage_and_surrogates",
+          "job": "holdout-v7-selected-r3-fmt",
+          "head": "2653aed66d813ab5255f9a885880cee56efb6fec"
+        },
+        {
+          "case": "absl_unicode_escape_validation_lengths",
+          "job": "holdout-v7-selected-r3-strings",
+          "head": "bdf1417e105793cc13e912164600235ee881f4b6"
+        },
+        {
+          "case": "absl_unicode_safe_escape_modes",
+          "job": "holdout-v7-selected-r3-strings",
+          "head": "b55c8ff8b235c47972797faa0a1964f866475cf8"
+        }
+      ],
+      "raw_native_publication_wilson95": {
+        "method": "Wilson score",
+        "confidence": 0.95,
+        "successes": 21,
+        "trials": 21,
+        "lower": 0.8453609810751531,
+        "upper": 1.0,
+        "scope": "Descriptive interval for this 21-defect synthetic sample; not general production repair accuracy."
+      },
+      "reviewed_publication_without_confirmed_functional_error_wilson95": {
+        "method": "Wilson score",
+        "confidence": 0.95,
+        "successes": 17,
+        "trials": 21,
+        "lower": 0.5999943530979508,
+        "upper": 0.9233243494723822,
+        "scope": "Descriptive interval for this 21-defect synthetic sample; not general production repair accuracy."
+      }
+    }
+  },
+  "runs": [
+    {
+      "id": "holdout-v7-baseline-fmt",
+      "arm": "baseline-v7",
+      "split": "holdout",
+      "directory": ".auto-fix/expanded-formal/holdout-v7/jobs/holdout-v7-baseline-fmt/run",
+      "artifact_directory": "results/holdout-v7-baseline-fmt",
+      "project_file": "evaluation/expanded/fmt-validation-v6.json",
+      "cases_file": "evaluation/expanded/cases_fmt.json",
+      "project_snapshot": "inputs/jobs/holdout-v7-baseline-fmt/project.json",
+      "project_sha256": "bef80755fa8165b71c0fd3c7b3d419ce84620fdc1fd98bb588ae9b91a017004f",
+      "cases_snapshot": "inputs/jobs/holdout-v7-baseline-fmt/cases.json",
+      "cases_sha256": "c4e332f46478c11b9566b82809c3a127cc7008d3f55eb47822fe9b4ea34bf330",
+      "manifest_sha256": "9c3f5a14563b0c228d270db43391320e40b79001a188143205009f3fb1d7ba8b",
+      "summary_sha256": "471cddbf23995f8421498d1e59b1743fe235d24a1c5a58043875ca7d1aabc8b6",
+      "case_ids": [
+        "fmt_east_asian_emoji_display_width",
+        "fmt_binary_prefix_casing",
+        "fmt_printf_positional_fields",
+        "fmt_nested_range_delimiters",
+        "fmt_utf16_storage_and_surrogates",
+        "fmt_decimal_halfway_rounding"
+      ],
+      "native_trials": 6,
+      "raw_native_publications": 0,
+      "known_semantic_false_green_cases": [],
+      "completed_nonpublications": [
+        "fmt_east_asian_emoji_display_width",
+        "fmt_binary_prefix_casing",
+        "fmt_printf_positional_fields",
+        "fmt_nested_range_delimiters",
+        "fmt_utf16_storage_and_surrogates",
+        "fmt_decimal_halfway_rounding"
+      ],
+      "model_calls": 12,
+      "calls_by_kind": {
+        "repair": 12
+      },
+      "baseline_repetitions": 2,
+      "prompt_version": "repair-v1",
+      "prompt_sha256": "68ade6197d32466da3541f6ec5f083b40af1975884051b51b9b788e7c02e61a0",
+      "max_inspections": 0,
+      "inspections_per_attempt": 2,
+      "structured_diagnostics": false,
+      "reasoning_effort": "medium",
+      "max_attempts": 2,
+      "context_chars": 60000,
+      "definition_reads": false
+    },
+    {
+      "id": "holdout-v7-selected-r1-fmt",
+      "arm": "selected-recipe-v7",
+      "split": "holdout",
+      "directory": ".auto-fix/expanded-formal/holdout-v7/jobs/holdout-v7-selected-r1-fmt/run",
+      "artifact_directory": "results/holdout-v7-selected-r1-fmt",
+      "project_file": "evaluation/expanded/fmt-validation-v6.json",
+      "cases_file": "evaluation/expanded/cases_fmt.json",
+      "project_snapshot": "inputs/jobs/holdout-v7-selected-r1-fmt/project.json",
+      "project_sha256": "bef80755fa8165b71c0fd3c7b3d419ce84620fdc1fd98bb588ae9b91a017004f",
+      "cases_snapshot": "inputs/jobs/holdout-v7-selected-r1-fmt/cases.json",
+      "cases_sha256": "c4e332f46478c11b9566b82809c3a127cc7008d3f55eb47822fe9b4ea34bf330",
+      "manifest_sha256": "3ae14c9cd71f40d270e977387a7a255c90d4159ee34eb25563fae00bb5a9bc12",
+      "summary_sha256": "8ec5d651293f0b1b48ae2ffd6093e880aeeb05cb78b9ef3053b369a61e7677ba",
+      "case_ids": [
+        "fmt_east_asian_emoji_display_width",
+        "fmt_binary_prefix_casing",
+        "fmt_printf_positional_fields",
+        "fmt_nested_range_delimiters",
+        "fmt_utf16_storage_and_surrogates",
+        "fmt_decimal_halfway_rounding"
+      ],
+      "native_trials": 6,
+      "raw_native_publications": 6,
+      "known_semantic_false_green_cases": [
+        "fmt_east_asian_emoji_display_width"
+      ],
+      "completed_nonpublications": [],
+      "model_calls": 20,
+      "calls_by_kind": {
+        "repair": 7,
+        "investigation": 13
+      },
+      "baseline_repetitions": 2,
+      "prompt_version": "assertion-v4",
+      "prompt_sha256": "4476f20128351696ff80169f895d2e011b8dbefd19a652a8e39e415e1b2c93d5",
+      "max_inspections": 6,
+      "inspections_per_attempt": 2,
+      "structured_diagnostics": true,
+      "reasoning_effort": "high",
+      "max_attempts": 4,
+      "context_chars": 160000,
+      "definition_reads": true
+    },
+    {
+      "id": "holdout-v7-selected-r2-fmt",
+      "arm": "selected-recipe-v7",
+      "split": "holdout",
+      "directory": ".auto-fix/expanded-formal/holdout-v7/jobs/holdout-v7-selected-r2-fmt/run",
+      "artifact_directory": "results/holdout-v7-selected-r2-fmt",
+      "project_file": "evaluation/expanded/fmt-validation-v6.json",
+      "cases_file": "evaluation/expanded/cases_fmt.json",
+      "project_snapshot": "inputs/jobs/holdout-v7-selected-r2-fmt/project.json",
+      "project_sha256": "bef80755fa8165b71c0fd3c7b3d419ce84620fdc1fd98bb588ae9b91a017004f",
+      "cases_snapshot": "inputs/jobs/holdout-v7-selected-r2-fmt/cases.json",
+      "cases_sha256": "c4e332f46478c11b9566b82809c3a127cc7008d3f55eb47822fe9b4ea34bf330",
+      "manifest_sha256": "3ae14c9cd71f40d270e977387a7a255c90d4159ee34eb25563fae00bb5a9bc12",
+      "summary_sha256": "e1a6bbfac6bf462cadf2c7fb338ac68e074368d06afeed2f2b796ecde69d7eca",
+      "case_ids": [
+        "fmt_east_asian_emoji_display_width",
+        "fmt_binary_prefix_casing",
+        "fmt_printf_positional_fields",
+        "fmt_nested_range_delimiters",
+        "fmt_utf16_storage_and_surrogates",
+        "fmt_decimal_halfway_rounding"
+      ],
+      "native_trials": 6,
+      "raw_native_publications": 6,
+      "known_semantic_false_green_cases": [
+        "fmt_east_asian_emoji_display_width"
+      ],
+      "completed_nonpublications": [],
+      "model_calls": 30,
+      "calls_by_kind": {
+        "repair": 11,
+        "investigation": 19
+      },
+      "baseline_repetitions": 2,
+      "prompt_version": "assertion-v4",
+      "prompt_sha256": "4476f20128351696ff80169f895d2e011b8dbefd19a652a8e39e415e1b2c93d5",
+      "max_inspections": 6,
+      "inspections_per_attempt": 2,
+      "structured_diagnostics": true,
+      "reasoning_effort": "high",
+      "max_attempts": 4,
+      "context_chars": 160000,
+      "definition_reads": true
+    },
+    {
+      "id": "holdout-v7-selected-r3-fmt",
+      "arm": "selected-recipe-v7",
+      "split": "holdout",
+      "directory": ".auto-fix/expanded-formal/holdout-v7/jobs/holdout-v7-selected-r3-fmt/run",
+      "artifact_directory": "results/holdout-v7-selected-r3-fmt",
+      "project_file": "evaluation/expanded/fmt-validation-v6.json",
+      "cases_file": "evaluation/expanded/cases_fmt.json",
+      "project_snapshot": "inputs/jobs/holdout-v7-selected-r3-fmt/project.json",
+      "project_sha256": "bef80755fa8165b71c0fd3c7b3d419ce84620fdc1fd98bb588ae9b91a017004f",
+      "cases_snapshot": "inputs/jobs/holdout-v7-selected-r3-fmt/cases.json",
+      "cases_sha256": "c4e332f46478c11b9566b82809c3a127cc7008d3f55eb47822fe9b4ea34bf330",
+      "manifest_sha256": "3ae14c9cd71f40d270e977387a7a255c90d4159ee34eb25563fae00bb5a9bc12",
+      "summary_sha256": "01702294146176199889488eaaf32075434729479130867f4c4738382a1920e1",
+      "case_ids": [
+        "fmt_east_asian_emoji_display_width",
+        "fmt_binary_prefix_casing",
+        "fmt_printf_positional_fields",
+        "fmt_nested_range_delimiters",
+        "fmt_utf16_storage_and_surrogates",
+        "fmt_decimal_halfway_rounding"
+      ],
+      "native_trials": 6,
+      "raw_native_publications": 6,
+      "known_semantic_false_green_cases": [
+        "fmt_east_asian_emoji_display_width",
+        "fmt_utf16_storage_and_surrogates"
+      ],
+      "completed_nonpublications": [],
+      "model_calls": 20,
+      "calls_by_kind": {
+        "investigation": 13,
+        "repair": 7
+      },
+      "baseline_repetitions": 2,
+      "prompt_version": "assertion-v4",
+      "prompt_sha256": "4476f20128351696ff80169f895d2e011b8dbefd19a652a8e39e415e1b2c93d5",
+      "max_inspections": 6,
+      "inspections_per_attempt": 2,
+      "structured_diagnostics": true,
+      "reasoning_effort": "high",
+      "max_attempts": 4,
+      "context_chars": 160000,
+      "definition_reads": true
+    },
+    {
+      "id": "holdout-v7-baseline-strings",
+      "arm": "baseline-v7",
+      "split": "holdout",
+      "directory": ".auto-fix/expanded-formal/holdout-v7/jobs/holdout-v7-baseline-strings/run",
+      "artifact_directory": "results/holdout-v7-baseline-strings",
+      "project_file": "evaluation/expanded/abseil-validation-v6.json",
+      "cases_file": "evaluation/expanded/abseil_strings.json",
+      "project_snapshot": "inputs/jobs/holdout-v7-baseline-strings/project.json",
+      "project_sha256": "8862d014cd320d9b9f8d8633e58ba7c07536489b21dd368351b28048d4905d74",
+      "cases_snapshot": "inputs/jobs/holdout-v7-baseline-strings/cases.json",
+      "cases_sha256": "cb92bcda96467037072b534e3d8c57df66bc7197ccd5b4b9688fe85ba1209d50",
+      "manifest_sha256": "ea472e31acd95fa886d2bbdc0125bbe062d1492e9f72c4468276a3b5d584be3e",
+      "summary_sha256": "f06797cdde7ddfd909b78c53f3f76e66ef12c922732103fb7da54cee93252eb4",
+      "case_ids": [
+        "absl_unicode_escape_validation_lengths",
+        "absl_unicode_safe_escape_modes",
+        "absl_float_lexical_whitespace_sign",
+        "absl_float_signed_special_values",
+        "absl_substitute_placeholder_index",
+        "absl_substitute_literal_dollars",
+        "absl_decimal_padding_shared_contract"
+      ],
+      "native_trials": 7,
+      "raw_native_publications": 1,
+      "known_semantic_false_green_cases": [],
+      "completed_nonpublications": [
+        "absl_unicode_escape_validation_lengths",
+        "absl_unicode_safe_escape_modes",
+        "absl_float_lexical_whitespace_sign",
+        "absl_float_signed_special_values",
+        "absl_substitute_placeholder_index",
+        "absl_decimal_padding_shared_contract"
+      ],
+      "model_calls": 8,
+      "calls_by_kind": {
+        "repair": 8
+      },
+      "baseline_repetitions": 2,
+      "prompt_version": "repair-v1",
+      "prompt_sha256": "68ade6197d32466da3541f6ec5f083b40af1975884051b51b9b788e7c02e61a0",
+      "max_inspections": 0,
+      "inspections_per_attempt": 2,
+      "structured_diagnostics": false,
+      "reasoning_effort": "medium",
+      "max_attempts": 2,
+      "context_chars": 60000,
+      "definition_reads": false
+    },
+    {
+      "id": "holdout-v7-selected-r1-strings",
+      "arm": "selected-recipe-v7",
+      "split": "holdout",
+      "directory": ".auto-fix/expanded-formal/holdout-v7/jobs/holdout-v7-selected-r1-strings/run",
+      "artifact_directory": "results/holdout-v7-selected-r1-strings",
+      "project_file": "evaluation/expanded/abseil-validation-v6.json",
+      "cases_file": "evaluation/expanded/abseil_strings.json",
+      "project_snapshot": "inputs/jobs/holdout-v7-selected-r1-strings/project.json",
+      "project_sha256": "8862d014cd320d9b9f8d8633e58ba7c07536489b21dd368351b28048d4905d74",
+      "cases_snapshot": "inputs/jobs/holdout-v7-selected-r1-strings/cases.json",
+      "cases_sha256": "cb92bcda96467037072b534e3d8c57df66bc7197ccd5b4b9688fe85ba1209d50",
+      "manifest_sha256": "db047ecf9dd562b052a1179e49f1e3b0c3d4af11859bdb8b0359e86c7137d4aa",
+      "summary_sha256": "2952bd254c875ffdd650e6ccdbbeaf2e5cc2c7afff8f93805a30ee7ada9a5d1d",
+      "case_ids": [
+        "absl_unicode_escape_validation_lengths",
+        "absl_unicode_safe_escape_modes",
+        "absl_float_lexical_whitespace_sign",
+        "absl_float_signed_special_values",
+        "absl_substitute_placeholder_index",
+        "absl_substitute_literal_dollars",
+        "absl_decimal_padding_shared_contract"
+      ],
+      "native_trials": 7,
+      "raw_native_publications": 7,
+      "known_semantic_false_green_cases": [
+        "absl_unicode_safe_escape_modes"
+      ],
+      "completed_nonpublications": [],
+      "model_calls": 23,
+      "calls_by_kind": {
+        "repair": 9,
+        "investigation": 14
+      },
+      "baseline_repetitions": 2,
+      "prompt_version": "assertion-v4",
+      "prompt_sha256": "4476f20128351696ff80169f895d2e011b8dbefd19a652a8e39e415e1b2c93d5",
+      "max_inspections": 6,
+      "inspections_per_attempt": 2,
+      "structured_diagnostics": true,
+      "reasoning_effort": "high",
+      "max_attempts": 4,
+      "context_chars": 160000,
+      "definition_reads": true
+    },
+    {
+      "id": "holdout-v7-selected-r2-strings",
+      "arm": "selected-recipe-v7",
+      "split": "holdout",
+      "directory": ".auto-fix/expanded-formal/holdout-v7/jobs/holdout-v7-selected-r2-strings/run",
+      "artifact_directory": "results/holdout-v7-selected-r2-strings",
+      "project_file": "evaluation/expanded/abseil-validation-v6.json",
+      "cases_file": "evaluation/expanded/abseil_strings.json",
+      "project_snapshot": "inputs/jobs/holdout-v7-selected-r2-strings/project.json",
+      "project_sha256": "8862d014cd320d9b9f8d8633e58ba7c07536489b21dd368351b28048d4905d74",
+      "cases_snapshot": "inputs/jobs/holdout-v7-selected-r2-strings/cases.json",
+      "cases_sha256": "cb92bcda96467037072b534e3d8c57df66bc7197ccd5b4b9688fe85ba1209d50",
+      "manifest_sha256": "db047ecf9dd562b052a1179e49f1e3b0c3d4af11859bdb8b0359e86c7137d4aa",
+      "summary_sha256": "3fc41e748682a9678c5491d3b96674bd99942b077143f07f047e5715834839fe",
+      "case_ids": [
+        "absl_unicode_escape_validation_lengths",
+        "absl_unicode_safe_escape_modes",
+        "absl_float_lexical_whitespace_sign",
+        "absl_float_signed_special_values",
+        "absl_substitute_placeholder_index",
+        "absl_substitute_literal_dollars",
+        "absl_decimal_padding_shared_contract"
+      ],
+      "native_trials": 7,
+      "raw_native_publications": 7,
+      "known_semantic_false_green_cases": [
+        "absl_unicode_escape_validation_lengths",
+        "absl_unicode_safe_escape_modes"
+      ],
+      "completed_nonpublications": [],
+      "model_calls": 20,
+      "calls_by_kind": {
+        "investigation": 12,
+        "repair": 8
+      },
+      "baseline_repetitions": 2,
+      "prompt_version": "assertion-v4",
+      "prompt_sha256": "4476f20128351696ff80169f895d2e011b8dbefd19a652a8e39e415e1b2c93d5",
+      "max_inspections": 6,
+      "inspections_per_attempt": 2,
+      "structured_diagnostics": true,
+      "reasoning_effort": "high",
+      "max_attempts": 4,
+      "context_chars": 160000,
+      "definition_reads": true
+    },
+    {
+      "id": "holdout-v7-selected-r3-strings",
+      "arm": "selected-recipe-v7",
+      "split": "holdout",
+      "directory": ".auto-fix/expanded-formal/holdout-v7/jobs/holdout-v7-selected-r3-strings/run",
+      "artifact_directory": "results/holdout-v7-selected-r3-strings",
+      "project_file": "evaluation/expanded/abseil-validation-v6.json",
+      "cases_file": "evaluation/expanded/abseil_strings.json",
+      "project_snapshot": "inputs/jobs/holdout-v7-selected-r3-strings/project.json",
+      "project_sha256": "8862d014cd320d9b9f8d8633e58ba7c07536489b21dd368351b28048d4905d74",
+      "cases_snapshot": "inputs/jobs/holdout-v7-selected-r3-strings/cases.json",
+      "cases_sha256": "cb92bcda96467037072b534e3d8c57df66bc7197ccd5b4b9688fe85ba1209d50",
+      "manifest_sha256": "db047ecf9dd562b052a1179e49f1e3b0c3d4af11859bdb8b0359e86c7137d4aa",
+      "summary_sha256": "6a3adfebbe717f1a029873ef9c47f5d60acd805b0f0c4c1456324a86204587c6",
+      "case_ids": [
+        "absl_unicode_escape_validation_lengths",
+        "absl_unicode_safe_escape_modes",
+        "absl_float_lexical_whitespace_sign",
+        "absl_float_signed_special_values",
+        "absl_substitute_placeholder_index",
+        "absl_substitute_literal_dollars",
+        "absl_decimal_padding_shared_contract"
+      ],
+      "native_trials": 7,
+      "raw_native_publications": 7,
+      "known_semantic_false_green_cases": [
+        "absl_unicode_escape_validation_lengths",
+        "absl_unicode_safe_escape_modes"
+      ],
+      "completed_nonpublications": [],
+      "model_calls": 19,
+      "calls_by_kind": {
+        "investigation": 12,
+        "repair": 7
+      },
+      "baseline_repetitions": 2,
+      "prompt_version": "assertion-v4",
+      "prompt_sha256": "4476f20128351696ff80169f895d2e011b8dbefd19a652a8e39e415e1b2c93d5",
+      "max_inspections": 6,
+      "inspections_per_attempt": 2,
+      "structured_diagnostics": true,
+      "reasoning_effort": "high",
+      "max_attempts": 4,
+      "context_chars": 160000,
+      "definition_reads": true
+    },
+    {
+      "id": "holdout-v7-baseline-systems",
+      "arm": "baseline-v7",
+      "split": "holdout",
+      "directory": ".auto-fix/expanded-formal/holdout-v7/jobs/holdout-v7-baseline-systems/run",
+      "artifact_directory": "results/holdout-v7-baseline-systems",
+      "project_file": "evaluation/expanded/abseil-validation-v6.json",
+      "cases_file": "evaluation/expanded/abseil_systems.json",
+      "project_snapshot": "inputs/jobs/holdout-v7-baseline-systems/project.json",
+      "project_sha256": "8862d014cd320d9b9f8d8633e58ba7c07536489b21dd368351b28048d4905d74",
+      "cases_snapshot": "inputs/jobs/holdout-v7-baseline-systems/cases.json",
+      "cases_sha256": "ebf862f3135ece78c683fdb64066f59b277a3f05b87208e1ff6813a533c5e744",
+      "manifest_sha256": "9509c0e654a9c349966aaaa14de271b89df8ce17aa081e8b1ccaf9fa8babe065",
+      "summary_sha256": "02ac8c7f5ffa1e66c16b0307815f7b2d4ff86e67f20236b3f41ce205e5275d29",
+      "case_ids": [
+        "timezone_civil_ambiguity_pre_post",
+        "time_format_fraction_interchange_scale",
+        "time_format_timezone_propagation",
+        "uint128_floating_word_layout",
+        "int128_stream_internal_padding",
+        "uint128_multichunk_zero_padding",
+        "status_serialization_mode_boundary",
+        "cctz_numeric_offset_validation_sign"
+      ],
+      "native_trials": 8,
+      "raw_native_publications": 2,
+      "known_semantic_false_green_cases": [],
+      "completed_nonpublications": [
+        "timezone_civil_ambiguity_pre_post",
+        "time_format_fraction_interchange_scale",
+        "uint128_floating_word_layout",
+        "int128_stream_internal_padding",
+        "uint128_multichunk_zero_padding",
+        "cctz_numeric_offset_validation_sign"
+      ],
+      "model_calls": 11,
+      "calls_by_kind": {
+        "repair": 11
+      },
+      "baseline_repetitions": 2,
+      "prompt_version": "repair-v1",
+      "prompt_sha256": "68ade6197d32466da3541f6ec5f083b40af1975884051b51b9b788e7c02e61a0",
+      "max_inspections": 0,
+      "inspections_per_attempt": 2,
+      "structured_diagnostics": false,
+      "reasoning_effort": "medium",
+      "max_attempts": 2,
+      "context_chars": 60000,
+      "definition_reads": false
+    },
+    {
+      "id": "holdout-v7-selected-r1-systems",
+      "arm": "selected-recipe-v7",
+      "split": "holdout",
+      "directory": ".auto-fix/expanded-formal/holdout-v7/jobs/holdout-v7-selected-r1-systems/run",
+      "artifact_directory": "results/holdout-v7-selected-r1-systems",
+      "project_file": "evaluation/expanded/abseil-validation-v6.json",
+      "cases_file": "evaluation/expanded/abseil_systems.json",
+      "project_snapshot": "inputs/jobs/holdout-v7-selected-r1-systems/project.json",
+      "project_sha256": "8862d014cd320d9b9f8d8633e58ba7c07536489b21dd368351b28048d4905d74",
+      "cases_snapshot": "inputs/jobs/holdout-v7-selected-r1-systems/cases.json",
+      "cases_sha256": "ebf862f3135ece78c683fdb64066f59b277a3f05b87208e1ff6813a533c5e744",
+      "manifest_sha256": "c7dff73988c2c455cec8b7e358c12fb3cd977e59265a1c5723141f7fe1193f83",
+      "summary_sha256": "248483a3ba292d4d4f891d0be8425e335afe5bbfb48a385e4a2247c73e455e96",
+      "case_ids": [
+        "timezone_civil_ambiguity_pre_post",
+        "time_format_fraction_interchange_scale",
+        "time_format_timezone_propagation",
+        "uint128_floating_word_layout",
+        "int128_stream_internal_padding",
+        "uint128_multichunk_zero_padding",
+        "status_serialization_mode_boundary",
+        "cctz_numeric_offset_validation_sign"
+      ],
+      "native_trials": 8,
+      "raw_native_publications": 8,
+      "known_semantic_false_green_cases": [],
+      "completed_nonpublications": [],
+      "model_calls": 25,
+      "calls_by_kind": {
+        "investigation": 15,
+        "repair": 10
+      },
+      "baseline_repetitions": 2,
+      "prompt_version": "assertion-v4",
+      "prompt_sha256": "4476f20128351696ff80169f895d2e011b8dbefd19a652a8e39e415e1b2c93d5",
+      "max_inspections": 6,
+      "inspections_per_attempt": 2,
+      "structured_diagnostics": true,
+      "reasoning_effort": "high",
+      "max_attempts": 4,
+      "context_chars": 160000,
+      "definition_reads": true
+    },
+    {
+      "id": "holdout-v7-selected-r2-systems",
+      "arm": "selected-recipe-v7",
+      "split": "holdout",
+      "directory": ".auto-fix/expanded-formal/holdout-v7/jobs/holdout-v7-selected-r2-systems/run",
+      "artifact_directory": "results/holdout-v7-selected-r2-systems",
+      "project_file": "evaluation/expanded/abseil-validation-v6.json",
+      "cases_file": "evaluation/expanded/abseil_systems.json",
+      "project_snapshot": "inputs/jobs/holdout-v7-selected-r2-systems/project.json",
+      "project_sha256": "8862d014cd320d9b9f8d8633e58ba7c07536489b21dd368351b28048d4905d74",
+      "cases_snapshot": "inputs/jobs/holdout-v7-selected-r2-systems/cases.json",
+      "cases_sha256": "ebf862f3135ece78c683fdb64066f59b277a3f05b87208e1ff6813a533c5e744",
+      "manifest_sha256": "c7dff73988c2c455cec8b7e358c12fb3cd977e59265a1c5723141f7fe1193f83",
+      "summary_sha256": "6aa0bf038958499786a6995e375e9904e288422fb1a55119d43fa87c06135c6e",
+      "case_ids": [
+        "timezone_civil_ambiguity_pre_post",
+        "time_format_fraction_interchange_scale",
+        "time_format_timezone_propagation",
+        "uint128_floating_word_layout",
+        "int128_stream_internal_padding",
+        "uint128_multichunk_zero_padding",
+        "status_serialization_mode_boundary",
+        "cctz_numeric_offset_validation_sign"
+      ],
+      "native_trials": 8,
+      "raw_native_publications": 8,
+      "known_semantic_false_green_cases": [],
+      "completed_nonpublications": [],
+      "model_calls": 27,
+      "calls_by_kind": {
+        "investigation": 16,
+        "repair": 11
+      },
+      "baseline_repetitions": 2,
+      "prompt_version": "assertion-v4",
+      "prompt_sha256": "4476f20128351696ff80169f895d2e011b8dbefd19a652a8e39e415e1b2c93d5",
+      "max_inspections": 6,
+      "inspections_per_attempt": 2,
+      "structured_diagnostics": true,
+      "reasoning_effort": "high",
+      "max_attempts": 4,
+      "context_chars": 160000,
+      "definition_reads": true
+    },
+    {
+      "id": "holdout-v7-selected-r3-systems",
+      "arm": "selected-recipe-v7",
+      "split": "holdout",
+      "directory": ".auto-fix/expanded-formal/holdout-v7/jobs/holdout-v7-selected-r3-systems/run",
+      "artifact_directory": "results/holdout-v7-selected-r3-systems",
+      "project_file": "evaluation/expanded/abseil-validation-v6.json",
+      "cases_file": "evaluation/expanded/abseil_systems.json",
+      "project_snapshot": "inputs/jobs/holdout-v7-selected-r3-systems/project.json",
+      "project_sha256": "8862d014cd320d9b9f8d8633e58ba7c07536489b21dd368351b28048d4905d74",
+      "cases_snapshot": "inputs/jobs/holdout-v7-selected-r3-systems/cases.json",
+      "cases_sha256": "ebf862f3135ece78c683fdb64066f59b277a3f05b87208e1ff6813a533c5e744",
+      "manifest_sha256": "c7dff73988c2c455cec8b7e358c12fb3cd977e59265a1c5723141f7fe1193f83",
+      "summary_sha256": "d671b9eca935c89c0c6079d168e78a6565c0f7c50468c5de4ddee8761f60098b",
+      "case_ids": [
+        "timezone_civil_ambiguity_pre_post",
+        "time_format_fraction_interchange_scale",
+        "time_format_timezone_propagation",
+        "uint128_floating_word_layout",
+        "int128_stream_internal_padding",
+        "uint128_multichunk_zero_padding",
+        "status_serialization_mode_boundary",
+        "cctz_numeric_offset_validation_sign"
+      ],
+      "native_trials": 8,
+      "raw_native_publications": 8,
+      "known_semantic_false_green_cases": [],
+      "completed_nonpublications": [],
+      "model_calls": 24,
+      "calls_by_kind": {
+        "investigation": 14,
+        "repair": 10
+      },
+      "baseline_repetitions": 2,
+      "prompt_version": "assertion-v4",
+      "prompt_sha256": "4476f20128351696ff80169f895d2e011b8dbefd19a652a8e39e415e1b2c93d5",
+      "max_inspections": 6,
+      "inspections_per_attempt": 2,
+      "structured_diagnostics": true,
+      "reasoning_effort": "high",
+      "max_attempts": 4,
+      "context_chars": 160000,
+      "definition_reads": true
+    }
+  ],
+  "frozen_implementation_revision": "7cf4c3536c1bd7f7bdfc4d9f2e151d1bbff0b4f0",
+  "registration": {
+    "commit": "ee1681d7866af357282662786c8cb1c881cedbab",
+    "plan_artifact_path": "inputs/plan.json",
+    "plan_sha256": "0dfdaff5a24aed90907eba14ff9615ea767922907c7fa5dd1b51f787f6018f82",
+    "protocol_artifact_path": "inputs/protocol-holdout-v7.json",
+    "protocol_sha256": "97ee6e9fa31baca4cf12f643abf0b52740f144b6e49aeff408e7f3f0da378d50",
+    "independent_pre_inference_review": "registration/independent-pre-inference-review.json",
+    "independent_pre_inference_review_sha256": "7da15737d4bc178a30f231c18c195bcf818bb34e34376eb4d436ae5c5e264996"
+  },
+  "independent_semantic_audit": {
+    "path": ".auto-fix/v7-holdout-semantic-audit-final.json",
+    "artifact_path": "audits/holdout-semantic-audit-full.json",
+    "sha256": "5d1451f6d7e0550e03330edf5ccdbc9681a9fc3f30001e9cb0b374fd695b1ed9",
+    "all_published_patches_reviewed": true,
+    "all_nonpublications_independently_verified": true,
+    "two_stable_baseline_runs_per_publication": true,
+    "native_protected_tree_receipt_checks_passed": 66,
+    "confirmed_functional_semantic_regressions": 9,
+    "semantic_false_green_subtypes": {
+      "documented_public_formatting_contract": 3,
+      "internal_object_invariant": 1,
+      "documented_public_escaping_contract": 3,
+      "retained_documented_internal_utf8_return_value_defect": 2
+    },
+    "semantic_classifications": {
+      "confirmed_semantic_regression": 9,
+      "restores_pinned_upstream_source_exactly": 33,
+      "reviewed_contract_consistent_extension": 5,
+      "reviewed_equivalent_to_pinned_upstream": 19
+    },
+    "raw_native_grades_changed": false,
+    "frozen_test_oracle_changed": false,
+    "model_calls_made_by_auditor": 0,
+    "baseline_failure_set_variations": []
+  },
+  "call_audit": {
+    "actual_live_cli_calls": 239,
+    "calls_by_kind": {
+      "repair": 111,
+      "investigation": 128
+    },
+    "call_returncodes": {
+      "0": 239
+    },
+    "usage": {
+      "input_tokens": 9573826,
+      "cached_input_tokens": 2913152,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 183319,
+      "reasoning_output_tokens": 117089
+    },
+    "counted_replay_calls": 0,
+    "only_model": "gpt-6-luna"
+  },
+  "archive": {
+    "asset_name": "holdout-v7.tar.gz",
+    "asset_id": 660934290,
+    "asset_api_url": "https://api.github.com/repos/Nielk74/auto-fix/releases/assets/660934290",
+    "asset_download_url": "https://github.com/Nielk74/auto-fix/releases/download/untagged-9376b80e6bc9ebb3f729/holdout-v7.tar.gz",
+    "sha256": "db8bb323012d32bddf6e4167566a7a638a6d43f4617b9e2765d6ac950f5fad3e",
+    "bytes": 13402061,
+    "checksummed_data_files": 5849,
+    "tar_files_independently_verified": 5851,
+    "internal_checksum_manifests": [
+      "SHA256SUMS",
+      "SHA256SUMS.json"
+    ],
+    "archive_index": "index.json",
+    "git_repositories_and_compiled_builds_included": false
+  },
+  "draft_release": {
+    "repository": "Nielk74/auto-fix",
+    "id": 418942849,
+    "url": "https://github.com/Nielk74/auto-fix/releases/tag/untagged-9376b80e6bc9ebb3f729",
+    "tag_label": "evaluation-2026-10-21",
+    "still_draft": true,
+    "published": false,
+    "git_tag_created_by_export": false
+  },
+  "independent_download_receipt": {
+    "path": ".auto-fix/artifact-verification/github-holdout-v7-receipt.json",
+    "sha256": "0b382320789eec38bc778a6987c0e65aeb2d04493468c2477a5e9039dd5e0831",
+    "download_sha_matches_source_and_github_digest": true,
+    "all_tar_paths_types_and_internal_checksums_verified": true
+  },
+  "credential_audit": {
+    "artifact_path": "audits/credential-scan.json",
+    "sha256": "363d3b71726a9b1d680707ea9fa66ff1df71058199654c61a4f18370531eef12",
+    "independently_repeated_after_download": true,
+    "source_bytes_preserved": true,
+    "scope": "Every archive data file, original bytes preserved. No broad credential exception.",
+    "environment_secret_scan": true,
+    "credential_pattern_scan": true,
+    "json_credential_field_scan": true,
+    "synthetic_fixture_exceptions": [
+      {
+        "path": "readiness/documentation-snapshot/docs/integrations.md",
+        "sha256": "d5536e87ce7f8b4b8e4e983a6b94629d71a6970cb014d72250d37bc881c9f192",
+        "scheme": "Bearer",
+        "synthetic_value": "PERSONAL_ACCESS_TOKEN",
+        "reason": "Single public documentation placeholder only; exact path and whole-file SHA restricted; original bytes unchanged; raw environment-secret scan retained.",
+        "raw_literal_span_bytes": [
+          5044,
+          5087
+        ],
+        "raw_scanner_match_span_characters": [
+          5059,
+          5087
+        ],
+        "source_line": 93,
+        "provenance": {
+          "repository": "Nielk74/auto-fix",
+          "git_commit": "a0ac79299857486c1f1198df1fe3ad2c58d1b422",
+          "git_path": "docs/integrations.md",
+          "snapshot_audit": "readiness/audit.json"
+        }
+      },
+      {
+        "path": "results/holdout-v7-baseline-fmt/implementation/demo.py",
+        "sha256": "053d650cf66563a277528a0e52ff1893d12bb3bed949088c064d998ad3e28603",
+        "scheme": "Bearer",
+        "synthetic_value": "local-demo-token",
+        "reason": "Audited historical local demo uses a fixed synthetic authorization value; only this literal is masked for scanning, and exported bytes are unchanged."
+      },
+      {
+        "path": "results/holdout-v7-baseline-strings/implementation/demo.py",
+        "sha256": "053d650cf66563a277528a0e52ff1893d12bb3bed949088c064d998ad3e28603",
+        "scheme": "Bearer",
+        "synthetic_value": "local-demo-token",
+        "reason": "Audited historical local demo uses a fixed synthetic authorization value; only this literal is masked for scanning, and exported bytes are unchanged."
+      },
+      {
+        "path": "results/holdout-v7-baseline-systems/implementation/demo.py",
+        "sha256": "053d650cf66563a277528a0e52ff1893d12bb3bed949088c064d998ad3e28603",
+        "scheme": "Bearer",
+        "synthetic_value": "local-demo-token",
+        "reason": "Audited historical local demo uses a fixed synthetic authorization value; only this literal is masked for scanning, and exported bytes are unchanged."
+      },
+      {
+        "path": "results/holdout-v7-selected-r1-fmt/implementation/demo.py",
+        "sha256": "053d650cf66563a277528a0e52ff1893d12bb3bed949088c064d998ad3e28603",
+        "scheme": "Bearer",
+        "synthetic_value": "local-demo-token",
+        "reason": "Audited historical local demo uses a fixed synthetic authorization value; only this literal is masked for scanning, and exported bytes are unchanged."
+      },
+      {
+        "path": "results/holdout-v7-selected-r1-strings/implementation/demo.py",
+        "sha256": "053d650cf66563a277528a0e52ff1893d12bb3bed949088c064d998ad3e28603",
+        "scheme": "Bearer",
+        "synthetic_value": "local-demo-token",
+        "reason": "Audited historical local demo uses a fixed synthetic authorization value; only this literal is masked for scanning, and exported bytes are unchanged."
+      },
+      {
+        "path": "results/holdout-v7-selected-r1-systems/implementation/demo.py",
+        "sha256": "053d650cf66563a277528a0e52ff1893d12bb3bed949088c064d998ad3e28603",
+        "scheme": "Bearer",
+        "synthetic_value": "local-demo-token",
+        "reason": "Audited historical local demo uses a fixed synthetic authorization value; only this literal is masked for scanning, and exported bytes are unchanged."
+      },
+      {
+        "path": "results/holdout-v7-selected-r2-fmt/implementation/demo.py",
+        "sha256": "053d650cf66563a277528a0e52ff1893d12bb3bed949088c064d998ad3e28603",
+        "scheme": "Bearer",
+        "synthetic_value": "local-demo-token",
+        "reason": "Audited historical local demo uses a fixed synthetic authorization value; only this literal is masked for scanning, and exported bytes are unchanged."
+      },
+      {
+        "path": "results/holdout-v7-selected-r2-strings/implementation/demo.py",
+        "sha256": "053d650cf66563a277528a0e52ff1893d12bb3bed949088c064d998ad3e28603",
+        "scheme": "Bearer",
+        "synthetic_value": "local-demo-token",
+        "reason": "Audited historical local demo uses a fixed synthetic authorization value; only this literal is masked for scanning, and exported bytes are unchanged."
+      },
+      {
+        "path": "results/holdout-v7-selected-r2-systems/implementation/demo.py",
+        "sha256": "053d650cf66563a277528a0e52ff1893d12bb3bed949088c064d998ad3e28603",
+        "scheme": "Bearer",
+        "synthetic_value": "local-demo-token",
+        "reason": "Audited historical local demo uses a fixed synthetic authorization value; only this literal is masked for scanning, and exported bytes are unchanged."
+      },
+      {
+        "path": "results/holdout-v7-selected-r3-fmt/implementation/demo.py",
+        "sha256": "053d650cf66563a277528a0e52ff1893d12bb3bed949088c064d998ad3e28603",
+        "scheme": "Bearer",
+        "synthetic_value": "local-demo-token",
+        "reason": "Audited historical local demo uses a fixed synthetic authorization value; only this literal is masked for scanning, and exported bytes are unchanged."
+      },
+      {
+        "path": "results/holdout-v7-selected-r3-strings/implementation/demo.py",
+        "sha256": "053d650cf66563a277528a0e52ff1893d12bb3bed949088c064d998ad3e28603",
+        "scheme": "Bearer",
+        "synthetic_value": "local-demo-token",
+        "reason": "Audited historical local demo uses a fixed synthetic authorization value; only this literal is masked for scanning, and exported bytes are unchanged."
+      },
+      {
+        "path": "results/holdout-v7-selected-r3-systems/implementation/demo.py",
+        "sha256": "053d650cf66563a277528a0e52ff1893d12bb3bed949088c064d998ad3e28603",
+        "scheme": "Bearer",
+        "synthetic_value": "local-demo-token",
+        "reason": "Audited historical local demo uses a fixed synthetic authorization value; only this literal is masked for scanning, and exported bytes are unchanged."
+      }
+    ],
+    "exporter_path": "scripts/expanded-evidence.py",
+    "exporter_sha256": "4a6dd774f9afd1398eda6b05ec2ac092f1ab3efecbe084abe28ab44cd9e6a857"
+  },
+  "selection": {
+    "selected_arm": "assertion-grounded-v7",
+    "artifact_path": "selection/development-selection-v7.json",
+    "sha256": "04860cbe721ae882cf38fec6fa1d53a9bd0f7aec13e94aa90d6879b2efa5969a",
+    "rule": "Chosen on development only before first heldout inference. No heldout reselection."
+  },
+  "limitations": [
+    "These are 21 unique synthetic injected defects in two public C++ codebases, not historical production incidents or an estimate of general repair accuracy.",
+    "The first selected round versus baseline is the preregistered primary comparison. Three selected rounds contain63 trials across the same 21 defects, not63 unique defects. No heldout recipe tuning, replacement trials, grader rewrites or extra model calls were introduced by this audit.",
+    "Raw native publication grades are preserved. Independent post-publication semantic findings are separate and can expose cases that passed the unchanged upstream tests and trusted guards. Closed review without a confirmed regression is not a proof of all-input correctness or performance equivalence.",
+    "Live model evaluation and supplemental public API audits ran on macOS. Separate recorded replay CI is deterministic reuse of genuine saved responses; it is not additional inference or evidence that every live trial ran on Windows.",
+    "Operational TeamCity, Bitbucket and Jira inputs are synthetic. Tests, repository history, C++ compilation, Git publication receipts and actual GPT-6 Luna responses are real. No production integration, private repository or Qwen endpoint has been exercised.",
+    "Baseline and selected policy differ in prompt, reasoning effort, context, investigation budget and repair budget; this comparison evaluates the combined workflow recipe, not an isolated causal effect of one setting. Wilson intervals are descriptive for the fixed synthetic sample; repeated rounds are not 63 independent defects."
+  ]
+}
