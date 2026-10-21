@@ -100,6 +100,23 @@ class BuildConfig(Model):
         return self
 
 
+class TracingConfig(Model):
+    """OTLP/HTTP collector of a self-hosted Arize Phoenix; spans contain model context."""
+
+    endpoint: str = "http://127.0.0.1:6006/v1/traces"
+    project: str = "auto-fix"
+
+    @field_validator("endpoint")
+    @classmethod
+    def valid_endpoint(cls, value: str) -> str:
+        from urllib.parse import urlsplit
+
+        parts = urlsplit(value)
+        if parts.scheme not in {"http", "https"} or not parts.hostname or parts.username:
+            raise ValueError("Expected an absolute HTTP(S) collector URL without credentials")
+        return value
+
+
 class Settings(Model):
     timezone: str = "Europe/Paris"
     state_dir: Path = Path(".auto-fix")
@@ -114,6 +131,7 @@ class Settings(Model):
     inspections_per_attempt: int = Field(default=6, ge=1, le=6)
     baseline_repetitions: int = Field(default=1, ge=1, le=3, strict=True)
     structured_diagnostics: bool = False
+    tracing: TracingConfig | None = None
 
     @field_validator("timezone")
     @classmethod

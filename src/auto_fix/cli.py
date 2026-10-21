@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 from filelock import FileLock, Timeout
 
+from auto_fix import tracing
 from auto_fix.config import load_settings
 from auto_fix.integrations import Bitbucket, Jira, TeamCity
 from auto_fix.llm import RepairModel
@@ -143,10 +144,37 @@ def main(argv: list[str] | None = None) -> int:
     operations.add_argument("--upstream-cache", type=Path)
     operations.add_argument("--case", action="append", dest="cases")
     commands.add_parser("graph")
+    dashboard = commands.add_parser(
+        "dashboard", help="Browse run history, executed graph paths and model calls"
+    )
+    source = dashboard.add_mutually_exclusive_group()
+    source.add_argument("--config", type=Path, help="Show the configured state_dir")
+    source.add_argument(
+        "--directory", type=Path, help="A state_dir or an evaluation output directory"
+    )
+    dashboard.add_argument("--host", default="127.0.0.1")
+    dashboard.add_argument("--port", type=int, default=8765)
     args = parser.parse_args(argv)
     if args.command == "graph":
         print(MERMAID)
         return 0
+    if args.command == "dashboard":
+        from auto_fix.dashboard import run_dashboard
+
+        root = args.directory or (
+            load_settings(args.config).state_dir if args.config else Path(".auto-fix")
+        )
+        return run_dashboard(root, args.host, args.port)
+    try:
+        return _execute(args)
+    finally:
+        tracing.shutdown()
+
+
+def _execute(args: argparse.Namespace) -> int:
+    if args.command not in {"run", "scan"}:
+        # Commands without a config file export traces only when the environment asks.
+        tracing.configure()
     if args.command == "demo":
         from auto_fix.demo import run_demo
 
@@ -204,6 +232,10 @@ def main(argv: list[str] | None = None) -> int:
             print(redact(json.dumps([f.model_dump() for f in failures], indent=2)))
             return 0
         settings.state_dir.mkdir(parents=True, exist_ok=True)
+        tracing.configure(
+            settings.tracing.endpoint if settings.tracing else None,
+            settings.tracing.project if settings.tracing else None,
+        )
         # Single worker protects worktrees, SQLite journals and one 27B inference endpoint.
         with FileLock(str(settings.state_dir / "worker.lock"), timeout=0):
             failures = tc.failures(day, settings.timezone)

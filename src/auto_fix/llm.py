@@ -23,6 +23,7 @@ class RepairModel:
         self._owns_client = client is None
         verify = ssl.create_default_context(cafile=config.ca_bundle) if config.ca_bundle else True
         self.client = client or httpx.Client(timeout=180, verify=verify, follow_redirects=False)
+        self.last_usage: dict[str, Any] = {}
 
     def propose(self, context: dict[str, Any]) -> Proposal:
         return self._request(context, repair_prompt(self.config.prompt_version), Proposal)
@@ -34,6 +35,7 @@ class RepairModel:
         self, context: dict[str, Any], system: str, response_type: type[Response]
     ) -> Response:
         cfg = self.config
+        self.last_usage = {}
         body = dict(cfg.extra_body)
         # Extra vendor options cannot replace the destination, model, messages or auth.
         body.update(
@@ -58,6 +60,8 @@ class RepairModel:
         if response.status_code >= 300:
             raise RuntimeError(f"Model request failed (HTTP {response.status_code})")
         data = response.json()
+        usage = data.get("usage")
+        self.last_usage = usage if isinstance(usage, dict) else {}
         choice = data["choices"][0]
         if choice.get("finish_reason") not in (None, "stop"):
             raise ValueError("Model output was truncated or did not complete normally")

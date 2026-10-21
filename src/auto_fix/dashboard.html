@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auto Fix Runs</title>
+<style>
+:root {
+  --header: #27282e; --header-text: #dfe1e5; --header-muted: #9da0a8;
+  --bg: #ffffff; --side: #f7f8fa; --border: #ebecf0; --border-strong: #dfe1e5;
+  --text: #1e1f22; --muted: #6c707e; --faint: #a8adbd;
+  --blue: #3574f0; --blue-soft: #edf3ff; --sel: #d5e1ff; --hover: #f2f4f7;
+  --green: #208a3c; --green-icon: #4fa45d; --green-soft: #eef7f0;
+  --red: #db3b4b; --red-soft: #fff4f4; --orange: #c27d04; --orange-soft: #fff7e6;
+  --log: #fafbfc; --edge: #c9ccd6;
+  --mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --header: #2b2d30; --header-text: #dfe1e5; --header-muted: #868a91;
+    --bg: #1e1f22; --side: #2b2d30; --border: #393b40; --border-strong: #43454a;
+    --text: #dfe1e5; --muted: #868a91; --faint: #5a5d63;
+    --blue: #548af7; --blue-soft: #25324d; --sel: #2e436e; --hover: #2e3035;
+    --green: #5fad65; --green-icon: #5fad65; --green-soft: #253627;
+    --red: #e55765; --red-soft: #402929; --orange: #d6ae58; --orange-soft: #3d3223;
+    --log: #191a1c; --edge: #4e5157;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg); color: var(--text);
+  font: 13px/1.5 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  display: grid; grid-template-rows: 44px minmax(0, 1fr); grid-template-columns: minmax(0, 1fr);
+}
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, .mono { font-family: var(--mono); font-size: 12px; }
+
+/* top bar */
+header { background: var(--header); color: var(--header-text); display: flex; align-items: center;
+  gap: 18px; padding: 0 16px; min-width: 0; }
+.brand { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.brand svg { flex: none; }
+.nav { color: var(--header-muted); font-size: 13px; }
+.nav b { color: var(--header-text); font-weight: 500; }
+.root { color: var(--header-muted); font-family: var(--mono); font-size: 11.5px; flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+.live { display: flex; align-items: center; gap: 7px; color: var(--header-muted); font-size: 12px; cursor: pointer; white-space: nowrap; }
+.live input { accent-color: var(--blue); }
+
+main { display: grid; grid-template-columns: 300px minmax(0, 1fr); min-height: 0; }
+
+/* sidebar tree */
+aside { background: var(--side); border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.search { padding: 12px 12px 8px; }
+.search input { width: 100%; height: 28px; padding: 0 9px; font: inherit; color: var(--text); border-radius: 4px;
+  border: 1px solid var(--border-strong); background: var(--bg); outline: none; }
+.search input:focus { border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue-soft); }
+.filters { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 12px 10px; border-bottom: 1px solid var(--border); }
+.filter { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--border-strong); background: var(--bg);
+  color: var(--muted); border-radius: 4px; padding: 1px 7px; font: inherit; font-size: 12px; cursor: pointer; }
+.filter.on { border-color: var(--blue); color: var(--blue); background: var(--blue-soft); }
+#tree { overflow: auto; flex: 1; padding: 6px 0 16px; }
+.group { display: flex; align-items: center; gap: 6px; padding: 4px 12px; color: var(--text); font-weight: 600;
+  cursor: pointer; user-select: none; }
+.group:hover { background: var(--hover); }
+.group .chev { width: 10px; color: var(--muted); font-size: 10px; }
+.group .count { margin-left: auto; color: var(--muted); font-weight: 400; font-size: 12px; }
+.group .count .bad { color: var(--red); }
+.leaf { display: flex; align-items: center; gap: 8px; padding: 4px 12px 4px 30px; cursor: pointer; min-width: 0; }
+.leaf:hover { background: var(--hover); }
+.leaf.sel { background: var(--sel); }
+.leaf .nm { font-family: var(--mono); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.leaf .tm { color: var(--muted); font-size: 11.5px; white-space: nowrap; }
+
+/* status icons */
+.ico { flex: none; display: inline-block; vertical-align: -3px; }
+.spin { animation: spin 1.1s linear infinite; transform-origin: 50% 50%; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.t-ok { color: var(--green); } .t-bad { color: var(--red); } .t-warn { color: var(--orange); }
+.t-run { color: var(--blue); } .t-none { color: var(--muted); }
+
+/* content */
+#content { overflow: auto; min-width: 0; }
+.page { padding: 18px 26px 48px; max-width: 1500px; }
+.crumbs { color: var(--muted); font-size: 12.5px; margin-bottom: 6px; }
+.crumbs a { color: var(--muted); } .crumbs a:hover { color: var(--blue); }
+.headline { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.headline h1 { font-size: 20px; font-weight: 600; margin: 0; }
+.headline .num { font-family: var(--mono); font-weight: 500; color: var(--muted); font-size: 15px; }
+.result { display: flex; align-items: flex-start; gap: 8px; margin: 10px 0 4px; font-size: 14px; }
+.result b { font-weight: 600; }
+.result .why { white-space: pre-wrap; }
+.facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px 26px;
+  margin: 14px 0 6px; padding: 12px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.fact .k { color: var(--muted); font-size: 12px; }
+.fact .v { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fact .v.big { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tabs { display: flex; gap: 22px; border-bottom: 1px solid var(--border); margin: 16px 0 16px; overflow-x: auto; overflow-y: hidden; }
+.tab { background: none; border: none; font: inherit; color: var(--muted); padding: 9px 0 8px; cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.tab:hover { color: var(--text); }
+.tab.on { color: var(--text); border-bottom-color: var(--blue); }
+.tab .n { color: var(--muted); margin-left: 4px; }
+h2 { font-size: 14px; font-weight: 600; margin: 0 0 10px; }
+.box { border: 1px solid var(--border); border-radius: 6px; background: var(--bg); min-width: 0; }
+.box > .hd { padding: 9px 14px; border-bottom: 1px solid var(--border); font-weight: 600; display: flex; gap: 8px; align-items: center; }
+.box > .hd .sub { color: var(--muted); font-weight: 400; }
+.box > .bd { padding: 12px 14px; }
+.overview { display: grid; grid-template-columns: minmax(300px, 360px) minmax(0, 1fr); gap: 18px; align-items: start; }
+.muted { color: var(--muted); }
+.empty { color: var(--muted); padding: 48px 0; text-align: center; }
+
+/* tables */
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; color: var(--muted); font-weight: 500; font-size: 12px; padding: 6px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr.click { cursor: pointer; }
+tr.click:hover td { background: var(--hover); }
+tr.sel td { background: var(--sel); }
+td .ellipsis { display: block; max-width: 520px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* graph */
+svg text { font: 12px Inter, system-ui, sans-serif; fill: var(--text); }
+.node rect { fill: var(--bg); stroke: var(--border-strong); }
+.node.idle text { fill: var(--faint); }
+.node.hit rect { stroke: var(--blue); stroke-width: 1.4; fill: var(--blue-soft); }
+.node.end-bad rect { stroke: var(--red); fill: var(--red-soft); }
+.node.end-ok rect { stroke: var(--green); fill: var(--green-soft); }
+.node.cut rect { stroke: var(--orange); fill: var(--orange-soft); stroke-dasharray: 4 3; }
+.node .count { font-size: 11px; fill: var(--blue); font-weight: 600; }
+.edge { fill: none; stroke: var(--edge); stroke-width: 1.1; }
+.edge.cond { stroke-dasharray: 3 3; }
+.edge.hit { stroke: var(--blue); stroke-width: 2; stroke-dasharray: none; }
+.edge-label { font-size: 10.5px !important; fill: var(--blue) !important; font-weight: 600; }
+
+/* step table with duration bars */
+.bar { height: 6px; background: var(--hover); border-radius: 3px; position: relative; min-width: 80px; }
+.bar i { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: var(--blue); min-width: 3px; }
+
+/* build log */
+.log { background: var(--log); border: 1px solid var(--border); border-radius: 6px; font-family: var(--mono); font-size: 12px; padding: 6px 0; overflow-x: auto; }
+.line { display: grid; grid-template-columns: 82px 16px minmax(0, 1fr) auto; gap: 8px; padding: 2px 12px; align-items: baseline; cursor: pointer; }
+.line:hover { background: var(--hover); }
+.line .ts { color: var(--faint); }
+.line .tw { color: var(--muted); }
+.line .ms { color: var(--muted); }
+.line.bad .nm { color: var(--red); } .line.warn .nm { color: var(--orange); }
+.nest { margin-left: 118px; padding: 4px 12px 8px 12px; border-left: 1px solid var(--border-strong); }
+.nest .row { color: var(--muted); }
+button.link { background: none; border: none; padding: 0; font: inherit; color: var(--blue); cursor: pointer; }
+button.link:hover { text-decoration: underline; }
+button.btn { font: inherit; font-size: 12.5px; padding: 3px 12px; border-radius: 4px; cursor: pointer;
+  border: 1px solid var(--border-strong); background: var(--bg); color: var(--text); }
+button.btn:hover { border-color: var(--blue); }
+
+/* json */
+.json { font-family: var(--mono); font-size: 12px; white-space: pre-wrap; word-break: break-word; line-height: 1.55; }
+.json details { margin-left: 14px; }
+.json summary { cursor: pointer; margin-left: -14px; list-style: none; }
+.json summary::-webkit-details-marker { display: none; }
+.json summary::before { content: "▸ "; color: var(--muted); }
+.json details[open] > summary::before { content: "▾ "; }
+.json .k { color: #871094; } .json .s { color: #067d17; } .json .n { color: #1750eb; } .json .b { color: #0033b3; }
+.json .hint { color: var(--muted); }
+@media (prefers-color-scheme: dark) {
+  .json .k { color: #c77dbb; } .json .s { color: #6aab73; } .json .n { color: #2aacb8; } .json .b { color: #cf8e6d; }
+}
+
+/* model calls and artifacts */
+.edit { border: 1px solid var(--border); border-radius: 4px; margin-top: 8px; overflow: hidden; }
+.edit .path { font-family: var(--mono); font-size: 12px; padding: 4px 10px; background: var(--side); border-bottom: 1px solid var(--border); }
+.edit pre { margin: 0; padding: 5px 10px; font-family: var(--mono); font-size: 12px; white-space: pre-wrap; }
+.edit .old { background: var(--red-soft); } .edit .new { background: var(--green-soft); }
+.split { display: grid; grid-template-columns: minmax(220px, 320px) minmax(0, 1fr); gap: 16px; align-items: start; }
+.file { display: flex; justify-content: space-between; gap: 8px; padding: 4px 12px; cursor: pointer; font-family: var(--mono); font-size: 12px; }
+.file:hover { background: var(--hover); } .file.sel { background: var(--sel); }
+.file span:last-child { color: var(--muted); white-space: nowrap; }
+pre.view { margin: 0; padding: 10px 14px; overflow: auto; max-height: 72vh; font-family: var(--mono); font-size: 12px; white-space: pre; background: var(--log); }
+pre.view .add { color: var(--green); } pre.view .del { color: var(--red); } pre.view .hunk { color: var(--blue); }
+
+@media (max-width: 900px) {
+  main { grid-template-columns: minmax(0, 1fr); grid-template-rows: 38vh minmax(0, 1fr); }
+  aside { border-right: none; border-bottom: 1px solid var(--border); }
+  .overview, .split { grid-template-columns: minmax(0, 1fr); }
+  .overview svg { max-width: 360px; display: block; margin: 0 auto; }
+  .page { padding: 14px 16px 40px; }
+  .nav, .root { display: none; }
+  .hide-sm { display: none; }
+  .line { grid-template-columns: 62px 14px minmax(0, 1fr) auto; }
+  .nest { margin-left: 16px; }
+  .box { overflow-x: auto; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand" id="home" title="All runs">
+    <svg class="ico" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect width="20" height="20" rx="4" fill="#3574f0"/><path d="M5 10.5l3 3 7-7" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Auto Fix
+  </div>
+  <div class="nav"><b>Runs</b></div>
+  <div class="root" id="root"></div>
+  <label class="live"><input type="checkbox" id="live" checked> Live refresh</label>
+</header>
+<main>
+  <aside>
+    <div class="search"><input type="search" id="q" placeholder="Search runs, builds, tests, reasons"></div>
+    <div class="filters" id="filters"></div>
+    <div id="tree"></div>
+  </aside>
+  <section id="content"></section>
+</main>
+<script>
+"use strict";
+const FILTERS = [["ok", "Successful"], ["bad", "Blocked"], ["warn", "Needs attention"], ["run", "Running"]];
+const STATUS = {
+  published: {tone: "ok", text: "Published"},
+  ready: {tone: "ok", text: "Ready (local candidate)"},
+  blocked: {tone: "bad", text: "Blocked"},
+  publication_unknown: {tone: "warn", text: "Publication unknown"},
+  in_progress: {tone: "run", text: "Running"},
+  interrupted: {tone: "bad", text: "Interrupted"},
+  validated: {tone: "ok", text: "validated"},
+  verification_failed: {tone: "bad", text: "verification failed"},
+  invalid_proposal: {tone: "warn", text: "invalid proposal"},
+};
+const status = key => STATUS[key] || {tone: "none", text: key || "—"};
+const state = {runs: [], filters: new Set(), collapsed: new Set(),
+  selected: new URLSearchParams(location.hash.slice(1)).get("run"),
+  detail: null, tab: "overview", openSteps: new Set(), file: null, call: null};
+
+function el(tag, attrs = {}, ...children) {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(attrs)) {
+    if (key === "class") node.className = value;
+    else if (key.startsWith("on")) node.addEventListener(key.slice(2), value);
+    else if (value !== undefined && value !== null && value !== false) node.setAttribute(key, value);
+  }
+  for (const child of children.flat()) {
+    if (child === null || child === undefined || child === false) continue;
+    node.append(child instanceof Node ? child : document.createTextNode(String(child)));
+  }
+  return node;
+}
+function svg(tag, attrs = {}, ...children) {
+  const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
+  for (const child of children.flat()) if (child) node.append(child instanceof Node ? child : document.createTextNode(String(child)));
+  return node;
+}
+/* Round status icons: check, cross, exclamation, spinner. */
+function icon(tone, size = 14) {
+  const s = svg("svg", {class: "ico t-" + tone + (tone === "run" ? " spin" : ""), width: size, height: size, viewBox: "0 0 16 16", "aria-hidden": "true"});
+  if (tone === "run") {
+    s.append(svg("circle", {cx: 8, cy: 8, r: 6, fill: "none", stroke: "currentColor", "stroke-opacity": ".25", "stroke-width": 2}),
+      svg("path", {d: "M8 2a6 6 0 0 1 6 6", fill: "none", stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round"}));
+    return s;
+  }
+  s.append(svg("circle", {cx: 8, cy: 8, r: 7, fill: tone === "ok" ? "var(--green-icon)" : "currentColor"}));
+  const mark = {ok: "M4.8 8.3l2.2 2.2 4.2-4.6", bad: "M5.5 5.5l5 5M10.5 5.5l-5 5", warn: "M8 4.5v4.2M8 11.2v.1", none: "M5.5 8h5"}[tone];
+  s.append(svg("path", {d: mark, fill: "none", stroke: "#fff", "stroke-width": 1.8, "stroke-linecap": "round", "stroke-linejoin": "round"}));
+  return s;
+}
+function duration(seconds) {
+  if (seconds === null || seconds === undefined) return "—";
+  if (seconds < 1) return Math.round(seconds * 1000) + "ms";
+  if (seconds < 60) return seconds.toFixed(seconds < 10 ? 1 : 0) + "s";
+  const m = Math.floor(seconds / 60), s = Math.round(seconds % 60);
+  return m < 60 ? `${m}m:${String(s).padStart(2, "0")}s` : `${Math.floor(m / 60)}h:${String(m % 60).padStart(2, "0")}m`;
+}
+function when(iso, withDate = true) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return withDate
+    ? d.toLocaleString(undefined, {day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit"})
+    : d.toLocaleTimeString(undefined, {hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false});
+}
+function ago(iso) {
+  if (!iso) return "";
+  const s = (Date.now() - Date.parse(iso)) / 1000;
+  if (s < 60) return "just now";
+  if (s < 3600) return Math.floor(s / 60) + "m ago";
+  if (s < 86400) return Math.floor(s / 3600) + "h ago";
+  return Math.floor(s / 86400) + "d ago";
+}
+async function api(path) {
+  const response = await fetch(path, {cache: "no-store"});
+  if (!response.ok) throw new Error(response.status + " " + path);
+  return response.headers.get("Content-Type").includes("json") ? response.json() : response.text();
+}
+function tree(value, depth = 0) {
+  if (value === null) return el("span", {class: "b"}, "null");
+  if (typeof value === "string") return el("span", {class: "s"}, value.length > 160 && value.includes("\n") ? value : JSON.stringify(value));
+  if (typeof value === "number") return el("span", {class: "n"}, String(value));
+  if (typeof value === "boolean") return el("span", {class: "b"}, String(value));
+  const entries = Array.isArray(value) ? value.map((v, i) => [i, v]) : Object.entries(value);
+  const open = Array.isArray(value) ? "[" : "{", close = Array.isArray(value) ? "]" : "}";
+  if (!entries.length) return el("span", {class: "hint"}, open + close);
+  const details = el("details", depth < 1 ? {open: ""} : {},
+    el("summary", {}, el("span", {class: "hint"}, `${open} ${entries.length} ${Array.isArray(value) ? "items" : "keys"} ${close}`)));
+  for (const [key, item] of entries)
+    details.append(el("div", {}, el("span", {class: "k"}, Array.isArray(value) ? key : JSON.stringify(key)), ": ", tree(item, depth + 1)));
+  return details;
+}
+const jsonView = value => el("div", {class: "json"}, tree(value));
+const groupName = run => run.group || "State directory";
+
+/* ---------- sidebar ---------- */
+function visibleRuns() {
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  return state.runs.filter(run => (!state.filters.size || state.filters.has(status(run.status).tone)) &&
+    (!q || [run.id, run.build_id, run.build_type, run.reason, run.group, ...run.tests].join(" ").toLowerCase().includes(q)));
+}
+function renderSidebar() {
+  document.getElementById("filters").replaceChildren(...FILTERS.map(([tone, label]) => {
+    const count = state.runs.filter(run => status(run.status).tone === tone).length;
+    return el("button", {class: "filter" + (state.filters.has(tone) ? " on" : ""), onclick: () => {
+      state.filters.has(tone) ? state.filters.delete(tone) : state.filters.add(tone);
+      renderSidebar(); if (!state.selected) renderHome();
+    }}, icon(tone, 12), `${label} ${count}`);
+  }));
+  const runs = visibleRuns(), groups = new Map();
+  for (const run of runs) (groups.get(groupName(run)) || groups.set(groupName(run), []).get(groupName(run))).push(run);
+  const box = document.getElementById("tree");
+  if (!runs.length) { box.replaceChildren(el("div", {class: "empty"}, state.runs.length ? "No run matches." : "No runs yet.")); return; }
+  const nodes = [];
+  for (const [name, items] of [...groups].sort(([a], [b]) => a.localeCompare(b))) {
+    const bad = items.filter(run => status(run.status).tone === "bad").length;
+    const collapsed = state.collapsed.has(name);
+    nodes.push(el("div", {class: "group", onclick: () => { collapsed ? state.collapsed.delete(name) : state.collapsed.add(name); renderSidebar(); }},
+      el("span", {class: "chev"}, collapsed ? "▸" : "▾"), name,
+      el("span", {class: "count"}, String(items.length), bad ? el("span", {class: "bad"}, ` · ${bad} blocked`) : null)));
+    if (collapsed) continue;
+    for (const run of items) nodes.push(el("div", {class: "leaf" + (run.id === state.selected ? " sel" : ""), title: run.id, onclick: () => select(run.id)},
+      icon(status(run.status).tone), el("span", {class: "nm"}, run.name), el("span", {class: "tm"}, ago(run.started))));
+  }
+  box.replaceChildren(...nodes);
+}
+
+/* ---------- home: build history ---------- */
+function renderHome() {
+  const runs = visibleRuns();
+  const ok = state.runs.filter(run => status(run.status).tone === "ok").length;
+  document.getElementById("content").replaceChildren(el("div", {class: "page"},
+    el("div", {class: "headline"}, el("h1", {}, "Run history")),
+    el("div", {class: "muted", style: "margin:4px 0 16px"},
+      `${state.runs.length} runs · ${ok} successful · ${state.runs.length - ok} other`),
+    runs.length ? el("div", {class: "box"}, el("table", {},
+      el("thead", {}, el("tr", {}, el("th", {}, ""), el("th", {}, "Run"), el("th", {class: "hide-sm"}, "Group"), el("th", {}, "Result"),
+        el("th", {class: "hide-sm"}, "Started"), el("th", {class: "num"}, "Duration"), el("th", {class: "num hide-sm"}, "Attempts"))),
+      el("tbody", {}, runs.map(run => {
+        const st = status(run.status);
+        return el("tr", {class: "click", onclick: () => select(run.id)},
+          el("td", {style: "width:28px"}, icon(st.tone)),
+          el("td", {class: "mono", style: "white-space:nowrap"}, run.name),
+          el("td", {class: "hide-sm muted"}, groupName(run)),
+          el("td", {}, el("span", {class: "ellipsis t-" + st.tone, title: run.reason || st.text}, run.reason && st.tone !== "ok" ? `${st.text}: ${run.reason}` : st.text)),
+          el("td", {class: "hide-sm muted", style: "white-space:nowrap"}, when(run.started)),
+          el("td", {class: "num"}, duration(run.duration_seconds)),
+          el("td", {class: "num hide-sm"}, run.attempts));
+      })))) : el("div", {class: "empty"}, state.runs.length ? "No run matches the filter." : "No runs found below this directory yet.")));
+}
+
+async function loadRuns() {
+  const data = await api("/api/runs");
+  document.getElementById("root").textContent = data.root;
+  document.getElementById("root").title = data.root;
+  state.runs = data.runs;
+  renderSidebar();
+}
+async function select(id) {
+  if (id !== state.selected) { state.openSteps.clear(); state.file = null; state.call = null; state.tab = "overview"; }
+  state.selected = id;
+  history.replaceState(null, "", id ? "#run=" + encodeURIComponent(id) : location.pathname + location.search);
+  renderSidebar();
+  if (!id) { state.detail = null; renderHome(); return; }
+  await loadDetail();
+}
+async function loadDetail() {
+  if (!state.selected) return;
+  try { state.detail = await api("/api/run?id=" + encodeURIComponent(state.selected)); }
+  catch (error) { document.getElementById("content").replaceChildren(el("div", {class: "page empty"}, "This run is no longer available.")); return; }
+  renderDetail();
+}
+
+/* ---------- graph ---------- */
+function layout(graph) {
+  const out = {};
+  for (const e of graph.edges) (out[e.source] ||= []).push(e.target);
+  const back = new Set(), seen = new Set(), stack = new Set(), order = [];
+  (function visit(node) {
+    seen.add(node); stack.add(node);
+    for (const next of out[node] || []) {
+      if (stack.has(next)) back.add(node + ">" + next);
+      else if (!seen.has(next)) visit(next);
+    }
+    stack.delete(node); order.unshift(node);
+  })("__start__");
+  for (const node of graph.nodes) if (!seen.has(node)) order.push(node);
+  const layer = Object.fromEntries(graph.nodes.map(n => [n, 0]));
+  for (const node of order) for (const next of out[node] || [])
+    if (!back.has(node + ">" + next) && next !== node) layer[next] = Math.max(layer[next], layer[node] + 1);
+  const rows = {};
+  for (const node of order) (rows[layer[node]] ||= []).push(node);
+  // The success path stays in the main column; exits such as "blocked" sit to its right.
+  const pos = {}, W = 132, H = 30, GAP = 54, X0 = 26, SIDE = 160;
+  for (const [row, nodes] of Object.entries(rows)) {
+    nodes.sort((a, b) => (a === "blocked") - (b === "blocked"));
+    nodes.forEach((node, i) => pos[node] = {x: X0 + i * SIDE, y: 12 + row * GAP, w: W, h: H});
+  }
+  return {pos, back, height: 12 + (Math.max(...Object.values(layer)) + 1) * GAP, width: X0 + SIDE + W + 24};
+}
+function renderGraph(detail) {
+  const g = detail.graph, {pos, back, height, width} = layout(g);
+  const last = detail.steps.length ? detail.steps[detail.steps.length - 1] : null;
+  const root = svg("svg", {viewBox: `0 0 ${width} ${height}`, width: "100%", role: "img", "aria-label": "Workflow graph with the executed path highlighted"});
+  root.append(svg("defs", {}, ...["edge", "hit"].map(kind => svg("marker", {id: "arrow-" + kind, viewBox: "0 0 10 10", refX: 9, refY: 5,
+    markerWidth: 6, markerHeight: 6, orient: "auto-start-reverse"}, svg("path", {d: "M0,0 L10,5 L0,10 z", fill: kind === "hit" ? "var(--blue)" : "var(--edge)"})))));
+  const edges = svg("g"), labels = svg("g");
+  for (const e of g.edges) {
+    const a = pos[e.source], b = pos[e.target];
+    if (!a || !b) continue;
+    const key = e.source + ">" + e.target, hits = g.transitions[key] || 0;
+    let d, lx, ly;
+    if (e.source === e.target) {
+      d = `M${a.x},${a.y + 8} C${a.x - 30},${a.y - 4} ${a.x - 30},${a.y + a.h + 4} ${a.x},${a.y + a.h - 8}`;
+      lx = a.x - 30; ly = a.y + a.h / 2 + 4;
+    } else if (back.has(key)) {
+      const bend = 22 + (a.y - b.y) / 7;
+      d = `M${a.x},${a.y + a.h / 2} C${a.x - bend},${a.y + a.h / 2} ${b.x - bend},${b.y + b.h / 2} ${b.x},${b.y + b.h / 2}`;
+      lx = Math.min(a.x, b.x) - bend * 0.75 - 4; ly = (a.y + b.y + b.h) / 2;
+    } else if (b.x > a.x) {
+      d = `M${a.x + a.w},${a.y + a.h / 2} C${b.x + b.w / 2},${a.y + a.h / 2} ${b.x + b.w / 2},${a.y + a.h / 2} ${b.x + b.w / 2},${b.y}`;
+      lx = (a.x + a.w + b.x + b.w / 2) / 2 + 6; ly = a.y + a.h / 2 - 4;
+    } else if (b.y - a.y > 60) {
+      const bend = a.x + a.w + 14 + (b.y - a.y) / 14;
+      d = `M${a.x + a.w},${a.y + a.h / 2} C${bend},${a.y + a.h / 2} ${bend},${b.y + b.h / 2} ${b.x + b.w},${b.y + b.h / 2}`;
+      lx = bend - 4; ly = (a.y + b.y + b.h) / 2;
+    } else {
+      d = `M${a.x + a.w / 2},${a.y + a.h} L${b.x + b.w / 2},${b.y}`;
+      lx = a.x + a.w / 2 + 6; ly = (a.y + a.h + b.y) / 2 + 4;
+    }
+    edges.append(svg("path", {d, class: "edge" + (e.conditional ? " cond" : "") + (hits ? " hit" : ""), "marker-end": `url(#arrow-${hits ? "hit" : "edge"})`},
+      svg("title", {}, `${e.source} → ${e.target}${hits ? ` (taken ${hits}×)` : ""}`)));
+    if (hits > 1) labels.append(svg("text", {x: lx, y: ly, class: "edge-label"}, "×" + hits));
+  }
+  const nodes = svg("g"), result = detail.summary.status;
+  for (const name of g.nodes) {
+    const p = pos[name]; if (!p) continue;
+    const visits = g.visits[name] || 0, terminal = name.startsWith("__");
+    let cls = "node " + (visits ? "hit" : "idle");
+    if (last && last.node === name && last.status === "interrupted") cls += " cut";
+    else if (name === "blocked" && visits) cls += " end-bad";
+    else if (name === "publish_pr" && visits && status(result).tone === "ok") cls += " end-ok";
+    const label = name === "__start__" ? "start" : name === "__end__" ? "end" : name;
+    nodes.append(svg("g", {class: cls},
+      svg("title", {}, visits ? `${label}: executed ${visits}×` : `${label}: not executed`),
+      svg("rect", {x: p.x, y: p.y, width: p.w, height: p.h, rx: terminal ? 15 : 4}),
+      svg("text", {x: p.x + 10, y: p.y + p.h / 2 + 4}, label),
+      visits > 1 && !terminal ? svg("text", {x: p.x + p.w - 8, y: p.y + p.h / 2 + 4, "text-anchor": "end", class: "count"}, "×" + visits) : null));
+  }
+  root.append(edges, nodes, labels);
+  return root;
+}
+
+/* ---------- steps: duration table and build log ---------- */
+function stepTone(step) {
+  return step.status === "interrupted" || step.status === "blocked" || step.status === "verification_failed" ? "bad"
+    : step.status === "invalid_proposal" || step.status === "publication_unknown" ? "warn" : "";
+}
+function renderStepTable(detail) {
+  const steps = detail.steps;
+  if (!steps.length) return el("div", {class: "bd muted"}, "No checkpoints or node events recorded yet.");
+  const t0 = Date.parse(steps[0].started), tn = Math.max(...steps.map(s => Date.parse(s.ended || s.started)));
+  const span = Math.max(tn - t0, 1);
+  return el("table", {},
+    el("thead", {}, el("tr", {}, el("th", {}, "#"), el("th", {}, "Node"), el("th", {class: "hide-sm"}, "Timeline"), el("th", {class: "num"}, "Duration"), el("th", {}, "Status after"))),
+    el("tbody", {}, steps.map(step => {
+      const start = Date.parse(step.started) - t0, end = (step.ended ? Date.parse(step.ended) : tn) - t0;
+      const st = status(step.status);
+      return el("tr", {class: "click", onclick: () => { state.tab = "log"; state.openSteps.add(step.index); renderDetail(); }},
+        el("td", {class: "muted", style: "width:30px"}, step.index + 1),
+        el("td", {class: "mono"}, step.node),
+        el("td", {class: "hide-sm", style: "width:40%"}, el("div", {class: "bar", title: `${when(step.started)} → ${when(step.ended)}`},
+          el("i", {style: `left:${(start / span * 100).toFixed(2)}%;width:${Math.max((end - start) / span * 100, 0.4).toFixed(2)}%`}))),
+        el("td", {class: "num"}, duration(step.duration_seconds)),
+        el("td", {class: "t-" + (stepTone(step) || "none")}, st.text));
+    })));
+}
+function renderLog(detail) {
+  const steps = detail.steps;
+  if (!steps.length) return el("div", {class: "empty"}, "No checkpoints or node events recorded yet.");
+  const calls = detail.model_calls;
+  const lines = [];
+  for (const step of steps) {
+    const open = state.openSteps.has(step.index), tone = stepTone(step);
+    const related = calls.filter(call => step.started && call.started && call.started >= step.started && (!step.ended || call.started <= step.ended));
+    lines.push(el("div", {class: "line " + tone, onclick: () => { open ? state.openSteps.delete(step.index) : state.openSteps.add(step.index); renderDetail(); }},
+      el("span", {class: "ts"}, "[" + when(step.started, false) + "]"),
+      el("span", {class: "tw"}, open ? "▾" : "▸"),
+      el("span", {class: "nm"}, step.node, el("span", {class: "muted"}, step.status ? `  → ${status(step.status).text}` : "")),
+      el("span", {class: "ms"}, duration(step.duration_seconds))));
+    if (!open) continue;
+    const keys = Object.keys(step.changes || {});
+    lines.push(el("div", {class: "nest"},
+      step.details && Object.keys(step.details).length ? jsonView(step.details) : null,
+      related.map(call => el("div", {class: "row"}, `model ${call.kind} call #${call.index} · ${duration(call.elapsed_seconds)} · `,
+        el("button", {class: "link", onclick: event => { event.stopPropagation(); state.tab = "calls"; state.call = call.file; renderDetail(); }}, "open call"))),
+      keys.length ? el("div", {class: "row"}, "State updated: " + keys.join(", ")) : el("div", {class: "row"}, step.details ? "" : "No state change."),
+      keys.length ? jsonView(step.changes) : null,
+      step.checkpoint !== null && step.checkpoint !== undefined ? el("div", {style: "margin-top:6px"},
+        el("button", {class: "link", onclick: async event => {
+          event.stopPropagation();
+          const button = event.currentTarget;
+          const full = await api(`/api/state?id=${encodeURIComponent(state.selected)}&step=${step.checkpoint}`);
+          button.replaceWith(el("div", {}, el("div", {class: "row", style: "margin:4px 0"}, `Complete state at checkpoint ${full.step}`), jsonView(full.values)));
+        }}, "Show complete state at this checkpoint")) : null));
+  }
+  return el("div", {class: "log"}, lines);
+}
+
+/* ---------- model calls ---------- */
+function tokens(usage, kind) {
+  if (!usage) return null;
+  for (const key of kind === "in" ? ["prompt_tokens", "input_tokens"] : ["completion_tokens", "output_tokens"])
+    if (typeof usage[key] === "number") return usage[key];
+  return null;
+}
+function renderResponse(response) {
+  if (!response) return el("div", {class: "muted"}, "No parsed response.");
+  const parts = [];
+  if (response.summary) parts.push(el("div", {style: "font-weight:600;margin-bottom:6px"}, response.summary));
+  if (response.explanation) parts.push(el("div", {style: "white-space:pre-wrap;margin-bottom:8px"}, response.explanation));
+  const list = (title, items, render) => items?.length ? parts.push(el("div", {style: "margin:6px 0"}, el("div", {class: "muted"}, title), el("ul", {style: "margin:4px 0"}, items.map(item => el("li", {}, render(item)))))) : null;
+  list("Hypotheses", response.hypotheses, h => h);
+  list("Searches", response.queries, q => el("code", {}, q));
+  list("Source reads", response.reads, r => [el("code", {}, `${r.path}:${r.line}`), r.symbol ? ` ${r.symbol}` : ""]);
+  if ("ready" in response) parts.push(el("div", {class: "muted"}, `Ready to repair: ${response.ready}`));
+  for (const edit of response.edits || []) parts.push(el("div", {class: "edit"},
+    el("div", {class: "path"}, edit.path), el("pre", {class: "old"}, edit.old), el("pre", {class: "new"}, edit.new)));
+  return el("div", {}, parts);
+}
+function renderCalls(detail) {
+  const calls = detail.model_calls;
+  if (!calls.length) return el("div", {class: "empty"}, "No model calls recorded. Runs from before the dashboard keep proposal-N.json and investigation-N.json under Artifacts.");
+  const selected = calls.find(c => c.file === state.call) || calls[0];
+  state.call = selected.file;
+  return el("div", {style: "display:grid;gap:16px"},
+    el("div", {class: "box"}, el("table", {},
+      el("thead", {}, el("tr", {}, el("th", {}, ""), el("th", {}, "#"), el("th", {}, "Kind"), el("th", {class: "num"}, "Attempt"), el("th", {class: "hide-sm"}, "Started"),
+        el("th", {class: "num"}, "Latency"), el("th", {class: "num hide-sm"}, "Tokens in"), el("th", {class: "num hide-sm"}, "Tokens out"))),
+      el("tbody", {}, calls.map(call => el("tr", {class: "click" + (call.file === selected.file ? " sel" : ""), onclick: () => { state.call = call.file; renderDetail(); }},
+        el("td", {style: "width:28px"}, icon(call.error ? "bad" : "ok")), el("td", {}, call.index), el("td", {class: "mono"}, call.kind),
+        el("td", {class: "num"}, call.attempt ?? "—"), el("td", {class: "hide-sm muted"}, when(call.started)),
+        el("td", {class: "num"}, duration(call.elapsed_seconds)),
+        el("td", {class: "num hide-sm"}, (tokens(call.usage, "in") ?? "—").toLocaleString()),
+        el("td", {class: "num hide-sm"}, (tokens(call.usage, "out") ?? "—").toLocaleString())))))),
+    el("div", {class: "box"},
+      el("div", {class: "hd"}, icon(selected.error ? "bad" : "ok"), `Call #${selected.index} · ${selected.kind}`, el("span", {class: "sub"}, selected.model || "")),
+      el("div", {class: "bd"},
+        selected.error ? el("div", {class: "result t-bad"}, selected.error) : null,
+        renderResponse(selected.response),
+        el("div", {style: "margin-top:12px"}, el("button", {class: "btn", onclick: () => { state.tab = "files"; state.file = selected.file; renderDetail(); }},
+          `View full request · ${selected.context_chars.toLocaleString()} characters of context`)))));
+}
+
+/* ---------- artifacts ---------- */
+function highlight(text, path) {
+  const pre = el("pre", {class: "view"});
+  if (path.endsWith(".json")) {
+    try { pre.textContent = JSON.stringify(JSON.parse(text), null, 2); return pre; } catch (error) { /* plain text */ }
+  }
+  if (path.endsWith(".diff") || path.endsWith(".patch")) {
+    for (const line of text.split("\n")) pre.append(el("span", {class: line.startsWith("+") ? "add" : line.startsWith("-") ? "del" : line.startsWith("@@") ? "hunk" : ""}, line + "\n"));
+    return pre;
+  }
+  pre.textContent = text;
+  return pre;
+}
+const size = bytes => bytes < 1024 ? bytes + " B" : bytes < 1048576 ? (bytes / 1024).toFixed(1) + " KB" : (bytes / 1048576).toFixed(1) + " MB";
+function renderFiles(detail) {
+  const viewer = el("div", {class: "box"}, el("div", {class: "bd muted"}, "Select an artifact."));
+  const list = el("div", {class: "box", style: "padding:6px 0;max-height:74vh;overflow:auto"}, detail.files.map(file =>
+    el("div", {class: "file" + (file.path === state.file ? " sel" : ""), onclick: () => { state.file = file.path; renderDetail(); }},
+      el("span", {}, file.path), el("span", {}, size(file.size)))));
+  if (state.file) api(`/api/file?id=${encodeURIComponent(state.selected)}&path=${encodeURIComponent(state.file)}`)
+    .then(text => viewer.replaceChildren(el("div", {class: "hd mono"}, state.file), highlight(typeof text === "string" ? text : JSON.stringify(text, null, 2), state.file)))
+    .catch(() => viewer.replaceChildren(el("div", {class: "bd muted"}, "This artifact is too large or no longer available.")));
+  return el("div", {class: "split"}, list, viewer);
+}
+
+/* ---------- run page ---------- */
+function renderDetail() {
+  const detail = state.detail, s = detail.summary, st = status(s.status);
+  const used = detail.model_calls.reduce((sum, c) => sum + (tokens(c.usage, "in") || 0) + (tokens(c.usage, "out") || 0), 0);
+  const fact = (k, v, big) => el("div", {class: "fact"}, el("div", {class: "k"}, k), el("div", {class: "v" + (big ? " big" : "")}, v));
+  const tabs = [["overview", "Overview"], ["log", "Build log", detail.steps.length], ["calls", "Model calls", detail.model_calls.length],
+    ["files", "Artifacts", detail.files.length], ["events", "Events", detail.events.length]];
+  let content;
+  if (state.tab === "log") content = renderLog(detail);
+  else if (state.tab === "calls") content = renderCalls(detail);
+  else if (state.tab === "files") content = renderFiles(detail);
+  else if (state.tab === "events") content = el("div", {class: "box"}, el("table", {},
+    el("thead", {}, el("tr", {}, el("th", {}, "Time"), el("th", {}, "Node"), el("th", {}, "Details"))),
+    el("tbody", {}, detail.events.map(e => {
+      const rest = Object.fromEntries(Object.entries(e).filter(([k]) => k !== "time" && k !== "node"));
+      return el("tr", {}, el("td", {class: "muted", style: "white-space:nowrap"}, when(e.time)), el("td", {class: "mono"}, e.node),
+        el("td", {class: "mono", style: "word-break:break-all"}, Object.keys(rest).length ? JSON.stringify(rest) : ""));
+    }))));
+  else content = el("div", {class: "overview"},
+    el("div", {class: "box"}, el("div", {class: "hd"}, "Workflow path", el("span", {class: "sub"}, "executed nodes in blue")), el("div", {class: "bd"}, renderGraph(detail))),
+    el("div", {class: "box"}, el("div", {class: "hd"}, "Graph steps", el("span", {class: "sub"}, `${detail.steps.length} steps · ${detail.checkpoint_count} checkpoints`)), renderStepTable(detail)));
+  const tests = s.tests.length ? s.tests.slice(0, 4).join(", ") + (s.tests.length > 4 ? ` +${s.tests.length - 4}` : "") : "—";
+  document.getElementById("content").replaceChildren(el("div", {class: "page"},
+    el("div", {class: "crumbs"}, el("a", {href: "#", onclick: event => { event.preventDefault(); select(null); }}, "Runs"), " / ", groupName(s)),
+    el("div", {class: "headline"}, icon(st.tone, 20), el("h1", {}, s.build_type || "Repair run"), el("span", {class: "num"}, s.name)),
+    el("div", {class: "result t-" + st.tone}, el("span", {class: "why"}, el("b", {}, st.text), s.reason && st.tone !== "ok" ? ": " + s.reason : "")),
+    el("div", {class: "muted"}, "Failing tests: ", el("span", {class: "mono"}, tests)),
+    el("div", {class: "facts"},
+      fact("Started", when(s.started)), fact("Duration", duration(s.duration_seconds), true),
+      fact("Repair attempts", s.attempts, true), fact("Inspections", s.inspections, true),
+      fact("Model calls", detail.model_calls.length, true), fact("Tokens", used ? used.toLocaleString() : "—", true),
+      fact("TeamCity build", s.build_url ? el("a", {href: s.build_url, target: "_blank", rel: "noreferrer"}, `#${s.build_id}`) : "—"),
+      fact("Revision", s.revision ? el("code", {title: s.revision}, s.revision.slice(0, 12)) : "—"),
+      fact("Verified head", s.head ? el("code", {title: s.head}, s.head.slice(0, 12)) : "—"),
+      fact("Branch", s.branch ? el("code", {title: s.branch}, s.branch) : "—"),
+      fact("Pull request", s.pr_url ? el("a", {href: s.pr_url, target: "_blank", rel: "noreferrer"}, "Open in Bitbucket") : "—")),
+    el("div", {class: "tabs"}, tabs.map(([key, label, n]) => el("button", {class: "tab" + (state.tab === key ? " on" : ""), onclick: () => { state.tab = key; renderDetail(); }},
+      label, n !== undefined ? el("span", {class: "n"}, n) : null))),
+    content));
+}
+
+document.getElementById("q").addEventListener("input", () => { renderSidebar(); if (!state.selected) renderHome(); });
+document.getElementById("home").addEventListener("click", () => select(null));
+window.addEventListener("hashchange", () => {
+  const id = new URLSearchParams(location.hash.slice(1)).get("run");
+  if (id !== state.selected) select(id);
+});
+async function refresh() {
+  try {
+    await loadRuns();
+    if (!state.selected) { renderHome(); return; }
+    const current = state.runs.find(run => run.id === state.selected);
+    // Re-read a run only when it changed, and never while an artifact is open.
+    if (current && state.tab !== "files" && (current.status === "in_progress" || state.detail?.summary.updated !== current.updated)) await loadDetail();
+  } catch (error) { /* keep the last view while the server restarts */ }
+}
+loadRuns().then(() => state.selected && state.runs.some(r => r.id === state.selected) ? loadDetail() : (state.selected = null, renderSidebar(), renderHome()));
+setInterval(() => document.getElementById("live").checked && refresh(), 4000);
+</script>
+</body>
+</html>

@@ -142,6 +142,28 @@ For the MSBuild example, a scheduled task starts a plain PowerShell process. Use
 
 Inspect the result with `Get-ScheduledTask -TaskName AutoFix-Daily` and remove it with `Unregister-ScheduledTask -TaskName AutoFix-Daily`. Daily execution uses the machine's current date interpreted by the application's configured timezone.
 
+## Inspect run history in the dashboard
+
+The dashboard reads the state directory, including runs that finished before it started. It needs no additional service or package:
+
+```powershell
+uv run --no-sync auto-fix dashboard --config config.local.yaml
+# Or point it at any state directory or evaluation output tree.
+uv run --no-sync auto-fix dashboard --directory .auto-fix/evaluation/luna
+```
+
+Open `http://127.0.0.1:8765/`. Each run shows its result and TeamCity, Git and PR links. The workflow graph highlights the nodes and loops the run executed. A timestamped build log lists the state each node changed; you can open the complete LangGraph checkpoint after any step. Model calls show their latency, token usage, request context and proposed edits. Artifacts and raw events are also listed. A live refresh follows a running worker. The server only reads files and listens on localhost; use `--host` deliberately because the pages contain source and issue context.
+
+Live OpenTelemetry traces are optional. Install the extra with `uv sync --locked --extra dev --extra trace`, start a self-hosted [Arize Phoenix](https://arize.com/docs/phoenix) collector (for example `phoenix serve`), and add to the configuration:
+
+```yaml
+tracing:
+  endpoint: http://127.0.0.1:6006/v1/traces
+  project: auto-fix
+```
+
+Each run becomes one Phoenix session: LangGraph nodes become spans, with model calls nested under their node as LLM spans. Token values are redacted. The `demo` and `evaluate` commands export when `AUTO_FIX_TRACE_ENDPOINT` is set. Spans contain the model context, so keep the collector on company-managed infrastructure. Export runs in the background and never delays a build. Phoenix does not receive spans while it is stopped; the dashboard still shows those runs from the state directory.
+
 ## Add a workflow step
 
 Nodes are plain functions receiving and updating shared state. For example, add a deterministic ownership hint in `src/auto_fix/workflow.py`:

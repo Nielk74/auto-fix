@@ -5,6 +5,7 @@ import json
 import os
 import re
 import sqlite3
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, TypedDict
@@ -12,6 +13,7 @@ from typing import Any, TypedDict
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, START, StateGraph
 
+from auto_fix import tracing
 from auto_fix.build import Builder
 from auto_fix.config import Settings
 from auto_fix.diagnostics import failure_diagnostics
@@ -155,11 +157,61 @@ class Workflow:
         self.workspace = Workspace(settings.repository, settings.state_dir, run_id)
         self.builder = Builder(settings.build, self.directory / "evidence")
 
-    def event(self, node: str, **details: Any) -> None:
+    def event(self, node: str, quiet: bool = False, **details: Any) -> None:
         event = {"time": datetime.now(UTC).isoformat(), "node": node, **details}
         with (self.directory / "events.jsonl").open("a", encoding="utf-8") as handle:
             handle.write(redact(json.dumps(event)) + "\n")
-        print(f"[{self.run_id}] {node}", flush=True)
+        if not quiet:
+            print(f"[{self.run_id}] {node}", flush=True)
+
+    def call_model(self, kind: str, context: dict[str, Any], attempt: int) -> Any:
+        """Record each model request and its outcome for the dashboard and optional traces."""
+        calls = self.directory / "model-calls"
+        index = len(list(calls.glob("*.json"))) + 1 if calls.is_dir() else 1
+        started = datetime.now(UTC).isoformat()
+        clock = time.monotonic()
+        response = error = None
+        with tracing.model_span(kind, self.settings.llm.model, context) as finish:
+            try:
+                ask = self.model.inspect if kind == "investigation" else self.model.propose
+                response = ask(context)
+                return response
+            except Exception as exc:
+                error = redact(f"{type(exc).__name__}: {exc}")
+                raise
+            finally:
+                elapsed = round(time.monotonic() - clock, 3)
+                recorded = getattr(self.model, "calls", None)
+                usage = (
+                    recorded[-1].get("usage") or recorded[-1].get("recorded_usage") or {}
+                    if recorded
+                    else getattr(self.model, "last_usage", None) or {}
+                )
+                output = response.model_dump() if response is not None else None
+                finish(output, usage, error)
+                write_json(
+                    calls / f"{index:02d}-{kind}.json",
+                    {
+                        "index": index,
+                        "kind": kind,
+                        "attempt": attempt,
+                        "model": self.settings.llm.model,
+                        "started": started,
+                        "elapsed_seconds": elapsed,
+                        "usage": usage,
+                        "error": error,
+                        "context": context,
+                        "response": output,
+                    },
+                )
+                self.event(
+                    "model_call",
+                    quiet=True,
+                    kind=kind,
+                    call=index,
+                    elapsed_seconds=elapsed,
+                    ok=error is None,
+                )
 
     def collect_context(self, state: State) -> State:
         self.event("collect_context")
@@ -390,7 +442,7 @@ class Workflow:
         self.event("investigate", inspection=count)
         try:
             context = self._model_context(state, state.get("attempt", 0) + 1)
-            request = self.model.inspect(context)
+            request = self.call_model("investigation", context, target_attempt)
             write_json(self.directory / f"investigation-{count}.json", request.model_dump())
             if request.ready and not request.queries and not request.reads:
                 return {
@@ -446,7 +498,7 @@ class Workflow:
             return {"attempt": attempt, "status": "blocked", "reason": str(exc)}
         proposal = None
         try:
-            proposal = self.model.propose(context)
+            proposal = self.call_model("repair", context, attempt)
             write_json(self.directory / f"proposal-{attempt}.json", proposal.model_dump())
             self.workspace.apply_edits(proposal.edits)
             refreshed = {
@@ -677,9 +729,12 @@ class Workflow:
     def run(self, initial: State) -> State:
         state = initial
         try:
-            with sqlite3.connect(
-                self.directory / "checkpoints.sqlite", check_same_thread=False
-            ) as conn:
+            with (
+                tracing.session(self.run_id),
+                sqlite3.connect(
+                    self.directory / "checkpoints.sqlite", check_same_thread=False
+                ) as conn,
+            ):
                 graph = self.graph(SqliteSaver(conn))
                 for update in graph.stream(
                     initial,

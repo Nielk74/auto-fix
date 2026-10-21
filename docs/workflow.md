@@ -50,7 +50,9 @@ The PR includes the explanation, original revision, final verified commit, test 
 
 ## Evidence to inspect
 
-Each run directory under `state_dir/runs` contains context, events, final state, baseline checks and native validation evidence. Model evaluations additionally retain exact requests, responses, CLI events, usage, diffs, source snapshots and publication receipts. Keep this directory on company-managed storage because it contains source and issue context.
+Each run directory under `state_dir/runs` contains context, events, final state, baseline checks and native validation evidence. `checkpoints.sqlite` holds the LangGraph state after every super-step. `model-calls/` records each model request with its context, response, latency, usage and error. Model evaluations additionally retain exact requests, responses, CLI events, usage, diffs, source snapshots and publication receipts. Keep this directory on company-managed storage because it contains source and issue context.
+
+`auto-fix dashboard` reconstructs every run from these files, read-only: the executed graph path, per-node state changes, complete checkpoint state, model calls and artifacts. Runs written before the dashboard existed are included; they lack only the `model-calls/` records.
 
 | Concern | Implementation |
 | --- | --- |
@@ -64,6 +66,8 @@ Each run directory under `state_dir/runs` contains context, events, final state,
 | Native execution and report validity | `src/auto_fix/build.py` |
 | PR receipt checks | `src/auto_fix/publication.py` |
 | Endpoint prompts and validated responses | `src/auto_fix/llm.py`, `prompts.py` |
+| Run history dashboard | `src/auto_fix/history.py`, `dashboard.py`, `dashboard.html` |
+| Optional Phoenix OpenTelemetry export | `src/auto_fix/tracing.py` |
 
 ## Change the graph and measure the result
 
