@@ -134,4 +134,3 @@ Undocumented duplicate-key tie observation: pinned `YXYXY`, candidate `YYYYY`. N
 - Raw native publications, unsuccessful trials, provider errors, actual calls, and tokens remain unchanged and counted. No model grader is used.
 - A reviewed contract-preserving refactor can retain a measured performance regression. Functional/native correctness and production quality are separate measures; see the explicit native quality observations.
 - The selected configuration is a development choice. Holdout performance, repeated winner stability, Windows recorded replay, and on-premise integrations remain separate unmeasured work.
-
