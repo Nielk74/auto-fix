@@ -27,6 +27,7 @@ SECURITY_HEADERS = {
 
 class Handler(BaseHTTPRequestHandler):
     root: Path
+    shown_root: str
     loopback_only: bool
 
     def log_message(self, format: str, *args: Any) -> None:  # noqa: A002 - stdlib signature
@@ -61,7 +62,7 @@ class Handler(BaseHTTPRequestHandler):
             page = files("auto_fix").joinpath("dashboard.html").read_bytes()
             self._send(HTTPStatus.OK, page, "text/html")
         elif url.path == "/api/runs":
-            self._json({"root": str(self.root), "runs": history.list_runs(self.root)})
+            self._json({"root": self.shown_root, "runs": history.list_runs(self.root)})
         elif url.path == "/api/run":
             self._json(history.run_detail(self.root, run_id))
         elif url.path == "/api/state":
@@ -84,9 +85,13 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def serve(root: Path, host: str = "127.0.0.1", port: int = 8765) -> ThreadingHTTPServer:
-    handler = type(
-        "DashboardHandler", (Handler,), {"root": root.resolve(), "loopback_only": host in LOOPBACK}
-    )
+    # Show the directory as given (mapped drives intact); containment checks use resolved paths.
+    attributes = {
+        "root": root.resolve(),
+        "shown_root": str(root.absolute()),
+        "loopback_only": host in LOOPBACK,
+    }
+    handler = type("DashboardHandler", (Handler,), attributes)
     return ThreadingHTTPServer((host, port), handler)
 
 
@@ -96,7 +101,7 @@ def run_dashboard(root: Path, host: str, port: int) -> int:
         return 2
     server = serve(root, host, port)
     shown = f"[{host}]" if ":" in host else host
-    print(f"Auto Fix dashboard for {root.resolve()} at http://{shown}:{server.server_port}/")
+    print(f"Auto Fix dashboard for {root.absolute()} at http://{shown}:{server.server_port}/")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

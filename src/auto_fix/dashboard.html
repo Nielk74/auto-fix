@@ -120,7 +120,9 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-sp
 tr.click { cursor: pointer; }
 tr.click:hover td { background: var(--hover); }
 tr.sel td { background: var(--sel); }
-td .ellipsis { display: block; max-width: 520px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* A zero max-width lets the column take the remaining space and truncate instead of overflowing. */
+td.grow { width: 100%; max-width: 0; }
+td .ellipsis { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* graph */
 svg text { font: 12px Inter, system-ui, sans-serif; fill: var(--text); }
@@ -228,9 +230,11 @@ const STATUS = {
   invalid_proposal: {tone: "warn", text: "invalid proposal"},
 };
 const status = key => STATUS[key] || {tone: "none", text: key || "—"};
-const state = {runs: [], filters: new Set(), collapsed: new Set(),
-  selected: new URLSearchParams(location.hash.slice(1)).get("run"),
-  detail: null, tab: "overview", openSteps: new Set(), file: null, call: null};
+// Deep links: #run=<id>&tab=<log|calls|files|events>&open=<step,...>&call=<file>&file=<path>
+const link = new URLSearchParams(location.hash.slice(1));
+const state = {runs: [], filters: new Set(), collapsed: new Set(), selected: link.get("run"), detail: null,
+  tab: link.get("tab") || "overview", openSteps: new Set((link.get("open") || "").split(",").filter(Boolean).map(Number)),
+  file: link.get("file"), call: link.get("call")};
 
 function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
@@ -357,7 +361,7 @@ function renderHome() {
           el("td", {style: "width:28px"}, icon(st.tone)),
           el("td", {class: "mono", style: "white-space:nowrap"}, run.name),
           el("td", {class: "hide-sm muted"}, groupName(run)),
-          el("td", {}, el("span", {class: "ellipsis t-" + st.tone, title: run.reason || st.text}, run.reason && st.tone !== "ok" ? `${st.text}: ${run.reason}` : st.text)),
+          el("td", {class: "grow"}, el("span", {class: "ellipsis t-" + st.tone, title: run.reason || st.text}, run.reason && st.tone !== "ok" ? `${st.text}: ${run.reason}` : st.text)),
           el("td", {class: "hide-sm muted", style: "white-space:nowrap"}, when(run.started)),
           el("td", {class: "num"}, duration(run.duration_seconds)),
           el("td", {class: "num hide-sm"}, run.attempts));
@@ -594,6 +598,9 @@ function renderFiles(detail) {
 
 /* ---------- run page ---------- */
 function renderDetail() {
+  const hash = new URLSearchParams({run: state.selected});
+  if (state.tab !== "overview") hash.set("tab", state.tab);
+  history.replaceState(null, "", "#" + hash);
   const detail = state.detail, s = detail.summary, st = status(s.status);
   const used = detail.model_calls.reduce((sum, c) => sum + (tokens(c.usage, "in") || 0) + (tokens(c.usage, "out") || 0), 0);
   const fact = (k, v, big) => el("div", {class: "fact"}, el("div", {class: "k"}, k), el("div", {class: "v" + (big ? " big" : "")}, v));

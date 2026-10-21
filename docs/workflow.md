@@ -54,6 +54,8 @@ Each run directory under `state_dir/runs` contains context, events, final state,
 
 `auto-fix dashboard` reconstructs every run from these files, read-only: the executed graph path, per-node state changes, complete checkpoint state, model calls and artifacts. Runs written before the dashboard existed are included; they lack only the `model-calls/` records.
 
+![Dashboard build log: each LangGraph step with its timestamp, duration, model call and changed state](images/dashboard-build-log.png)
+
 | Concern | Implementation |
 | --- | --- |
 | Discovery, deduplication and process lock | `src/auto_fix/cli.py` |

@@ -154,6 +154,25 @@ uv run --no-sync auto-fix dashboard --directory .auto-fix/evaluation/luna
 
 Open `http://127.0.0.1:8765/`. Each run shows its result and TeamCity, Git and PR links. The workflow graph highlights the nodes and loops the run executed. A timestamped build log lists the state each node changed; you can open the complete LangGraph checkpoint after any step. Model calls show their latency, token usage, request context and proposed edits. Artifacts and raw events are also listed. A live refresh follows a running worker. The server only reads files and listens on localhost; use `--host` deliberately because the pages contain source and issue context.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/dashboard-overview.png">
+  <img alt="Run overview: result, TeamCity and Git facts, the executed workflow path with a repair and verify loop, and per-step durations" src="docs/images/dashboard-overview-light.png">
+</picture>
+
+The run history lists every run grouped by state directory or evaluation case:
+
+![Run history with published, ready and blocked runs and their reasons](docs/images/dashboard-runs.png)
+
+The build log expands any graph step to the state it changed; this run's first repair failed verification before a second proposal passed:
+
+![Build log with the investigate step and the failed verification expanded](docs/images/dashboard-build-log.png)
+
+Each model call keeps its latency, token usage, explanation and exact proposed edits:
+
+![Model calls with token usage and the accepted source edit](docs/images/dashboard-model-calls.png)
+
+The screenshots use synthetic runs with stubbed services.
+
 Live OpenTelemetry traces are optional. Install the extra with `uv sync --locked --extra dev --extra trace`, start a self-hosted [Arize Phoenix](https://arize.com/docs/phoenix) collector (for example `phoenix serve`), and add to the configuration:
 
 ```yaml
