@@ -104,15 +104,23 @@ WORKFLOWS: dict[str, dict[str, Any]] = {
         "icon": "flask",
         "description": "Repair the C++ fixture cases with a live or replayed model.",
         "params": [
-            _param("profile", "Profile", "choice", "focused", choices=["legacy", "focused"]),
+            _param(
+                "profile",
+                "Profile",
+                "choice",
+                "focused",
+                choices=["legacy", "focused"],
+                advanced=True,
+            ),
             _param(
                 "backend",
                 "Model backend",
                 "choice",
                 "codex",
                 choices=["codex", "endpoint", "replay"],
+                advanced=True,
             ),
-            _param("model", "Model", "text", "gpt-6-luna"),
+            _param("model", "Model", "text", "gpt-6-luna", advanced=True),
             _param(
                 "cases",
                 "Cases",
@@ -120,10 +128,17 @@ WORKFLOWS: dict[str, dict[str, Any]] = {
                 "",
                 help="Comma-separated case names; empty runs every case.",
             ),
-            _param("split", "Split", "choice", "", choices=["", "development", "holdout"]),
+            _param(
+                "split",
+                "Split",
+                "choice",
+                "",
+                choices=["", "development", "holdout"],
+                advanced=True,
+            ),
             _param("prompt", "Prompt", "choice", "repair-v1", choices=PROMPTS),
             _param("max_attempts", "Repair attempts", "int", 2, min=1, max=10),
-            _param("max_inspections", "Source inspections", "int", 0, min=0, max=50),
+            _param("max_inspections", "Source inspections", "int", 0, min=0, max=50, advanced=True),
             *EVALUATION_TUNING,
             _param(
                 "structured_diagnostics", "Structured diagnostics", "bool", False, advanced=True

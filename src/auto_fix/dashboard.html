@@ -34,8 +34,6 @@ a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; text-underline-offset: 3px; }
 code, .mono { font-family: var(--mono); font-size: 12px; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
-/* rows and list items take the ring inside their box, where a neighbour cannot cover it */
-:is(tr, .leaf, .group, .arow, .line, .file, .filter):focus-visible { outline-offset: -2px; }
 
 /* top bar */
 header { border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 16px; padding: 0 18px; min-width: 0; }
@@ -59,14 +57,7 @@ aside { background: var(--soft); border-right: 1px solid var(--line); display: f
   border: 1px solid var(--line); background: var(--ground); }
 .search input::placeholder { color: var(--muted); }
 .search input:focus-visible { outline-offset: 0; border-color: var(--accent); }
-.filters { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 14px 12px; border-bottom: 1px solid var(--line); }
-.filter { display: inline-flex; align-items: center; gap: 6px; height: 26px; border: 1px solid var(--line); background: var(--ground);
-  color: var(--ink); border-radius: 13px; padding: 0 10px 0 8px; font: inherit; font-size: 12px; cursor: pointer; }
-.filter .n { color: var(--muted); font-variant-numeric: tabular-nums; }
-.filter:hover:not(:disabled) { border-color: var(--faint); }
-.filter.on { border-color: var(--accent); background: var(--sel); }
-.filter:disabled { cursor: default; color: var(--faint); }
-.filter:disabled .ico { opacity: 0.5; }
+
 #tree { overflow: auto; flex: 1; padding: 8px 0 16px; }
 .group { display: flex; align-items: center; gap: 6px; padding: 5px 14px; color: var(--ink); font-weight: 600;
   cursor: pointer; user-select: none; }
@@ -115,19 +106,13 @@ a.pr { display: inline-flex; align-items: center; gap: 6px; height: 28px; paddin
   background: var(--accent); color: #fff; }
 a.pr:hover { text-decoration: none; background: color-mix(in srgb, var(--accent) 88%, #000); }
 .subline { color: var(--muted); }
-.facts { display: flex; flex-wrap: wrap; gap: 12px 40px; margin: 18px 0 0; padding: 14px 0 12px; border-top: 1px solid var(--line); }
-.fact .k { color: var(--muted); font-size: 12px; }
-.fact .v { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.fact .v .unit { color: var(--muted); font-size: 12px; font-weight: 400; margin-left: 4px; }
-.prov { display: flex; flex-wrap: wrap; gap: 4px 22px; padding: 0 0 14px; border-bottom: 1px solid var(--line); font-size: 12.5px; }
-.prov > span { white-space: nowrap; }
-.prov .k { color: var(--muted); margin-right: 6px; }
+
 .tabs { display: flex; gap: 22px; border-bottom: 1px solid var(--line); margin: 14px 0 18px; overflow-x: auto; overflow-y: hidden; }
 .tab { display: inline-flex; align-items: center; gap: 6px; background: none; border: none; font: inherit; color: var(--muted); padding: 9px 0 8px; cursor: pointer;
   border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
 .tab:hover { color: var(--ink); }
 .tab[aria-selected="true"] { color: var(--ink); font-weight: 500; border-bottom-color: var(--accent); }
-.tab[aria-selected="true"] .lu { color: var(--accent); }
+
 .tab .n { color: var(--muted); margin-left: -1px; font-weight: 400; font-variant-numeric: tabular-nums; }
 .tab:focus-visible { outline-offset: -2px; }
 h2 { font-size: 14px; font-weight: 600; margin: 0 0 10px; }
@@ -136,8 +121,7 @@ h2 { font-size: 14px; font-weight: 600; margin: 0 0 10px; }
 .box > .hd .sub { color: var(--muted); font-weight: 400; font-size: 12px; }
 .box > .hd .read { margin-left: auto; color: var(--ink); font-weight: 400; font-size: 12px; }
 .box > .bd { padding: 12px 16px; }
-.box > .foot { padding: 8px 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; min-height: 35px; }
-.overview { display: grid; grid-template-columns: minmax(320px, 1fr) minmax(0, 1.2fr); gap: 16px; align-items: start; margin-top: 16px; }
+
 .muted { color: var(--muted); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .empty { color: var(--muted); padding: 40px 16px 48px; text-align: center; display: grid; justify-items: center; gap: 4px; }
@@ -156,89 +140,14 @@ h2 { font-size: 14px; font-weight: 600; margin: 0 0 10px; }
 .loading { color: var(--muted); padding: 48px 0; display: flex; gap: 8px; align-items: center; justify-content: center; }
 tr.lit td { background: var(--sel); }
 
-/* attempt table */
-.asummary { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 32px; margin: 0 2px 12px; font-size: 13px; }
-.asummary b { font-weight: 600; font-variant-numeric: tabular-nums; }
-.asplit { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.abar { display: inline-flex; width: 160px; height: 6px; border-radius: 3px; overflow: hidden; background: var(--line); }
-.abar i { display: block; height: 100%; }
-.abar .m { background: var(--accent); } .abar .c { background: var(--ink); } .abar .o { background: var(--line); }
-.key { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin: 0 4px 0 8px; vertical-align: 0; }
-.key.m { background: var(--accent); } .key.c { background: var(--ink); }
-.atable { overflow: visible; container-type: inline-size; }
-.arow { display: grid; grid-template-columns: 112px minmax(180px, 1.15fr) 170px minmax(0, 1.5fr) 168px; gap: 6px 16px; align-items: center;
-  grid-template-areas: "label time tests what clock"; padding: 10px 16px; border-bottom: 1px solid var(--line); cursor: pointer; }
-.arow > .alabel { grid-area: label; } .arow > .atime { grid-area: time; } .arow > .atests { grid-area: tests; }
-.arow > .awhat { grid-area: what; } .arow > .atimecol { grid-area: clock; text-align: right; }
-/* narrow: the bar keeps the first line, tests and what happened go underneath */
-@container (max-width: 820px) {
-  .arow { grid-template-columns: 96px minmax(0, 1fr) auto; grid-template-areas: "label time clock" ". tests tests" ". what what"; }
-  .arow.ahead { grid-template-areas: "label time clock"; }
-  .arow.ahead > .atests, .arow.ahead > .awhat { display: none; }
-  .adetail { padding-left: 128px; }
-}
-.arow:hover { background: var(--soft); }
-.arow.open { background: var(--soft); }
-.arow.idle { cursor: default; color: var(--faint); }
-.arow.ahead { cursor: default; background: none; color: var(--muted); font-size: 12px; padding-top: 8px; padding-bottom: 8px; }
-.alabel { font-weight: 600; white-space: nowrap; }
-.alabel .chev { margin-right: 4px; }
-.alabel .kind { margin-right: 6px; color: var(--muted); }
 .node { display: inline-flex; align-items: center; gap: 6px; }
 .node .lu { color: var(--muted); }
 .line.bad .node .lu { color: var(--bad); } .line.warn .node .lu { color: var(--warn); }
-.atime { position: relative; min-width: 0; }
-.aticks { position: relative; height: 14px; font-size: 11px; font-variant-numeric: tabular-nums; }
-.aticks span { position: absolute; transform: translateX(-50%); color: var(--muted); }
-.aticks span:first-child { transform: none; }
-.atrack { position: relative; height: 14px; border-radius: 3px; background: linear-gradient(var(--line), var(--line)) 0 50% / 100% 1px no-repeat; }
-.aseg { position: absolute; top: 1px; height: 12px; min-width: 3px; border: 1px solid var(--muted); border-radius: 3px; background: var(--ground); overflow: hidden; }
-.aseg + .aseg { border-left-color: var(--faint); }
-.aseg.bad { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 22%, var(--ground)); }
-.aseg.run { border-color: var(--run); border-style: dashed; animation: breathe 1.6s ease-in-out infinite; }
-@keyframes breathe { 50% { border-color: var(--faint); } }
-@media (prefers-reduced-motion: reduce) { .aseg.run { animation: none; } }
-.aseg i { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, var(--accent) 55%, var(--ground)); }
-.aseg i.err { background: var(--bad); }
-.apending { position: absolute; left: 0; top: -1px; font-size: 11.5px; color: var(--muted); }
-.atests { display: flex; align-items: center; gap: 8px; white-space: nowrap; font-size: 12.5px; }
-.tdots { display: inline-flex; gap: 3px; }
-.tdots i { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--ok); background: var(--ok); }
-.tdots i.fail { border-color: var(--bad); background: var(--bad); }
-.tdots i.wait { background: transparent; border-color: var(--faint); border-style: dashed; }
-.awhat { min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
-.awhat .summary { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+
 .afile { font-family: var(--mono); font-size: 11px; color: var(--muted); white-space: nowrap; }
 .afile .del { font-weight: 400; color: var(--bad); } .afile .add { font-weight: 400; color: var(--ok); }
-.atimecol { font-size: 12.5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.adetail { padding: 6px 16px 14px 144px; border-bottom: 1px solid var(--line); background: var(--soft); display: grid; gap: 8px; cursor: default; }
-.adetail .explain { white-space: pre-wrap; max-width: 80ch; }
-.adetail .edit { max-width: 900px; margin: 0; background: var(--ground); }
-.alinks { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12.5px; }
-@container (max-width: 520px) { .adetail { padding-left: 16px; } }
 
-/* workflow graph: the path the run took through the graph */
-.flatstage { padding: 14px 16px 12px; }
-svg.flat { display: block; max-height: 480px; }
-svg.flat text { font: 12px ui-sans-serif, system-ui, sans-serif; fill: var(--ink); }
-svg.flat .fn rect { fill: var(--ground); stroke: var(--faint); stroke-width: 1; }
-svg.flat .fn.idle rect { stroke: var(--line); stroke-dasharray: 3 3; }
-svg.flat .fn.idle text { fill: var(--muted); }
-svg.flat .fn.ran rect { stroke: var(--ink); }
-svg.flat .fn.bad rect { stroke: var(--bad); }
-svg.flat .fn.end rect { stroke-width: 2; }
-svg.flat .fn.on rect { fill: var(--sel); }
-svg.flat .fn[tabindex] { cursor: pointer; outline: none; }
-svg.flat .fn[tabindex]:focus-visible rect { stroke: var(--accent); stroke-width: 2; }
-svg.flat .glyph { fill: none; stroke: var(--muted); }
-svg.flat .fn.ran .glyph { stroke: var(--ink); }
-svg.flat .fn.bad .glyph { stroke: var(--bad); }
-svg.flat .fn .count { font: 11px var(--mono); fill: var(--muted); }
-svg.flat .fe { fill: none; stroke: var(--line); stroke-width: 1; stroke-dasharray: 3 3; }
-svg.flat .fe.on { stroke: var(--ink); stroke-width: 1.4; stroke-dasharray: none; }
-svg.flat .tip { fill: none; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
-svg.flat .tip.on { stroke: var(--ink); } svg.flat .tip.off { stroke: var(--faint); }
-svg.flat .fe-label { font: 10.5px var(--mono); fill: var(--ink); }
+.alinks { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12.5px; }
 
 /* tables */
 table { width: 100%; border-collapse: collapse; }
@@ -252,14 +161,6 @@ tr.sel td { background: var(--sel); }
 /* A zero max-width lets the column take the remaining space and truncate instead of overflowing. */
 td.grow { width: 100%; max-width: 0; }
 td .ellipsis { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.trail { font-variant-numeric: tabular-nums; white-space: nowrap; }
-.trail .to { color: var(--faint); margin: 0 4px; }
-.trail .to .lu { vertical-align: -1px; }
-
-/* step table with duration bars */
-.bar { height: 7px; position: relative; min-width: 80px; }
-.bar::before { content: ""; position: absolute; left: 0; right: 0; top: 3px; height: 1px; background: var(--line); }
-.bar i { position: absolute; top: 1px; height: 5px; border-radius: 2px; background: var(--muted); min-width: 3px; }
 
 /* build log */
 .log { border: 1px solid var(--line); border-radius: 8px; font-family: var(--mono); font-size: 12px; padding: 8px 0; overflow-x: auto; }
@@ -300,8 +201,6 @@ button.btn:hover { border-color: var(--faint); }
 pre.view { margin: 0; padding: 12px 16px; overflow: auto; max-height: 72vh; font-family: var(--mono); font-size: 12px; white-space: pre; }
 pre.view .add { color: var(--ok); } pre.view .del { color: var(--bad); } pre.view .hunk { color: var(--muted); }
 
-/* run controls: header slot, queue, side panel, action bar, popovers and toasts */
-#act { display: flex; align-items: center; }
 .badge { font-size: 11.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 10px; padding: 1px 8px; white-space: nowrap; }
 button.btn { display: inline-flex; align-items: center; gap: 6px; }
 button.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 500; }
@@ -314,39 +213,7 @@ button.btn.icon { width: 30px; padding: 0; justify-content: center; }
 .ib:disabled { opacity: 0.35; cursor: default; }
 .ib .lu { vertical-align: 0; }
 .ib .up { transform: rotate(-90deg); } .ib .down { transform: rotate(90deg); }
-#queue { padding: 10px 8px 8px; border-bottom: 1px solid var(--line); display: grid; gap: 2px; }
-#queue[hidden] { display: none; }
-.qhd { display: flex; align-items: center; gap: 6px; padding: 0 6px 4px; font-weight: 600; }
-.qhd .n { color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums; }
-.qnote { padding: 2px 6px 6px; font-size: 12px; color: var(--muted); }
-.qnote.warn { color: var(--warn); }
-.job { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: 8px; align-items: start; padding: 6px; border-radius: 6px; }
-.job:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
-.job > .lu { margin-top: 2px; }
-.job .kind { color: var(--muted); }
-.jt { min-width: 0; }
-.jn { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; text-align: left; }
-button.link.jn { color: var(--ink); }
-.js { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.job.failed .js { color: var(--bad); white-space: normal; overflow-wrap: anywhere; }
-.ja { display: flex; margin-top: -3px; }
-.sheet { position: fixed; top: 48px; right: 0; bottom: 0; width: min(780px, 100vw); z-index: 20; background: var(--ground);
-  border-left: 1px solid var(--line); box-shadow: -16px 0 40px -16px rgb(0 0 0 / 0.3); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
-.sheet[hidden] { display: none; }
-.shd { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--line); }
-.shd h2 { margin: 0; font-size: 16px; }
-.sbody { display: grid; grid-template-columns: 250px minmax(0, 1fr); min-height: 0; }
-.wflist { border-right: 1px solid var(--line); padding: 8px; overflow: auto; display: grid; align-content: start; gap: 2px; }
-.wf { display: flex; gap: 10px; align-items: flex-start; text-align: left; padding: 9px 10px; border-radius: 6px; border: 1px solid transparent;
-  background: none; color: var(--ink); font: inherit; cursor: pointer; }
-.wf:hover { background: var(--soft); }
-.wf.on { background: var(--sel); border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
-.wf .lu { margin-top: 2px; color: var(--muted); } .wf.on .lu { color: var(--accent); }
-.wf b { display: block; font-weight: 600; }
-.wf .muted { display: block; font-size: 12px; line-height: 1.4; margin-top: 1px; }
-.sform-wrap { padding: 18px 22px; overflow: auto; }
-.sform-wrap h3 { margin: 0; font-size: 15px; }
-.sform-wrap > p { margin: 4px 0 18px; max-width: 60ch; }
+
 .field { display: grid; gap: 4px; margin-bottom: 14px; max-width: 440px; }
 .field label { font-weight: 500; }
 .field input:not([type="checkbox"]), .field select { height: 32px; padding: 0 10px; border: 1px solid var(--line); border-radius: 6px;
@@ -359,20 +226,14 @@ input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px;
 [aria-invalid="true"] { border-color: var(--bad) !important; }
 details.adv { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 4px; }
 details.adv > summary { cursor: pointer; color: var(--muted); margin-bottom: 12px; }
-.sfoot { border-top: 1px solid var(--line); padding: 12px 20px; display: grid; gap: 10px; }
-.cmdline { display: flex; gap: 8px; align-items: center; min-width: 0; }
-.cmd { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; background: var(--soft); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; }
-.sact { display: flex; justify-content: flex-end; gap: 8px; }
-pre.sheetlog { max-height: none; min-height: 0; border: none; }
-.actbar { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+
 .notice { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 12px 0 2px; padding: 8px 12px; border-radius: 6px;
   background: color-mix(in srgb, var(--warn) 9%, var(--ground)); border: 1px solid color-mix(in srgb, var(--warn) 30%, var(--line)); }
 .notice > .lu { color: var(--warn); }
 .notice .btn { margin-left: auto; }
 .popover { position: fixed; z-index: 30; width: 320px; max-width: calc(100vw - 16px); padding: 12px; background: var(--ground);
   border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 10px 28px -8px rgb(0 0 0 / 0.3); }
-.popover p { margin: 0 0 12px; }
-.popover .pa { display: flex; justify-content: flex-end; gap: 8px; }
+
 .popover.menu { width: 220px; padding: 4px; }
 .menu button { display: flex; width: 100%; gap: 8px; align-items: center; padding: 7px 10px; border: none; background: none;
   color: var(--ink); font: inherit; border-radius: 4px; cursor: pointer; text-align: left; }
@@ -382,24 +243,77 @@ pre.sheetlog { max-height: none; min-height: 0; border: none; }
 .toast { background: var(--ink); color: var(--ground); padding: 9px 14px; border-radius: 6px; box-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.35);
   max-width: min(560px, calc(100vw - 32px)); }
 .toast.bad { background: var(--bad); color: #fff; }
-button.btn.rowact { height: 24px; padding: 0 8px; font-size: 12px; opacity: 0; }
-tr:hover .rowact, .rowact:focus-visible { opacity: 1; }
-@media (hover: none) { button.btn.rowact { opacity: 1; } }
+
+/* TeamCity-style page: run list with the queue on top, Run and "…", a run page with details and plain tabs */
+.qlink { height: 24px; padding: 0 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--ground); color: var(--ink);
+  font: inherit; font-size: 12px; cursor: pointer; white-space: nowrap; }
+.qlink:hover { border-color: var(--faint); }
+.qlink[hidden] { display: none; }
+.pagehead { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; margin-bottom: 16px; }
+.pagehead h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 2px; }
+.tools { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.show { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.show select, .field input:not([type="checkbox"]), .field select { height: 30px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--ground); color: var(--ink); font: inherit; }
+.runbtn { display: inline-flex; }
+.runbtn .btn { border-radius: 0; }
+.runbtn .btn:first-child { border-radius: 6px 0 0 6px; }
+.runbtn .btn:last-child { border-radius: 0 6px 6px 0; padding: 0 10px; border-left-color: color-mix(in srgb, #fff 35%, var(--accent)); }
+button.btn.small { height: 24px; padding: 0 8px; font-size: 12px; gap: 4px; }
+td.rowtools { width: 1%; white-space: nowrap; text-align: right; padding-top: 4px; padding-bottom: 4px; }
+td.rowtools > * { vertical-align: middle; }
+tr.jobrow td { background: color-mix(in srgb, var(--soft) 70%, transparent); }
+.titlebar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.titlebar h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+.titlebar .num { font-family: var(--mono); color: var(--muted); font-size: 12px; }
+.titlebar .actions { margin-left: auto; display: flex; gap: 6px; }
+.statusline { font-size: 15px; margin: 8px 0 0; }
+.statusline b { font-weight: 600; }
+dl.info { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content minmax(0, 1fr); gap: 7px 18px; max-width: 920px;
+  margin: 16px 0 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--soft); }
+dl.info dt { color: var(--muted); }
+dl.info dd { margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stack { display: grid; gap: 26px; }
+.stack h2 { font-size: 14px; font-weight: 600; margin: 0 0 8px; }
+h2 .sub { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 8px; }
+.mark { display: inline-flex; align-items: center; gap: 4px; font-weight: 500; }
+.mark .lu { vertical-align: 0; }
+table.attempts .change { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.small { font-size: 11.5px; }
+tr.detailrow > td { background: var(--soft); padding: 12px 16px 16px 36px; }
+.adetail { display: grid; gap: 8px; }
+.adetail .explain { white-space: pre-wrap; max-width: 80ch; }
+.adetail .edit { max-width: 900px; margin: 0; background: var(--ground); }
+.lu.down { transform: rotate(90deg); }
+dialog { width: min(460px, calc(100vw - 32px)); padding: 20px 22px 18px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--ground); color: var(--ink); box-shadow: 0 24px 60px -16px rgb(0 0 0 / 0.4); }
+dialog.wide { width: min(880px, calc(100vw - 32px)); }
+dialog::backdrop { background: rgb(15 18 22 / 0.4); }
+dialog h2 { font-size: 16px; margin: 0 0 14px; }
+dialog p { margin: 0 0 12px; }
+dialog .field { max-width: none; }
+dialog .field input:not([type="checkbox"]), dialog .field select { width: 100%; }
+.dfoot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+.option { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; margin-bottom: 8px; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
+.option:has(input:checked) { border-color: var(--accent); background: var(--sel); }
+.option.off { opacity: 0.55; cursor: default; }
+.option input { margin: 3px 0 0; accent-color: var(--accent); }
+.option b { display: block; font-weight: 600; }
+.option .muted { display: block; font-size: 12.5px; }
+pre.log-view { max-height: 60vh; border: 1px solid var(--line); border-radius: 6px; }
 @media (max-width: 700px) {
-  .sbody { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
-  .wflist { border-right: none; border-bottom: 1px solid var(--line); grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; }
-  .wf .muted { display: none; }
-  .actbar { margin-left: 0; }
+  dl.info { grid-template-columns: max-content minmax(0, 1fr); }
+  .titlebar .actions { margin-left: 0; }
 }
 
 @media (max-width: 900px) {
   main { grid-template-columns: minmax(0, 1fr); grid-template-rows: 38vh minmax(0, 1fr); }
   aside { border-right: none; border-bottom: 1px solid var(--line); }
-  .overview, .split { grid-template-columns: minmax(0, 1fr); }
+
   .page { padding: 14px 16px 40px; }
   .nav, .root { display: none; }
   .hide-sm { display: none; }
-  .facts { gap: 10px 24px; }
+
   .line { grid-template-columns: 62px 14px minmax(0, 1fr) auto; }
   .nest { margin-left: 16px; }
   .box { overflow-x: auto; }
@@ -413,23 +327,20 @@ tr:hover .rowact, .rowact:focus-visible { opacity: 1; }
     Auto Fix
   </a>
   <div class="root" id="root"></div>
-  <div id="act"></div>
+  <button id="queue-link" class="qlink" type="button" hidden></button>
   <label class="live" title="Re-read the state directory every 4 seconds"><input type="checkbox" id="live" checked> Live refresh</label>
 </header>
 <main>
   <aside aria-label="Runs">
     <div class="search"><svg class="lu" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21l-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><input type="search" id="q" placeholder="Search runs, builds, tests, reasons" aria-label="Search runs"></div>
-    <div class="filters" id="filters" role="group" aria-label="Filter by result"></div>
-    <section id="queue" aria-label="Job queue" hidden></section>
     <div id="tree"></div>
   </aside>
   <section id="content" aria-live="polite" aria-busy="false"><div class="page loading">Loading runs…</div></section>
 </main>
-<aside id="sheet" class="sheet" role="dialog" aria-modal="false" hidden></aside>
+<dialog id="dialog" aria-label="Dialog"></dialog>
 <div id="toast" role="status" aria-live="polite"></div>
 <script>
 "use strict";
-const FILTERS = [["ok", "Successful"], ["bad", "Blocked"], ["warn", "Needs attention"], ["run", "Running"], ["none", "Cancelled"]];
 const STATUS = {
   published: {tone: "ok", text: "Published"},
   ready: {tone: "ok", text: "Ready (local candidate)"},
@@ -448,7 +359,7 @@ const STATUS = {
 const status = key => STATUS[key] || {tone: "none", text: key || "—"};
 // Deep links: #run=<id>&tab=<log|calls|files|events>&open=<step,...>&call=<file>&file=<path>
 const link = new URLSearchParams(location.hash.slice(1));
-const state = {runs: [], filters: new Set(), collapsed: new Set(), selected: link.get("run"), detail: null,
+const state = {runs: [], show: "all", openAttempts: new Set(), runKind: null, collapsed: new Set(), selected: link.get("run"), detail: null,
   tab: link.get("tab") || "overview", openSteps: new Set((link.get("open") || "").split(",").filter(Boolean).map(Number)),
   file: link.get("file"), call: link.get("call"), figure: null};
 
@@ -525,6 +436,7 @@ const ICONS = {
   logfile: "<path d='M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z'/><path d='M14 2v5a1 1 0 0 0 1 1h5M10 9H8m8 4H8m8 4H8'/>",
   reconcile: "<path d='M3 12a9 9 0 0 1 9-9a9.75 9.75 0 0 1 6.74 2.74L21 8'/><path d='M21 3v5h-5m5 4a9 9 0 0 1-9 9a9.75 9.75 0 0 1-6.74-2.74L3 16'/><path d='M8 16H3v5'/>",
   cancelled: "<circle cx='12' cy='12' r='10'/><path d='m9 15l6-6'/>",
+  clock: "<circle cx='12' cy='12' r='10'/><path d='M12 6v6l4 2'/>",
   play: "<path d='M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z'/>",
 };
 function lucide(name, size = 16, cls = "") {
@@ -655,22 +567,15 @@ function tree(value, depth = 0) {
 const jsonView = value => el("div", {class: "json"}, tree(value));
 const groupName = run => run.group || "State directory";
 
-/* ---------- sidebar ---------- */
+/* ---------- sidebar: search and the run tree ---------- */
+const SHOW = [["all", "All runs"], ["bad", "Blocked"], ["run", "Running"], ["warn", "Needs attention"], ["ok", "Successful"], ["none", "Cancelled"]];
 function visibleRuns() {
   const q = document.getElementById("q").value.trim().toLowerCase();
-  return state.runs.filter(run => (!state.filters.size || state.filters.has(status(run.status).tone)) &&
+  return state.runs.filter(run => (state.show === "all" || status(run.status).tone === state.show) &&
     (!q || [run.id, run.build_id, run.build_type, run.reason, run.group, ...run.tests].join(" ").toLowerCase().includes(q)));
 }
 function renderSidebar() { keepFocus(drawSidebar); }
 function drawSidebar() {
-  document.getElementById("filters").replaceChildren(...FILTERS.map(([tone, label]) => {
-    const count = state.runs.filter(run => status(run.status).tone === tone).length, on = state.filters.has(tone);
-    // An empty filter would only empty the list, so it is off unless it is already on.
-    return el("button", {class: "filter" + (on ? " on" : ""), "aria-pressed": String(on), disabled: !count && !on, "data-key": "filter:" + tone, onclick: () => {
-      on ? state.filters.delete(tone) : state.filters.add(tone);
-      renderSidebar(); if (!state.selected) renderHome();
-    }}, icon(tone, 12), label, el("span", {class: "n"}, count));
-  }));
   const runs = visibleRuns(), groups = new Map();
   for (const run of runs) (groups.get(groupName(run)) || groups.set(groupName(run), []).get(groupName(run))).push(run);
   const box = document.getElementById("tree");
@@ -691,7 +596,7 @@ function drawSidebar() {
   box.replaceChildren(...nodes);
 }
 
-/* ---------- home: build history ---------- */
+/* ---------- home: the run list, with queued and running jobs on top ---------- */
 /** A start time short enough for a table cell: the time today, the day this year, the date otherwise. */
 function shortWhen(iso) {
   if (!iso) return "—";
@@ -699,46 +604,98 @@ function shortWhen(iso) {
   if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString(undefined, time);
   return d.toLocaleString(undefined, {day: "numeric", month: "short", ...(d.getFullYear() === now.getFullYear() ? {} : {year: "numeric"}), ...time});
 }
-/** Failing tests after the baseline and each attempt, as "2 → 2 → 1"; filled in once the run's details arrive. */
-const trails = new Map();
-function trailCell(run) {
-  const cell = el("span", {class: "trail muted"}, "…"), key = run.id + "@" + run.updated;
-  if (!trails.has(key)) trails.set(key, api("/api/run?id=" + encodeURIComponent(run.id)).then(failingTrail).catch(() => null));
-  trails.get(key).then(counts => cell.replaceChildren(...trail(counts)));
+const elapsed = iso => duration((Date.now() - Date.parse(iso)) / 1000);
+/** A clock that the refresh loop moves on in place, without redrawing its row. */
+const clock = iso => el("span", {"data-since": iso}, elapsed(iso));
+function tickClocks() { for (const node of document.querySelectorAll("[data-since]")) node.textContent = elapsed(node.dataset.since); }
+/** "1 of 2 failing" from the run's latest test report, filled in once its details arrive. */
+const testCounts = new Map();
+function testsCell(run) {
+  const cell = el("span", {class: "muted"}, "…"), key = run.id + "@" + run.updated;
+  if (!testCounts.has(key)) testCounts.set(key, api("/api/run?id=" + encodeURIComponent(run.id))
+    .then(detail => ({counts: failingTrail(detail).filter(n => n !== null), total: detail.summary.tests.length})).catch(() => null));
+  testCounts.get(key).then(found => {
+    const failing = found?.counts.at(-1);
+    cell.className = failing === undefined ? "muted" : failing ? "t-bad" : "t-ok";
+    cell.textContent = failing === undefined ? "—" : failing ? `${failing} of ${found.total} failing` : `All ${found.total} pass`;
+  });
   return cell;
 }
-function trail(counts) {
-  if (!counts?.length) return [el("span", {class: "muted"}, "—")];
-  return counts.flatMap((n, i) => [i ? el("span", {class: "to", "aria-label": "then"}, lucide("arrow", 11)) : [],
-    el("b", {class: n === null ? "muted" : i === counts.length - 1 ? (n ? "t-bad" : "t-ok") : "", style: "font-weight:" + (i === counts.length - 1 ? 600 : 400)}, n === null ? "…" : String(n))]);
+function pageHead(title, sub, ...tools) {
+  return el("div", {class: "pagehead"}, el("div", {}, el("h1", {}, title), sub ? el("div", {class: "muted"}, sub) : null),
+    el("div", {class: "tools"}, tools));
+}
+/** TeamCity's Run and "…": run the daily batch with its defaults, or choose a workflow and its parameters. */
+function runButtons() {
+  if (!CAN_ACT) return el("span", {class: "badge", title: "Start the dashboard with --config to run workflows"}, "Read-only");
+  return el("div", {class: "runbtn"},
+    el("button", {class: "btn primary", type: "button", title: "Repair today's failed tests", onclick: quickRun}, lucide("play", 13), "Run"),
+    el("button", {class: "btn primary", type: "button", title: "Run with parameters", "aria-label": "Run with parameters", onclick: () => openRunDialog()}, "…"));
+}
+async function quickRun() {
+  try {
+    const done = await post("/api/jobs", {kind: "batch", params: {}});
+    toast(`Queued: ${done.job.title}`);
+    await loadJobs();
+    wake();
+  } catch (error) { toast(error.message, "bad"); }
+}
+/** A queued, running or failed job that has no run of its own in the list yet. */
+function jobRow(job) {
+  if (job.run_id && state.runs.some(run => run.id === "runs/" + job.run_id)) return null;
+  const queued = job.status === "queued", failed = job.status === "failed";
+  const result = queued ? [el("span", {class: "muted", style: "font-weight:500"}, "Queued"), el("span", {class: "muted"}, ` · ${job.note || "by " + job.created_by}`)]
+    : failed ? [el("span", {class: "t-bad", style: "font-weight:500"}, "Failed"), el("span", {class: "muted"}, " · " + (job.error || "see the log"))]
+    : [el("span", {class: "t-run", style: "font-weight:500"}, "Running")];
+  return el("tr", {class: "jobrow", "data-key": "job:" + job.id},
+    el("td", {style: "width:28px"}, queued ? lucide("clock", 14, "ico t-none") : failed ? icon("bad") : icon("run")),
+    el("td", {style: "white-space:nowrap"}, job.title),
+    el("td", {class: "grow"}, el("span", {class: "ellipsis", title: job.error || ""}, result)),
+    el("td", {class: "hide-sm"}),
+    el("td", {class: "hide-sm muted", style: "white-space:nowrap"}, shortWhen(job.started || job.created)),
+    el("td", {class: "num"}, job.status === "running" && job.started ? clock(job.started) : ""),
+    el("td", {class: "rowtools"},
+      queued ? iconButton("close", "Remove from queue", () => removeJob(job)) : null,
+      job.status === "running" ? el("button", {class: "btn small", type: "button", onclick: () => stopJob(job)}, lucide("halt", 12), "Stop") : null,
+      !queued ? iconButton("logfile", "View log", () => openLog(job)) : null,
+      failed ? iconButton("close", "Dismiss", () => removeJob(job)) : null));
+}
+function runRow(run) {
+  const st = status(run.status), why = run.reason && st.tone !== "ok" ? run.reason : "";
+  const running = run.status === "in_progress" && run.live;
+  const result = running
+    ? [el("span", {class: "t-run", style: "font-weight:500"}, "Running"), el("span", {class: "muted"}, ` · ${run.current || "starting"}`),
+       run.request ? el("span", {class: "muted"}, ` · ${run.request.request === "pause" ? "pausing" : "stopping"} after this step`) : null]
+    : [el("span", {class: "t-" + st.tone, style: "font-weight:500"}, st.text), why ? el("span", {class: "muted"}, " · " + why) : null];
+  return el("tr", {class: "click", "data-key": "row:" + run.id, "aria-label": `${run.name}: ${st.text}`, onclick: () => select(run.id)},
+    el("td", {style: "width:28px"}, statusIcon(run.status)),
+    el("td", {class: "mono", style: "white-space:nowrap"}, run.name),
+    el("td", {class: "grow"}, el("span", {class: "ellipsis", title: why ? `${st.text}: ${why}` : st.text}, result)),
+    el("td", {class: "hide-sm", style: "white-space:nowrap"}, testsCell(run)),
+    el("td", {class: "hide-sm muted", style: "white-space:nowrap", title: when(run.started)}, shortWhen(run.started)),
+    el("td", {class: "num"}, running && run.started ? clock(run.started) : duration(run.duration_seconds)),
+    el("td", {class: "rowtools"}, running && CAN_ACT ? el("button", {class: "btn small", type: "button",
+      onclick: async event => { event.stopPropagation(); stopDialog(await api("/api/run?id=" + encodeURIComponent(run.id))); }},
+      lucide("halt", 12), "Stop") : null));
 }
 function renderHome() {
   dropFigure();
-  const runs = visibleRuns(), grouped = new Set(state.runs.map(groupName)).size > 1;
-  const counts = FILTERS.map(([tone, label]) => [state.runs.filter(run => status(run.status).tone === tone).length, label.toLowerCase()]).filter(([n]) => n);
+  const runs = visibleRuns(), jobs = (CAN_ACT ? controls.jobs : []).map(jobRow).filter(Boolean);
+  const counts = SHOW.slice(1).map(([tone, label]) => [state.runs.filter(run => status(run.status).tone === tone).length, label.toLowerCase()]).filter(([n]) => n);
+  const show = el("label", {class: "show"}, "Show ", el("select", {"data-key": "show", onchange: event => { state.show = event.target.value; renderSidebar(); renderHome(); }},
+    SHOW.map(([value, label]) => el("option", {value, selected: value === state.show ? "" : null}, label))));
+  const table = runs.length || jobs.length ? el("div", {class: "box"}, el("table", {class: "runs"},
+    el("thead", {}, el("tr", {}, el("th", {}, el("span", {class: "sr"}, "Status")), el("th", {}, "Run"), el("th", {}, "Result"),
+      el("th", {class: "hide-sm"}, "Tests"), el("th", {class: "hide-sm"}, "Started"), el("th", {class: "num"}, "Duration"), el("th", {}, el("span", {class: "sr"}, "Actions")))),
+    el("tbody", {}, jobs, runs.map(runRow)))) : null;
   document.getElementById("content").replaceChildren(el("div", {class: "page"},
-    el("div", {class: "headline"}, el("h1", {}, "Run history")),
-    el("div", {class: "muted", style: "margin:4px 0 16px"},
-      [`${state.runs.length} run${state.runs.length === 1 ? "" : "s"}`, ...counts.map(([n, label]) => `${n} ${label}`)].join(" · ")),
-    runs.length ? el("div", {class: "box"}, el("table", {},
-      el("thead", {}, el("tr", {}, el("th", {}, el("span", {class: "sr"}, "Status")), el("th", {}, "Run"), grouped ? el("th", {class: "hide-sm"}, "Group") : null, el("th", {}, "Result"),
-        el("th", {class: "hide-sm", title: "Failing tests at the baseline and after each repair attempt"}, "Failing tests"),
-        el("th", {class: "hide-sm"}, "Started"), el("th", {class: "num"}, "Duration"), el("th", {class: "num hide-sm"}, "Attempts"))),
-      el("tbody", {}, runs.map(run => {
-        const st = status(run.status), why = run.reason && st.tone !== "ok" ? run.reason : "";
-        return el("tr", {class: "click", "data-key": "row:" + run.id, "aria-label": `${run.name}: ${st.text}`, onclick: () => select(run.id)},
-          el("td", {style: "width:28px"}, statusIcon(run.status)),
-          el("td", {class: "mono", style: "white-space:nowrap"}, run.name),
-          grouped ? el("td", {class: "hide-sm muted", style: "white-space:nowrap"}, groupName(run)) : null,
-          el("td", {class: "grow"}, el("span", {class: "ellipsis", title: why ? `${st.text}: ${why}` : st.text},
-            el("span", {class: "t-" + st.tone, style: "font-weight:500"}, st.text), why ? el("span", {class: "muted"}, " · " + why) : null)),
-          el("td", {class: "hide-sm"}, trailCell(run)),
-          el("td", {class: "hide-sm muted", style: "white-space:nowrap", title: when(run.started)}, shortWhen(run.started)),
-          el("td", {class: "num"}, duration(run.duration_seconds)),
-          el("td", {class: "num hide-sm"}, run.attempts));
-      })))) : state.runs.length ? emptyState("search", "No run matches", "Nothing in this directory fits the search and the result filters.",
-        el("button", {class: "btn", type: "button", onclick: () => { document.getElementById("q").value = ""; state.filters.clear(); renderSidebar(); renderHome(); }}, "Clear search and filters"))
-      : emptyState("runs", "No runs yet", ["Runs appear here as soon as Auto Fix writes a checkpoint below ", el("code", {}, document.getElementById("root").textContent || "the state directory"), "."])));
+    pageHead("Run history", [`${state.runs.length} run${state.runs.length === 1 ? "" : "s"}`, ...counts.map(([n, label]) => `${n} ${label}`)].join(" · "), show, runButtons()),
+    CAN_ACT && !controls.runner.alive ? el("div", {class: "notice"}, lucide("warn", 16), el("span", {}, "No runner is active, so queued jobs wait. Restart the dashboard with --config, or run ", el("code", {}, "auto-fix worker"), "."))
+      : CAN_ACT && controls.runner.waiting ? el("div", {class: "notice"}, lucide("clock", 16), el("span", {}, controls.runner.waiting)) : null,
+    table || (state.runs.length ? emptyState("search", "No run matches", "Nothing in this directory fits the search and the filter.",
+        el("button", {class: "btn", type: "button", onclick: () => { document.getElementById("q").value = ""; state.show = "all"; renderSidebar(); renderHome(); }}, "Show all runs"))
+      : emptyState("runs", "No runs yet", CAN_ACT ? "Run repairs today's failed tests; the run appears here as soon as it starts."
+        : ["Runs appear here as soon as Auto Fix writes a checkpoint below ", el("code", {}, document.getElementById("root").textContent || "the state directory"), "."], CAN_ACT ? runButtons() : null))));
 }
 
 async function loadRuns() {
@@ -749,11 +706,12 @@ async function loadRuns() {
   const changed = JSON.stringify(data.runs) !== JSON.stringify(state.runs);
   state.runs = data.runs;
   if (changed || !document.querySelector("#tree > *")) renderSidebar();
+  return changed;
 }
 /** Opens a run (or the history, for null). A new entry in the browser history lets Back return to where you were. */
 async function select(id, push = true) {
   const changed = id !== state.selected;
-  if (changed) { state.openSteps.clear(); state.file = null; state.call = null; state.tab = "overview"; }
+  if (changed) { state.openSteps.clear(); state.openAttempts.clear(); state.file = null; state.call = null; state.tab = "overview"; }
   state.selected = id;
   if (push && changed) history.pushState(null, "", id ? "#run=" + encodeURIComponent(id) : location.pathname + location.search);
   renderSidebar();
@@ -792,133 +750,6 @@ async function loadDetail() {
   if (!same || !document.querySelector(".page")) renderDetail();
 }
 
-/* ---------- workflow figure ---------- */
-/** Rows by the longest forward path from start, a column within each row, and the back edges that make loops. */
-function layout(graph) {
-  const out = {};
-  for (const e of graph.edges) (out[e.source] ||= []).push(e.target);
-  const back = new Set(), seen = new Set(), stack = new Set(), order = [];
-  (function visit(node) {
-    seen.add(node); stack.add(node);
-    for (const next of out[node] || []) {
-      if (stack.has(next)) back.add(node + ">" + next);
-      else if (!seen.has(next)) visit(next);
-    }
-    stack.delete(node); order.unshift(node);
-  })("__start__");
-  for (const node of graph.nodes) if (!seen.has(node)) order.push(node);
-  const layer = Object.fromEntries(graph.nodes.map(n => [n, 0]));
-  for (const node of order) for (const next of out[node] || [])
-    if (!back.has(node + ">" + next) && next !== node) layer[next] = Math.max(layer[next], layer[node] + 1);
-  const rows = {};
-  for (const node of order) (rows[layer[node]] ||= []).push(node);
-  // The success path stays in the main lane; exits such as "blocked" sit in the lane beside it.
-  const cell = {};
-  for (const [row, nodes] of Object.entries(rows)) {
-    nodes.sort((a, b) => (a === "blocked") - (b === "blocked"));
-    nodes.forEach((node, i) => cell[node] = [Number(row), i]);
-  }
-  return {cell, back};
-}
-
-/* ---------- workflow graph ---------- */
-function visitsByNode(detail) {
-  const by = {};
-  for (const step of detail.steps) (by[step.node] ||= []).push(step);
-  return by;
-}
-const failedOf = steps => steps.filter(step => stepTone(step) === "bad").length;
-
-/*
- * The workflow graph, top-down. The path the run took is in ink with arrowheads, edges it could have
- * taken are dim, and edges far from its path are left out. ×N counts visits; a node with a failed
- * visit is outlined in red, and the node the run ended on is drawn heavier.
- */
-/** A node's icon placed inside the graph, 14 units square at (x, y). */
-function nodeGlyph(name, x, y) {
-  const g = svg("svg", {x, y, width: 14, height: 14, viewBox: "0 0 24 24", class: "lu glyph"});
-  g.innerHTML = ICONS[stepInfo(name).icon];
-  return g;
-}
-const WORKFLOW_HINT = "Hover or focus a node to see its steps; click to open them in the build log.";
-function mountFlat(detail, stage, read, {onPick, onHover}) {
-  const g = detail.graph, {cell, back} = layout(g), by = visitsByNode(detail);
-  const W = 136, H = 30, GAP = 50, X0 = 34, SIDE = 164, pos = {};
-  for (const [name, [row, col]] of Object.entries(cell)) pos[name] = {x: X0 + col * SIDE, y: 6 + row * GAP, w: W, h: H};
-  const rows = Math.max(...Object.values(cell).map(c => c[0])) + 1;
-  const root = svg("svg", {viewBox: `0 0 ${X0 + SIDE + W + 16} ${rows * GAP}`, width: "100%", class: "flat", role: "group",
-    "aria-label": "Workflow path: " + detail.steps.map(s => s.node).join(", then ")});
-  root.append(svg("defs", {}, ...["on", "off"].map(kind => svg("marker", {id: "flat-" + kind, viewBox: "0 0 10 10", refX: 9, refY: 5,
-    markerWidth: 6, markerHeight: 6, orient: "auto-start-reverse"}, svg("path", {d: "M1,1 L9,5 L1,9", class: "tip " + kind})))));
-  const edges = svg("g"), labels = svg("g");
-  for (const e of g.edges) {
-    const a = pos[e.source], b = pos[e.target];
-    if (!a || !b) continue;
-    const key = e.source + ">" + e.target, hits = g.transitions[key] || 0;
-    const near = e.source !== e.target && !back.has(key) && cell[e.target][0] === cell[e.source][0] + 1 && cell[e.target][1] === cell[e.source][1];
-    if (!hits && !near) continue;
-    let d, lx, ly;
-    if (e.source === e.target) {
-      d = `M${a.x},${a.y + 8} C${a.x - 30},${a.y - 4} ${a.x - 30},${a.y + a.h + 4} ${a.x},${a.y + a.h - 8}`;
-      lx = a.x - 30; ly = a.y + a.h / 2 + 4;
-    } else if (back.has(key)) {
-      const bend = 22 + (a.y - b.y) / 7;
-      d = `M${a.x},${a.y + a.h / 2} C${a.x - bend},${a.y + a.h / 2} ${b.x - bend},${b.y + b.h / 2} ${b.x},${b.y + b.h / 2}`;
-      lx = Math.min(a.x, b.x) - bend * 0.75 - 6; ly = (a.y + b.y + b.h) / 2;
-    } else if (b.x > a.x) {
-      d = `M${a.x + a.w},${a.y + a.h / 2} C${b.x + b.w / 2},${a.y + a.h / 2} ${b.x + b.w / 2},${a.y + a.h / 2} ${b.x + b.w / 2},${b.y}`;
-      lx = (a.x + a.w + b.x + b.w / 2) / 2 + 6; ly = a.y + a.h / 2 - 4;
-    } else if (b.y - a.y > 60) {
-      const bend = a.x + a.w + 14 + (b.y - a.y) / 14;
-      d = `M${a.x + a.w},${a.y + a.h / 2} C${bend},${a.y + a.h / 2} ${bend},${b.y + b.h / 2} ${b.x + b.w},${b.y + b.h / 2}`;
-      lx = bend - 4; ly = (a.y + b.y + b.h) / 2;
-    } else {
-      d = `M${a.x + a.w / 2},${a.y + a.h} L${b.x + b.w / 2},${b.y}`;
-      lx = a.x + a.w / 2 + 6; ly = (a.y + a.h + b.y) / 2 + 4;
-    }
-    edges.append(svg("path", {d, class: "fe" + (hits ? " on" : ""), "marker-end": `url(#flat-${hits ? "on" : "off"})`}));
-    if (hits > 1) labels.append(svg("text", {x: lx, y: ly, class: "fe-label"}, "×" + hits));
-  }
-  const caption = name => {
-    const steps = by[name] || [];
-    return !steps.length ? `${name}: not run` : `${name}: step${steps.length > 1 ? "s" : ""} ${steps.map(s => s.index + 1).join(", ")}`
-      + (failedOf(steps) ? ` · ${failedOf(steps)} failed` : "");
-  };
-  const last = detail.steps.length ? detail.steps[detail.steps.length - 1].node : null, nodes = {};
-  for (const name of g.nodes) {
-    const p = pos[name];
-    if (!p) continue;
-    const steps = by[name] || [], terminal = name.startsWith("__"), visits = g.visits[name] || 0;
-    const cls = "fn " + (visits ? "ran" : "idle") + (failedOf(steps) ? " bad" : "") + (name === last ? " end" : "");
-    const node = svg("g", {class: cls},
-      svg("rect", {x: p.x, y: p.y, width: p.w, height: p.h, rx: terminal ? 15 : 7}),
-      nodeGlyph(name, p.x + 10, p.y + p.h / 2 - 7),
-      svg("text", {x: p.x + 31, y: p.y + p.h / 2 + 4}, name === "__start__" ? "start" : name === "__end__" ? "end" : name),
-      visits > 1 && !terminal ? svg("text", {x: p.x + p.w - 10, y: p.y + p.h / 2 + 4, "text-anchor": "end", class: "count"}, "×" + visits) : null);
-    if (!terminal) {
-      node.setAttribute("tabindex", "0");
-      node.setAttribute("role", "button");
-      node.setAttribute("aria-label", caption(name));
-      node.addEventListener("mouseenter", () => setActive(name));
-      node.addEventListener("mouseleave", () => setActive(null));
-      node.addEventListener("focus", () => setActive(name));
-      node.addEventListener("blur", () => setActive(null));
-      node.addEventListener("click", () => onPick(name));
-      node.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onPick(name); } });
-    }
-    nodes[name] = node;
-  }
-  root.append(edges, ...Object.values(nodes), labels);
-  stage.append(root);
-  function setActive(name, quiet) {
-    for (const [key, node] of Object.entries(nodes)) node.classList.toggle("on", key === name);
-    read.textContent = name ? caption(name) : WORKFLOW_HINT;
-    if (!quiet) onHover(name ? (by[name] || []).map(s => s.index) : []);
-  }
-  read.textContent = WORKFLOW_HINT;
-  return {pick: step => setActive(step ? step.node : null, true), destroy: () => root.remove()};
-}
-
 /* ---------- test reports ---------- */
 /** Every test report the run produced, in order: the baseline, then one per verify (null while it runs). */
 function reports(detail) {
@@ -935,12 +766,6 @@ function reports(detail) {
   out.filter(r => r.step.node === "verify").forEach((r, i) => r.label = "#" + (i + 1));
   return out;
 }
-/** Tick spacing in seconds that gives at most `most` ticks across the span. */
-function tickStep(seconds, most = 8) {
-  return [1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 900, 1800, 3600, 7200].find(s => seconds / s <= most) || 14400;
-}
-
-/* ---------- attempt table: one row per phase on a shared time axis ---------- */
 /** The run cut into phases: setup, baseline, one attempt per repair (with the investigation before it), finish. */
 function phases(detail) {
   const rows = [];
@@ -959,119 +784,9 @@ function phases(detail) {
   for (const row of rows) row.label = row.kind === "attempt" ? "Attempt " + ++n : row.kind[0].toUpperCase() + row.kind.slice(1);
   return rows;
 }
-/** The node whose icon stands for each phase of the attempt table; finish takes its last node's. */
-const PHASE_NODE = {setup: "collect_context", baseline: "baseline", attempt: "repair"};
 const ended = step => step.ended ? Date.parse(step.ended) : Date.now();
 const callsIn = (detail, steps) => detail.model_calls.filter(c => steps.some(s => c.started >= s.started && (!s.ended || c.started <= s.ended)));
 const lineCount = text => (text || "").split("\n").length;
-
-/** Test dots: one per failing test from the start, filled red while it fails, green once it passes. */
-function testDots(tests, report, running) {
-  return el("span", {class: "tdots"}, tests.map(test => {
-    const state = running || !report ? "wait" : report.failed.includes(test) ? "fail" : "pass";
-    return el("i", {class: state, title: `${test}: ${state === "wait" ? "not run yet" : state === "fail" ? "failing" : "passing"}`});
-  }));
-}
-
-/*
- * The run as a table of phases. Every row has a bar on one time axis, so the rows step down and to
- * the right like a Gantt chart; inside a bar, the filled part is the model and a red part is a failed
- * verify. Beside it: the tests after that phase as dots, what the phase changed, and its time. A row
- * opens to the model's explanation, the full edit and links to the log and the model call.
- */
-function mountTable(detail, host, read, {onPick}) {
-  const tests = detail.summary.tests, live = detail.summary.status === "in_progress";
-  const results = reports(detail), reportOf = step => results.find(r => r.step === step);
-  let open = null;
-  const draw = () => {
-    const rows = phases(detail);
-    if (live && !rows.some(r => r.kind === "finish")) rows.push({kind: "finish", label: "Finish", steps: []});
-    if (open === null) open = rows.filter(r => r.kind === "attempt").length ? rows.lastIndexOf(rows.filter(r => r.kind === "attempt").pop()) : -1;
-    const t0 = Date.parse(detail.steps[0].started), t1 = Math.max(t0 + 1000, ...detail.steps.map(ended));
-    const pct = t => (t - t0) / (t1 - t0) * 100;
-    // one tick per ~64px of the bar column, measured on the previous draw
-    const barPx = host.querySelector(".ahead .atime")?.clientWidth || host.clientWidth * 0.3;
-    const seconds = (t1 - t0) / 1000, every = tickStep(seconds, Math.max(2, Math.floor(barPx / 64)));
-    const ticks = el("div", {class: "aticks"});
-    for (let s = 0; s <= seconds + 1e-6; s += every) ticks.append(el("span", {style: `left:${pct(t0 + s * 1000)}%`}, s ? duration(s) : "0"));
-    const head = el("div", {class: "arow ahead"}, el("div", {class: "alabel"}, "Phase"), el("div", {class: "atime"}, ticks), el("div", {class: "atests"}, "Tests"),
-      el("div", {class: "awhat"}, "What happened"), el("div", {class: "atimecol"}, "Time"));
-    const body = rows.map((row, i) => {
-      const steps = row.steps, verify = steps.find(s => s.node === "verify"), base = steps.find(s => s.node === "baseline");
-      const running = steps.find(s => s.status === "running"), calls = callsIn(detail, steps);
-      const report = (verify || base) && reportOf(verify || base)?.report;
-      const failed = report && !running ? report.failed.length : null;
-      // the bar: one segment per step, model time filled inside it
-      const bar = el("div", {class: "atrack"});
-      for (const step of steps) {
-        const left = pct(Date.parse(step.started)), width = Math.max(pct(ended(step)) - left, 0.25);
-        const bad = (step.node === "verify" && reportOf(step)?.report?.failed.length && step.status !== "running") || step.status === "interrupted";
-        const seg = el("div", {class: "aseg" + (bad ? " bad" : "") + (step.status === "running" ? " run" : ""), style: `left:${left}%;width:${width}%`,
-          title: `${step.node} · ${step.status === "running" ? "running" : duration(step.duration_seconds)}`});
-        const span = ended(step) - Date.parse(step.started);
-        for (const call of calls) {
-          const c0 = Date.parse(call.started);
-          if (span && c0 >= Date.parse(step.started) && c0 <= ended(step))
-            seg.append(el("i", {class: call.error ? "err" : "", style: `left:${(c0 - Date.parse(step.started)) / span * 100}%;width:${Math.max((call.elapsed_seconds || 0) * 1000 / span * 100, 2)}%`}));
-        }
-        bar.append(seg);
-      }
-      if (!steps.length) bar.append(el("span", {class: "apending"}, "pending"));
-      // what happened, in one line
-      const p = steps.map(s => s.changes?.last_repair?.proposal || s.changes?.proposal).find(Boolean);
-      const errors = calls.filter(c => c.error);
-      let what;
-      if (row.kind === "setup") what = [el("span", {class: "muted"}, "branch "), el("code", {}, detail.summary.branch || "—")];
-      else if (row.kind === "baseline") what = el("span", {class: "muted"}, report ? `reproduces ${report.failed.length} failure${report.failed.length === 1 ? "" : "s"} before any edit` : "building and testing the original revision…");
-      else if (row.kind === "attempt") what = running && !p ? el("span", {class: "muted"}, "waiting for the model…")
-        : p?.summary ? [el("span", {class: "summary"}, "“" + p.summary + "”"), ...(p.edits || []).map(e =>
-          el("span", {class: "afile"}, e.path.split("/").pop(), el("b", {class: "del"}, " −" + lineCount(e.old)), el("b", {class: "add"}, " +" + lineCount(e.new))))]
-        : el("span", {class: "t-bad"}, errors.length ? "no proposal: the model call failed" : "no proposal");
-      else what = !steps.length ? el("span", {class: "muted"}, "after a passing attempt: finalize and publish")
-        : [el("span", {class: "t-" + status(detail.summary.status).tone}, status(detail.summary.status).text),
-          detail.summary.reason && status(detail.summary.status).tone !== "ok" ? el("span", {class: "muted"}, detail.summary.reason) : null,
-          detail.summary.pr_url ? outLink(detail.summary.pr_url, "pull request") : null];
-      const total = steps.length ? (Math.max(...steps.map(ended)) - Date.parse(steps[0].started)) / 1000 : null;
-      const model = calls.reduce((s, c) => s + (c.elapsed_seconds || 0), 0);
-      const lastVerify = [...detail.steps].reverse().find(s => s.node === "verify" && s.ended && s !== verify);
-      const time = running ? el("span", {}, `${running.node === "verify" ? "verifying" : running.node} ${duration((Date.now() - Date.parse(running.started)) / 1000)}`,
-        running.node === "verify" && lastVerify ? el("span", {class: "muted"}, ` · last ${duration(lastVerify.duration_seconds)}`) : null)
-        : total === null ? "—" : [duration(total), model ? el("span", {class: "muted"}, ` · model ${duration(model)}`) : null];
-      const verdict = row.kind === "setup" || row.kind === "finish" ? null : running && (verify === running || base === running) ? el("span", {class: "muted"}, "running…")
-        : report ? el("span", {class: failed ? "t-bad" : ""}, failed ? `${failed} of ${tests.length} failing` : `all ${tests.length} pass`) : el("span", {class: "muted"}, "—");
-      const line = el("div", {class: "arow" + (running ? " live" : "") + (i === open ? " open" : "") + (!steps.length ? " idle" : ""),
-        ...(steps.length ? {"aria-expanded": String(i === open), "data-key": "phase:" + i, onclick: () => { open = open === i ? -1 : i; keepFocus(draw); }} : {})},
-        el("div", {class: "alabel"}, (steps.length ? chevron(i === open) : el("span", {class: "chev"})),
-          lucide(stepInfo(PHASE_NODE[row.kind] || (steps.some(s => s.node === "blocked") ? "blocked" : "finalize")).icon, 14, "kind"), row.label),
-        el("div", {class: "atime"}, bar),
-        el("div", {class: "atests"}, row.kind === "baseline" || row.kind === "attempt" ? [testDots(tests, report, running && (verify === running || base === running) || (!verify && !base)), verdict] : null),
-        el("div", {class: "awhat"}, what),
-        el("div", {class: "num atimecol"}, time));
-      return i === open && steps.length ? [line, phaseDetail(detail, row, report, calls, onPick)] : [line];
-    });
-    host.replaceChildren(summaryLine(detail, rows), el("div", {class: "box atable"}, head, body.flat()));
-  };
-  draw();
-  const timer = live ? setInterval(() => keepFocus(draw), 1000) : 0;
-  return {pick: () => {}, destroy: () => clearInterval(timer)};
-}
-
-/** The opened row: the model's reasoning, the exact edits, the tests still failing, and where to look next. */
-function phaseDetail(detail, row, report, calls, onPick) {
-  const p = row.steps.map(s => s.changes?.last_repair?.proposal || s.changes?.proposal).find(Boolean);
-  const first = row.steps[0];
-  return el("div", {class: "adetail"},
-    p?.explanation ? el("div", {class: "explain"}, p.explanation) : null,
-    (p?.edits || []).map(e => el("div", {class: "edit"}, el("div", {class: "path"}, e.path), el("pre", {class: "old"}, e.old), el("pre", {class: "new"}, e.new))),
-    calls.filter(c => c.error).map(c => el("div", {class: "t-bad"}, `model call ${c.index}: ${c.error}`)),
-    report?.failed.length ? el("div", {}, el("span", {class: "muted"}, "still failing: "), el("code", {}, report.failed.join(", "))) : null,
-    row.kind === "finish" && detail.summary.reason ? el("div", {class: "muted"}, detail.summary.reason) : null,
-    el("div", {class: "alinks"},
-      el("button", {class: "link", onclick: e => { e.stopPropagation(); onPick(first); }}, "open in build log"),
-      row.kind === "attempt" && canReplay(detail, first)
-        ? el("button", {class: "link", onclick: e => { e.stopPropagation(); replayStep(first, e.currentTarget); }}, "re-run from this attempt") : null,
-      calls.map(c => el("button", {class: "link", onclick: e => { e.stopPropagation(); state.tab = "calls"; state.call = c.file; renderDetail(); }}, `model call ${c.index}`))));
-}
 
 /** Failing tests at the baseline and after each attempt that reached a verify; null for a check still running. */
 function failingTrail(detail, rows = phases(detail)) {
@@ -1084,47 +799,11 @@ function failingTrail(detail, rows = phases(detail)) {
     return report ? report.failed.length : null;
   }).filter(n => n !== undefined);
 }
-/** One line above the table: how the failing tests went down attempt by attempt, and where the time went. */
-function summaryLine(detail, rows) {
-  const total = (Math.max(...detail.steps.map(ended)) - Date.parse(detail.steps[0].started)) / 1000;
-  const model = detail.model_calls.reduce((s, c) => s + (c.elapsed_seconds || 0), 0);
-  const checks = detail.steps.filter(s => s.node === "baseline" || s.node === "verify").reduce((s, x) => s + (x.ended ? x.duration_seconds || 0 : (Date.now() - Date.parse(x.started)) / 1000), 0);
-  const other = Math.max(total - model - checks, 0), part = v => (v / Math.max(total, 1e-6) * 100).toFixed(2) + "%";
-  return el("div", {class: "asummary"},
-    el("div", {}, el("span", {class: "muted"}, "Failing tests "), el("span", {class: "trail"}, trail(failingTrail(detail, rows)))),
-    el("div", {class: "asplit"}, el("span", {class: "muted"}, "Time "), el("b", {}, duration(total)),
-      el("span", {class: "abar", "aria-hidden": "true"}, el("i", {class: "m", style: `width:${part(model)}`}), el("i", {class: "c", style: `width:${part(checks)}`}), el("i", {class: "o", style: `width:${part(other)}`})),
-      el("span", {class: "muted"}, el("i", {class: "key m"}), `model ${duration(model)}`, el("i", {class: "key c"}), `build & tests ${duration(checks)}`,
-        ` · other ${duration(other)}`)));
-}
 
-/* ---------- steps: duration table and build log ---------- */
+/* ---------- build log ---------- */
 function stepTone(step) {
   return step.status === "interrupted" || step.status === "blocked" || step.status === "verification_failed" ? "bad"
     : step.status === "invalid_proposal" || step.status === "publication_unknown" ? "warn" : "";
-}
-function renderStepTable(detail) {
-  const steps = detail.steps;
-  if (!steps.length) return el("div", {class: "bd muted"}, "No checkpoints or node events recorded yet.");
-  const t0 = Date.parse(steps[0].started), tn = Math.max(...steps.map(s => Date.parse(s.ended || s.started)));
-  const span = Math.max(tn - t0, 1);
-  return el("table", {},
-    el("thead", {}, el("tr", {}, el("th", {}, "#"), el("th", {}, "Node"), el("th", {class: "hide-sm"}, "Timeline"), el("th", {class: "num"}, "Duration"), el("th", {}, "Outcome"), el("th", {}, el("span", {class: "sr"}, "Actions")))),
-    el("tbody", {}, steps.map(step => {
-      const start = Date.parse(step.started) - t0, end = (step.ended ? Date.parse(step.ended) : tn) - t0;
-      const st = status(step.status);
-      return el("tr", {class: "click", "data-step": step.index, "data-key": "step:" + step.index, title: "Open in the build log", onclick: () => { state.tab = "log"; state.openSteps.add(step.index); renderDetail(); },
-        onmouseenter: () => state.figure?.pick(step), onmouseleave: () => state.figure?.pick(null)},
-        el("td", {class: "muted", style: "width:30px"}, step.index + 1),
-        el("td", {class: "mono"}, nodeTag(step.node)),
-        el("td", {class: "hide-sm", style: "width:40%"}, el("div", {class: "bar", title: `${when(step.started)} → ${when(step.ended)}`},
-          el("i", {style: `left:${(start / span * 100).toFixed(2)}%;width:${Math.max((end - start) / span * 100, 0.4).toFixed(2)}%`}))),
-        el("td", {class: "num"}, duration(step.duration_seconds)),
-        el("td", {class: "t-" + (stepTone(step) || "none")}, st.text),
-        el("td", {style: "width:1%;white-space:nowrap"}, canReplay(detail, step) ? el("button", {class: "btn rowact", type: "button",
-          title: `Start a new run at step ${step.index + 1}`, onclick: event => { event.stopPropagation(); replayStep(step, event.currentTarget); }},
-          lucide("rerun", 13), "Re-run from here") : null));
-    })));
 }
 function renderLog(detail) {
   const steps = detail.steps;
@@ -1230,14 +909,74 @@ function renderFiles(detail) {
   return el("div", {class: "split"}, list, viewer);
 }
 
+/* ---------- run overview: tests and attempts ---------- */
+const PASS = () => el("span", {class: "t-ok mark"}, lucide("check", 13), "Passed");
+const FAIL = () => el("span", {class: "t-bad mark"}, lucide("close", 13), "Failed");
+/** Each failing test against the baseline and every attempt, like TeamCity's test history. */
+function testsGrid(detail) {
+  const results = reports(detail), tests = detail.summary.tests;
+  if (!tests.length) return el("p", {class: "muted"}, "No failing tests were recorded for this run.");
+  // A verify follows the latest repair: attempts that never reached a verify have no column.
+  const label = result => result.label === "Baseline" ? "Before the fix"
+    : "After attempt " + detail.steps.filter(step => step.node === "repair" && step.index < result.step.index).length;
+  return el("div", {class: "box"}, el("table", {},
+    el("thead", {}, el("tr", {}, el("th", {}, "Test"), results.map(result => el("th", {}, label(result))))),
+    el("tbody", {}, tests.map(test => el("tr", {}, el("td", {class: "mono"}, test), results.map(result => {
+      const report = result.report;
+      if (result.step.status === "running") return el("td", {class: "muted"}, "Running…");
+      return el("td", {}, !report ? el("span", {class: "muted"}, "—") : report.failed.includes(test) ? FAIL()
+        : report.passed.includes(test) ? PASS() : el("span", {class: "muted"}, "Not run"));
+    }))))));
+}
+/** One row per repair attempt: what the model changed and what the tests said. A row opens to the diff. */
+function attemptsTable(detail) {
+  const rows = phases(detail).filter(row => row.kind === "attempt"), total = detail.summary.tests.length;
+  if (!rows.length) return el("p", {class: "muted"}, detail.summary.status === "in_progress" ? "No repair attempt yet." : "The run stopped before any repair attempt.");
+  const results = reports(detail);
+  return el("div", {class: "box"}, el("table", {class: "attempts"},
+    el("thead", {}, el("tr", {}, el("th", {}, "Attempt"), el("th", {}, "Change"), el("th", {}, "Tests after"), el("th", {class: "num"}, "Duration"))),
+    el("tbody", {}, rows.flatMap(row => {
+      const steps = row.steps, verify = steps.find(s => s.node === "verify"), running = steps.find(s => s.status === "running");
+      const calls = callsIn(detail, steps), proposal = steps.map(s => s.changes?.last_repair?.proposal || s.changes?.proposal).find(Boolean);
+      const report = verify && results.find(result => result.step === verify)?.report, open = state.openAttempts.has(row.label);
+      const change = proposal?.summary ? [el("span", {}, proposal.summary), ...(proposal.edits || []).map(edit =>
+          el("span", {class: "afile"}, edit.path.split("/").pop(), el("b", {class: "del"}, " −" + lineCount(edit.old)), el("b", {class: "add"}, " +" + lineCount(edit.new))))]
+        : running ? el("span", {class: "muted"}, "Waiting for the model…")
+        : el("span", {class: "t-bad"}, calls.some(call => call.error) ? "No proposal: the model call failed" : "No proposal");
+      const after = running && verify === running ? el("span", {class: "muted"}, "Running…")
+        : report ? el("span", {class: report.failed.length ? "t-bad" : "t-ok"}, report.failed.length ? `${report.failed.length} of ${total} failing` : `All ${total} pass`)
+        : el("span", {class: "muted"}, "—");
+      const spent = steps.length ? (Math.max(...steps.map(ended)) - Date.parse(steps[0].started)) / 1000 : null;
+      const model = calls.reduce((sum, call) => sum + (call.elapsed_seconds || 0), 0);
+      const line = el("tr", {class: "click" + (open ? " sel" : ""), "aria-expanded": String(open), "data-key": "attempt:" + row.label,
+        onclick: () => { open ? state.openAttempts.delete(row.label) : state.openAttempts.add(row.label); renderDetail(); }},
+        el("td", {style: "white-space:nowrap"}, chevron(open), " ", row.label.replace("Attempt ", "#")),
+        el("td", {class: "grow"}, el("div", {class: "change"}, change)),
+        el("td", {style: "white-space:nowrap"}, after),
+        el("td", {class: "num"}, spent === null ? "—" : duration(spent), model ? el("div", {class: "muted small"}, `model ${duration(model)}`) : null));
+      return open ? [line, el("tr", {class: "detailrow"}, el("td", {colspan: "4"}, attemptDetail(row, report, calls)))] : [line];
+    }))));
+}
+/** An opened attempt: the model's reasoning, the exact edits, what still fails, and where to look next. */
+function attemptDetail(row, report, calls) {
+  const proposal = row.steps.map(s => s.changes?.last_repair?.proposal || s.changes?.proposal).find(Boolean);
+  const openLog = () => { state.tab = "log"; state.openSteps.add(row.steps[0].index); renderDetail(); };
+  return el("div", {class: "adetail"},
+    proposal?.explanation ? el("div", {class: "explain"}, proposal.explanation) : null,
+    (proposal?.edits || []).map(edit => el("div", {class: "edit"}, el("div", {class: "path"}, edit.path), el("pre", {class: "old"}, edit.old), el("pre", {class: "new"}, edit.new))),
+    calls.filter(call => call.error).map(call => el("div", {class: "t-bad"}, `Model call ${call.index}: ${call.error}`)),
+    report?.failed.length ? el("div", {}, el("span", {class: "muted"}, "Still failing: "), el("code", {}, report.failed.join(", "))) : null,
+    el("div", {class: "alinks"}, el("button", {class: "link", type: "button", onclick: openLog}, "Open in build log"),
+      calls.map(call => el("button", {class: "link", type: "button", onclick: () => { state.tab = "calls"; state.call = call.file; renderDetail(); }}, `Model call ${call.index}`))));
+}
+
 /* ---------- run controls ---------- */
 // The server fills the token in only when it runs with --config; every write request echoes it.
 const TOKEN = document.querySelector('meta[name="auto-fix-token"]').content;
 const CAN_ACT = Boolean(TOKEN);
 const REPLAYABLE = new Set(["baseline", "investigate", "repair", "verify"]);
-const KIND_ICON = {batch: "context", retry: "wrench", repair: "wrench", resume: "play", replay: "rerun",
-  evaluation: "flask", operations: "branch", demo: "start"};
-const controls = {workflows: {}, user: "", jobs: [], runner: {alive: true, waiting: ""}};
+const controls = {workflows: {}, jobs: [], runner: {alive: true, waiting: ""}};
+const currentNode = detail => detail.summary.current || "the current step";
 
 async function post(path, body) {
   const response = await fetch(path, {method: "POST", cache: "no-store",
@@ -1253,11 +992,12 @@ function toast(text, tone = "") {
   clearTimeout(toast.timer);
   toast.timer = setTimeout(() => box.replaceChildren(), 5000);
 }
-function iconButton(name, label, onclick, {disabled = false, cls = ""} = {}) {
-  return el("button", {class: "ib", type: "button", title: label, "aria-label": label, disabled, onclick}, lucide(name, 14, cls));
+function iconButton(name, label, onclick) {
+  return el("button", {class: "ib", type: "button", title: label, "aria-label": label,
+    onclick: event => { event.stopPropagation(); onclick(event); }}, lucide(name, 14));
 }
 
-/* A popover anchored under the control that opened it: a confirmation or a small menu. */
+/* A small menu under the button that opened it, like TeamCity's Actions dropdown. */
 let popover = null;
 function closePopover(refocus) {
   if (!popover) return;
@@ -1266,210 +1006,145 @@ function closePopover(refocus) {
   popover = null;
   if (refocus) anchor?.focus?.();
 }
-function openPopover(anchor, box) {
+function openMenu(anchor, items) {
   closePopover();
   const rect = anchor.getBoundingClientRect();
+  const box = el("div", {class: "popover menu", role: "menu"}, items.map(item =>
+    el("button", {type: "button", role: "menuitem", class: item.danger ? "danger" : "", onclick: () => { closePopover(true); item.run(anchor); }},
+      lucide(item.icon, 14), item.label)));
   box.anchor = anchor;
-  box.style.top = Math.round(rect.bottom + 6) + "px";
-  box.style.left = Math.round(Math.max(8, Math.min(rect.right - 320, innerWidth - 328))) + "px";
+  box.style.top = Math.round(rect.bottom + 4) + "px";
+  box.style.left = Math.round(Math.max(8, Math.min(rect.right - 240, innerWidth - 248))) + "px";
   document.body.append(box);
   popover = box;
   box.querySelector("button")?.focus();
 }
-function confirmPopover(anchor, text, label, danger = false) {
-  return new Promise(resolve => {
-    const done = answer => { closePopover(true); resolve(answer); };
-    const yes = el("button", {class: "btn " + (danger ? "danger" : "primary"), type: "button", onclick: () => done(true)}, label);
-    openPopover(anchor, el("div", {class: "popover", role: "alertdialog", "aria-label": label},
-      el("p", {}, text), el("div", {class: "pa"}, el("button", {class: "btn", type: "button", onclick: () => done(false)}, "Back"), yes)));
-    yes.focus();
-  });
-}
-function openMenu(anchor, items) {
-  openPopover(anchor, el("div", {class: "popover menu", role: "menu"}, items.map(item =>
-    el("button", {type: "button", role: "menuitem", class: item.danger ? "danger" : "", onclick: () => { closePopover(true); item.run(anchor); }},
-      lucide(item.icon, 14), item.label))));
-}
 document.addEventListener("mousedown", event => { if (popover && !popover.contains(event.target)) closePopover(); });
-document.addEventListener("keydown", event => {
-  if (event.key !== "Escape") return;
-  if (popover) closePopover(true);
-  else if (!document.getElementById("sheet").hidden) closeSheet();
-});
+document.addEventListener("keydown", event => { if (event.key === "Escape" && popover) closePopover(true); });
 document.getElementById("content").addEventListener("scroll", () => closePopover());
 
-/* ---------- run page actions ---------- */
-const ACTIONS = {
-  resume: {label: "Resume", icon: "play", primary: true},
-  retry: {label: "Retry", icon: "rerun", primary: true},
-  publish: {label: "Publish PR", icon: "pr", primary: true},
-  reconcile: {label: "Reconcile", icon: "reconcile", primary: true},
-  pause: {label: "Pause", icon: "paused"},
-  cancel: {label: "Cancel", icon: "cancelled"},
-};
-const currentNode = detail => [...detail.events].reverse().find(e => e.node && e.node !== "model_call")?.node || "step";
-function confirmText(action, detail) {
-  const s = detail.summary;
-  if (action === "cancel") return s.live
-    ? `Cancel after ${currentNode(detail)} finishes? The run keeps its evidence and can be retried or re-run from a step, but not resumed.`
-    : "Cancel this run? It can be retried or re-run from a step afterwards.";
-  if (action === "stop") return `Stop now kills ${currentNode(detail)} immediately, builds and tests included. The run can't be resumed afterwards, only retried or re-run from a step.`;
-  if (action === "publish") return "Push the verified branch and open a pull request on Bitbucket?";
-  return "";
+/* Dialogs are native <dialog> elements: modal, Esc closes them and focus stays inside. */
+const dialog = document.getElementById("dialog");
+function openDialog(title, body, submitLabel, onSubmit, {danger = false, wide = false} = {}) {
+  const error = el("div", {class: "ferr", role: "alert"});
+  const form = el("form", {method: "dialog", novalidate: "", onsubmit: async event => {
+    event.preventDefault();
+    if (!onSubmit) { dialog.close(); return; }
+    try {
+      if (await onSubmit(form) !== false) dialog.close();
+    } catch (problem) { error.textContent = problem.message; }
+  }},
+    el("h2", {}, title), body, error,
+    el("div", {class: "dfoot"},
+      onSubmit ? el("button", {class: "btn", type: "button", onclick: () => dialog.close()}, "Cancel") : null,
+      el("button", {class: "btn " + (danger ? "danger" : "primary"), type: "submit"}, submitLabel)));
+  dialog.className = wide ? "wide" : "";
+  dialog.replaceChildren(form);
+  if (!dialog.open) dialog.showModal();
+  (form.querySelector("select, input, textarea") || form.querySelector("[type=submit]"))?.focus();
+  return form;
 }
-async function runAction(action, anchor, extra = {}) {
-  const detail = state.detail, text = extra.confirm ?? confirmText(action, detail);
-  const label = {stop: "Stop now", cancel: "Cancel run", publish: "Publish", replay: "Queue re-run"}[action] || "Confirm";
-  if (text && !await confirmPopover(anchor, text, label, action === "stop" || action === "cancel")) return;
+const confirmDialog = (title, text, label, danger = false) => new Promise(resolve => {
+  openDialog(title, el("p", {}, text), label, () => { resolve(true); }, {danger});
+  dialog.addEventListener("close", () => resolve(false), {once: true});
+});
+
+async function act(action, extra = {}, detail = state.detail) {
   try {
-    const done = await post("/api/runs/action", {run: detail.summary.id, action, step: extra.step});
+    const done = await post("/api/runs/action", {run: detail.summary.id, action, ...extra});
     toast(done.job ? `Queued: ${done.job.title}` : done.request
-      ? `${action === "pause" ? "Pause" : "Cancel"} requested. The run stops after ${currentNode(detail)} finishes.`
+      ? `${action === "pause" ? "Pausing" : "Stopping"} after ${currentNode(detail)} finishes`
       : action === "stop" ? "Run stopped" : "Run cancelled");
-    await Promise.all([loadJobs(), loadDetail()]);
+    await refresh();
+    if (!state.selected) renderHome();
     wake();
   } catch (error) { toast(error.message, "bad"); }
 }
-/** The buttons beside a run's result: its main action filled, the rest plain, Stop now in a menu. */
-function actionBar(detail) {
+/** TeamCity's Stop dialog: after the current step (safe) or right away. */
+function stopDialog(detail) {
+  const actions = detail.controls?.actions || [], node = currentNode(detail);
+  const safe = actions.includes("cancel"), now = actions.includes("stop");
+  const option = (value, title, text, enabled) => el("label", {class: "option" + (enabled ? "" : " off")},
+    el("input", {type: "radio", name: "how", value, disabled: !enabled, checked: enabled && (value === "cancel" || !safe) ? "" : null}),
+    el("span", {}, el("b", {}, title), el("span", {class: "muted"}, text)));
+  openDialog("Stop run", el("div", {},
+    el("p", {class: "muted"}, `${detail.summary.name} is running ${node}.`),
+    option("cancel", "After the current step", `${node} finishes and the run keeps a clean checkpoint.`, safe),
+    option("stop", "Immediately", now ? `Kills ${node} and everything it started. The run can't be resumed.` : "Not possible while a pull request is being published.", now)),
+  "Stop run", form => {
+    const how = form.querySelector("input[name=how]:checked")?.value;
+    if (!how) throw new Error("Choose how to stop the run");
+    act(how, {}, detail);
+  }, {danger: true});
+}
+/** Re-run from a step: a new run that starts at that step, from the same commit and edits. */
+function replayDialog(detail) {
+  let attempt = 0;
+  const choices = detail.steps.map(step => {
+    if (step.node === "repair") attempt += 1;
+    return {step, label: `Step ${step.index + 1} · ${step.node}` + (["investigate", "repair", "verify"].includes(step.node) ? ` (attempt ${Math.max(attempt, 1)})` : "")};
+  }).filter(({step}) => step.index > 0 && REPLAYABLE.has(step.node));
+  const pick = el("select", {id: "f-step"}, choices.map(({step, label}, i) => el("option", {value: step.index, selected: i === choices.length - 1 ? "" : null}, label)));
+  openDialog("Re-run from a step", el("div", {},
+    el("div", {class: "field"}, el("label", {for: "f-step"}, "Start at"), pick),
+    el("p", {class: "muted"}, "A new run starts at that step from the same commit, with the edits made before it. This run stays as it is.")),
+  "Re-run", () => { act("replay", {step: Number(pick.value)}); });
+}
+/** The run page's main button and the Actions menu with the rest. */
+function runActions(detail) {
   if (!CAN_ACT || !detail.controls) return null;
-  const {actions, note} = detail.controls;
-  const buttons = actions.filter(action => ACTIONS[action]).map(action => el("button",
-    {class: "btn" + (ACTIONS[action].primary ? " primary" : ""), type: "button", "data-key": "act:" + action,
-      onclick: event => runAction(action, event.currentTarget)}, lucide(ACTIONS[action].icon, 14), ACTIONS[action].label));
-  const menu = [];
-  if (actions.includes("replay")) menu.push({label: "Re-run from a step…", icon: "rerun", run: () => focusReplay()});
-  if (actions.includes("stop")) menu.push({label: "Stop now", icon: "halt", danger: true, run: anchor => runAction("stop", anchor)});
-  return el("div", {class: "actbar"}, note ? el("span", {class: "muted"}, note) : null, buttons,
-    menu.length ? el("button", {class: "btn icon", type: "button", "aria-label": "More actions", "aria-haspopup": "menu",
-      "data-key": "act:more", onclick: event => openMenu(event.currentTarget, menu)}, lucide("more", 16)) : null);
-}
-/** A pending request, a paused run's next step, or where a re-run came from. */
-function runNotices(detail) {
-  const s = detail.summary, notes = [];
-  if (s.request) {
-    const verb = s.request.request === "pause" ? "Pause" : "Cancel", stop = detail.controls?.actions.includes("stop");
-    notes.push(el("div", {class: "notice", role: "status"}, lucide(s.request.request === "pause" ? "paused" : "cancelled", 16),
-      el("span", {}, `${verb} requested by ${s.request.by} at ${when(s.request.at, false)}. The run stops after ${currentNode(detail)} finishes.`),
-      stop ? el("button", {class: "btn", type: "button", onclick: event => runAction("stop", event.currentTarget)}, lucide("halt", 14), "Stop now") : null));
-  } else if (s.status === "paused" && detail.next.length) {
-    notes.push(el("div", {class: "notice"}, lucide("paused", 16),
-      el("span", {}, `Paused before `, nodeTag(detail.next[0]), `. Resume continues from there with the same worktree.`)));
-  }
-  if (s.forked_from) {
-    const source = s.forked_from;
-    notes.push(el("div", {class: "subline"}, "Re-run of ",
-      el("a", {href: "#run=" + encodeURIComponent("runs/" + source.source), onclick: event => { event.preventDefault(); select("runs/" + source.source); }}, source.source),
-      ` from step ${source.step + 1} (`, source.node, ")"));
-  }
-  return notes;
-}
-const canReplay = (detail, step) => CAN_ACT && detail.controls?.actions.includes("replay") && step.index > 0 && REPLAYABLE.has(step.node);
-function replayStep(step, anchor) {
-  const detail = state.detail;
-  const edits = detail.steps.slice(0, step.index).filter(s => s.node === "repair" && s.changes?.last_repair?.applied).length;
-  const text = `A new run starts at step ${step.index + 1} (${step.node}) from the same commit` +
-    (edits ? `, with ${edits} earlier edit${edits === 1 ? "" : "s"} applied` : "") + ". This run stays as it is.";
-  runAction("replay", anchor, {step: step.index, confirm: text});
-}
-function focusReplay() {
-  if (state.tab !== "overview") { state.tab = "overview"; renderDetail(); }
-  const first = document.querySelector(".rowact");
-  first?.closest(".box")?.scrollIntoView({behavior: "smooth", block: "start"});
-  first?.focus({preventScroll: true});
+  const {actions, note} = detail.controls, s = detail.summary;
+  if (note) return el("span", {class: "muted"}, note);
+  const live = s.status === "in_progress" && s.live, items = [];
+  if (live && (actions.includes("cancel") || actions.includes("stop")))
+    items.push({key: "stop", label: "Stop…", icon: "halt", run: () => stopDialog(detail)});
+  if (actions.includes("resume")) items.push({key: "resume", label: "Resume", icon: "play", run: () => act("resume")});
+  if (actions.includes("retry")) items.push({key: "retry", label: "Run again", icon: "rerun", run: () => act("retry")});
+  if (actions.includes("publish")) items.push({key: "publish", label: "Publish pull request…", icon: "pr",
+    run: async () => { if (await confirmDialog("Publish pull request", "Push the verified branch and open a pull request on Bitbucket?", "Publish")) act("publish"); }});
+  if (actions.includes("reconcile")) items.push({key: "reconcile", label: "Reconcile with Bitbucket", icon: "reconcile", run: () => act("reconcile")});
+  if (actions.includes("pause")) items.push({key: "pause", label: "Pause after this step", icon: "paused", run: () => act("pause")});
+  if (actions.includes("replay")) items.push({key: "replay", label: "Re-run from a step…", icon: "rerun", run: () => replayDialog(detail)});
+  if (!live && actions.includes("cancel")) items.push({key: "cancel", label: "Cancel run…", icon: "cancelled", danger: true,
+    run: async () => { if (await confirmDialog("Cancel run", "Cancel this run? It can be run again or re-run from a step afterwards.", "Cancel run", true)) act("cancel"); }});
+  if (!items.length) return null;
+  const [main, ...rest] = items;
+  return el("div", {class: "actions"},
+    el("button", {class: "btn" + (main.key === "stop" ? "" : " primary"), type: "button", "data-key": "act:" + main.key, onclick: event => main.run(event.currentTarget)},
+      lucide(main.icon, 13), main.label),
+    rest.length ? el("button", {class: "btn", type: "button", "aria-haspopup": "menu", "data-key": "act:more", onclick: event => openMenu(event.currentTarget, rest)},
+      "Actions", lucide("chevron", 12, "down")) : null);
 }
 
 /* ---------- queue ---------- */
 async function loadJobs() {
-  if (!CAN_ACT) return;
+  if (!CAN_ACT) return false;
   const data = await api("/api/jobs");
   const changed = JSON.stringify(data) !== JSON.stringify({jobs: controls.jobs, runner: controls.runner});
   controls.jobs = data.jobs;
   controls.runner = data.runner;
-  if (changed) keepFocus(drawQueue);
-  // A running job's clock moves on every refresh; only its line of text changes.
-  else for (const job of controls.jobs.filter(item => item.status === "running")) {
-    const line = document.querySelector(`[data-key="job:${CSS.escape(job.id)}"] .js`);
-    if (line && line.textContent.startsWith("Running for")) line.textContent = `Running for ${elapsed(job.started)}`;
-  }
-}
-const elapsed = iso => duration((Date.now() - Date.parse(iso)) / 1000);
-function drawQueue() {
-  const box = document.getElementById("queue");
-  const {jobs, runner} = controls;
-  box.hidden = !CAN_ACT || (!jobs.length && runner.alive && !runner.waiting);
-  if (box.hidden) { box.replaceChildren(); return; }
-  const queued = jobs.filter(job => job.status === "queued");
-  const waiting = jobs.filter(job => job.status !== "failed").length;
-  box.replaceChildren(...[
-    el("div", {class: "qhd"}, lucide("queue", 14), "Queue", waiting ? el("span", {class: "n"}, waiting) : null),
-    !runner.alive ? el("div", {class: "qnote warn"}, "No runner is active, so jobs wait. Restart the dashboard with --config, or run ", el("code", {}, "auto-fix worker"), ".")
-      : runner.waiting ? el("div", {class: "qnote"}, runner.waiting) : null,
-    ...jobs.map(job => queueItem(job, queued))].filter(Boolean));
-}
-function queueItem(job, queued) {
-  const index = queued.indexOf(job), run = job.run_id && state.runs.find(item => item.id === "runs/" + job.run_id);
-  const mark = job.status === "running" ? icon("run", 14) : job.status === "failed" ? icon("bad", 14) : lucide(KIND_ICON[job.kind] || "queue", 14, "kind");
-  const sub = job.status === "running"
-    ? (run?.request ? `${run.request.request === "pause" ? "Pausing" : "Cancelling"} after the current step` : `Running for ${elapsed(job.started)}`)
-    : job.status === "failed" ? job.error || "Failed" : job.note || `Queued by ${job.created_by}`;
-  const name = run ? el("button", {class: "link jn", type: "button", onclick: () => select(run.id)}, job.title) : el("span", {class: "jn"}, job.title);
-  return el("div", {class: "job " + job.status, "data-key": "job:" + job.id}, mark,
-    el("div", {class: "jt"}, name, el("div", {class: "js", title: sub}, sub)),
-    el("div", {class: "ja"},
-      job.status === "queued" ? [
-        iconButton("chevron", "Move up", () => moveJob(job, -1), {disabled: index === 0, cls: "up"}),
-        iconButton("chevron", "Move down", () => moveJob(job, 1), {disabled: index === queued.length - 1, cls: "down"}),
-        iconButton("close", "Remove from queue", () => removeJob(job))] : null,
-      job.status === "running" ? el("button", {class: "ib", type: "button", title: "Stop this job", "aria-label": "Stop this job",
-        onclick: event => stopJob(job, event.currentTarget)}, lucide("halt", 13)) : null,
-      job.status !== "queued" ? iconButton("logfile", "View log", () => openLog(job)) : null,
-      job.status === "failed" ? iconButton("close", "Dismiss", () => removeJob(job)) : null));
-}
-async function stopJob(job, anchor) {
-  const text = `Stop "${job.title}" now? Its process and everything it started are killed.` + (job.run_id ? " Its run can be retried or re-run from a step afterwards." : "");
-  if (!await confirmPopover(anchor, text, "Stop job", true)) return;
-  try { await post("/api/jobs/stop", {id: job.id}); toast("Job stopped"); await loadJobs(); } catch (error) { toast(error.message, "bad"); }
-}
-async function moveJob(job, delta) {
-  try { await post("/api/jobs/move", {id: job.id, delta}); await loadJobs(); } catch (error) { toast(error.message, "bad"); }
+  const waiting = data.jobs.filter(job => job.status === "queued" || job.status === "running").length;
+  const link = document.getElementById("queue-link");
+  link.hidden = !waiting;
+  link.textContent = `Queue · ${waiting}`;
+  return changed;
 }
 async function removeJob(job) {
-  try { await post("/api/jobs/remove", {id: job.id}); await loadJobs(); } catch (error) { toast(error.message, "bad"); }
+  try { await post("/api/jobs/remove", {id: job.id}); await loadJobs(); renderHome(); } catch (error) { toast(error.message, "bad"); }
 }
-
-/* ---------- side panel: start a workflow, or read a job log ---------- */
-const sheet = document.getElementById("sheet");
-let sheetReturn = null, startKind = null, previewTimer = 0;
-function openSheet(label, ...children) {
-  if (sheet.hidden) sheetReturn = document.activeElement;
-  sheet.setAttribute("aria-label", label);
-  sheet.replaceChildren(...children);
-  sheet.hidden = false;
-}
-function closeSheet() {
-  sheet.hidden = true;
-  sheet.replaceChildren();
-  sheetReturn?.focus?.();
+async function stopJob(job) {
+  if (!await confirmDialog("Stop job", `Stop "${job.title}" now? Its process and everything it started are killed.`, "Stop job", true)) return;
+  try { await post("/api/jobs/stop", {id: job.id}); toast("Job stopped"); await loadJobs(); renderHome(); } catch (error) { toast(error.message, "bad"); }
 }
 async function openLog(job) {
   const text = await fetch("/api/jobs/log?id=" + encodeURIComponent(job.id), {cache: "no-store"})
-    .then(response => response.ok ? response.text() : "No output recorded yet.");
-  openSheet("Job log",
-    el("div", {class: "shd"}, el("div", {}, el("h2", {}, "Job log"), el("div", {class: "muted"}, job.title)), iconButton("close", "Close", closeSheet)),
-    el("pre", {class: "view sheetlog"}, text || "No output recorded yet."),
-    el("div", {class: "sfoot"}, el("div", {class: "sact"},
-      job.run_id ? el("button", {class: "btn", type: "button", onclick: () => { closeSheet(); select("runs/" + job.run_id); }}, "Open run") : null,
-      el("button", {class: "btn primary", type: "button", onclick: closeSheet}, "Close"))));
-  sheet.querySelector(".ib")?.focus();
+    .then(response => response.ok ? response.text() : "");
+  openDialog(job.title, el("pre", {class: "view log-view"}, text || "No output recorded yet."), "Close", null, {wide: true});
 }
-const saved = kind => { try { return JSON.parse(sessionStorage.getItem("start:" + kind)) || {}; } catch (error) { return {}; } };
-const remember = (kind, params) => { try { sessionStorage.setItem("start:" + kind, JSON.stringify(params)); } catch (error) { /* private mode */ } };
-function openStart(kind) {
-  startKind = kind || startKind || Object.keys(controls.workflows)[0];
-  drawStart();
-  sheet.querySelector(".wf.on")?.focus();
-}
+
+/* ---------- the "…" dialog: choose a workflow and its parameters ---------- */
+const saved = kind => { try { return JSON.parse(sessionStorage.getItem("run:" + kind)) || {}; } catch (error) { return {}; } };
+const remember = (kind, params) => { try { sessionStorage.setItem("run:" + kind, JSON.stringify(params)); } catch (error) { /* private mode */ } };
 /** One form field built from the workflow's parameter schema. */
 function field(param, value) {
   const id = "f-" + param.name, today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
@@ -1484,7 +1159,7 @@ function field(param, value) {
   } else input = el("input", {id, type: param.type === "int" ? "number" : param.type === "date" ? "date" : "text",
     value: value ?? "", min: param.min, max: param.max, step: param.type === "int" ? "1" : null, spellcheck: "false"});
   const help = param.help ? el("div", {class: "fhelp", id: id + "-help"}, param.help) : null;
-  const error = el("div", {class: "ferr", id: id + "-err", role: "alert"});
+  const error = el("div", {class: "ferr", id: id + "-err"});
   input.setAttribute("aria-describedby", [help && id + "-help", id + "-err"].filter(Boolean).join(" "));
   const node = param.type === "bool"
     ? el("div", {class: "field check"}, el("label", {for: id}, input, param.label), help, error)
@@ -1494,105 +1169,74 @@ function field(param, value) {
       : param.type === "run" ? input.value || null : input.value,
     error: message => { error.textContent = message || ""; input.setAttribute("aria-invalid", message ? "true" : "false"); }};
 }
-const readParams = fields => Object.fromEntries(fields.map(item => [item.param.name, item.read()]));
-function showErrors(fields, errors) { for (const item of fields) item.error(errors[item.param.name]); }
-function drawStart() {
-  const workflow = controls.workflows[startKind], previous = saved(startKind);
+function openRunDialog(kind = state.runKind || "batch") {
+  state.runKind = kind;
+  const workflow = controls.workflows[kind], previous = saved(kind);
   const fields = workflow.params.map(param => field(param, previous[param.name]));
   const basic = fields.filter(item => !item.param.advanced), advanced = fields.filter(item => item.param.advanced);
-  const command = el("code", {class: "cmd"}, "…"), formError = el("div", {class: "ferr", role: "alert"});
-  const idle = !controls.jobs.some(job => job.status === "running" || job.status === "queued");
-  const preview = async () => {
+  const pick = el("select", {id: "f-kind", onchange: event => openRunDialog(event.target.value)},
+    Object.entries(controls.workflows).map(([key, item]) => el("option", {value: key, selected: key === kind ? "" : null}, item.title)));
+  openDialog("Run workflow", el("div", {},
+    el("div", {class: "field"}, el("label", {for: "f-kind"}, "Workflow"), pick, el("div", {class: "fhelp"}, workflow.description)),
+    basic.map(item => item.node),
+    advanced.length ? el("details", {class: "adv"}, el("summary", {}, "More options"), advanced.map(item => item.node)) : null),
+  "Run", async () => {
+    const params = Object.fromEntries(fields.map(item => [item.param.name, item.read()]));
     try {
-      const done = await post("/api/jobs/preview", {kind: startKind, params: readParams(fields)});
-      command.textContent = done.command.map(part => /[\s"']/.test(part) ? JSON.stringify(part) : part).join(" ");
-      showErrors(fields, {});
-      formError.textContent = "";
-    } catch (error) { command.textContent = "—"; showErrors(fields, error.fields); }
-  };
-  const form = el("form", {class: "sform", id: "start-form", novalidate: "",
-    oninput: () => { clearTimeout(previewTimer); previewTimer = setTimeout(preview, 200); },
-    onsubmit: async event => {
-      event.preventDefault();
-      const params = readParams(fields);
-      try {
-        const done = await post("/api/jobs", {kind: startKind, params});
-        remember(startKind, params);
-        closeSheet();
-        toast(`${idle ? "Started" : "Queued"}: ${done.job.title}`);
-        await loadJobs();
-        wake();
-      } catch (error) {
-        showErrors(fields, error.fields);
-        formError.textContent = Object.keys(error.fields).length ? "Fix the highlighted fields." : error.message;
-        sheet.querySelector('[aria-invalid="true"]')?.focus();
-      }
-    }},
-    basic.map(item => item.node), basic.length ? null : el("p", {class: "muted"}, "This workflow has no settings."),
-    advanced.length ? el("details", {class: "adv"}, el("summary", {}, "Advanced"), advanced.map(item => item.node)) : null, formError);
-  const copy = el("button", {class: "ib", type: "button", title: "Copy command", "aria-label": "Copy command", onclick: async () => {
-    try { await navigator.clipboard.writeText(command.textContent); toast("Command copied"); } catch (error) { /* clipboard blocked */ }
-  }}, lucide("copy", 14));
-  openSheet("Start a workflow",
-    el("div", {class: "shd"}, el("h2", {}, "Start a workflow"), iconButton("close", "Close", closeSheet)),
-    el("div", {class: "sbody"},
-      el("nav", {class: "wflist", "aria-label": "Workflows"}, Object.entries(controls.workflows).map(([kind, item]) =>
-        el("button", {class: "wf" + (kind === startKind ? " on" : ""), type: "button", "aria-pressed": String(kind === startKind), "data-key": "wf:" + kind,
-          onclick: () => { startKind = kind; drawStart(); sheet.querySelector(`[data-key="wf:${kind}"]`)?.focus(); }},
-          lucide(item.icon, 16), el("span", {}, el("b", {}, item.title), el("span", {class: "muted"}, item.description))))),
-      el("div", {class: "sform-wrap"}, el("h3", {}, workflow.title), el("p", {class: "muted"}, workflow.description), form)),
-    el("div", {class: "sfoot"},
-      el("div", {class: "cmdline"}, el("span", {class: "muted"}, "Same as"), command, copy),
-      el("div", {class: "sact"}, el("button", {class: "btn", type: "button", onclick: closeSheet}, "Cancel"),
-        el("button", {class: "btn primary", type: "submit", form: "start-form"}, lucide(idle ? "play" : "plus", 14), idle ? "Start" : "Add to queue"))));
-  preview();
+      const done = await post("/api/jobs", {kind, params});
+      remember(kind, params);
+      toast(`Queued: ${done.job.title}`);
+      await loadJobs();
+      if (!state.selected) renderHome();
+      wake();
+    } catch (error) {
+      for (const item of fields) item.error(error.fields[item.param.name]);
+      if (!Object.keys(error.fields).length) throw error;
+      dialog.querySelector('[aria-invalid="true"]')?.focus();
+      return false;
+    }
+  });
 }
-
-/** The header's Start button, or a note that this dashboard only reads. */
 async function setupControls() {
-  const slot = document.getElementById("act");
-  if (!CAN_ACT) {
-    slot.replaceChildren(el("span", {class: "badge", title: "Start the dashboard with --config to start and control workflows"}, "Read-only"));
-    return;
-  }
-  const data = await api("/api/workflows");
-  controls.workflows = data.workflows;
-  controls.user = data.user;
-  slot.replaceChildren(el("button", {class: "btn primary", type: "button", id: "start", onclick: () => openStart()}, lucide("plus", 14), "Start workflow"));
+  if (!CAN_ACT) return;
+  controls.workflows = (await api("/api/workflows")).workflows;
   await loadJobs();
+  if (!state.selected) renderHome();
 }
 
 /* ---------- run page ---------- */
 function renderDetail() { keepFocus(drawDetail); }
 function drawDetail() {
+  if (!["overview", "log", "calls", "files"].includes(state.tab)) state.tab = "overview";
   const hash = new URLSearchParams({run: state.selected});
   if (state.tab !== "overview") hash.set("tab", state.tab);
   history.replaceState(null, "", "#" + hash);
   const detail = state.detail, s = detail.summary, st = status(s.status);
+  const running = s.status === "in_progress" && s.live;
   const used = detail.model_calls.reduce((sum, c) => sum + (tokens(c.usage, "in") || 0) + (tokens(c.usage, "out") || 0), 0);
-  const fact = (k, v) => el("div", {class: "fact"}, el("div", {class: "k"}, k), el("div", {class: "v"}, v));
-  const prov = (k, v) => v ? el("span", {}, el("span", {class: "k"}, k), v) : null;
   const tabs = [["overview", "Overview"], ["log", "Build log", detail.steps.length], ["calls", "Model calls", detail.model_calls.length],
-    ["files", "Artifacts", detail.files.length], ["events", "Events", detail.events.length]];
-  const tabIcon = {overview: "overview", log: "log", calls: "bot", files: "files", events: "events"};
+    ["files", "Artifacts", detail.files.length]];
   dropFigure();
-  const table = el("div"), stage = el("div", {class: "flatstage"}), readOut = el("span", {}, WORKFLOW_HINT);
+  const info = [
+    ["Started", el("span", {title: when(s.started)}, shortWhen(s.started))],
+    ["Duration", running && s.started ? clock(s.started) : duration(s.duration_seconds)],
+    ["Repair attempts", String(s.attempts)],
+    ["Model calls", `${detail.model_calls.length}` + (used ? ` · ${used.toLocaleString()} tokens` : "")],
+    ["TeamCity build", s.build_url ? outLink(s.build_url, `#${s.build_id}`) : s.build_id ? `#${s.build_id}` : null],
+    ["Revision", s.revision ? copyable(s.revision, s.revision.slice(0, 12), "revision") : null],
+    ["Verified head", s.head ? copyable(s.head, s.head.slice(0, 12), "verified head") : null],
+    ["Branch", s.branch ? copyable(s.branch, s.branch, "branch") : null],
+    ["Pull request", s.pr_url ? outLink(s.pr_url, "Open in Bitbucket") : null],
+    ["Re-run of", s.forked_from ? el("span", {}, el("a", {href: "#run=" + encodeURIComponent("runs/" + s.forked_from.source),
+      onclick: event => { event.preventDefault(); select("runs/" + s.forked_from.source); }}, s.forked_from.source), ` from step ${s.forked_from.step + 1}`) : null],
+  ].filter(([, value]) => value !== null && value !== "");
   let content;
   if (state.tab === "log") content = renderLog(detail);
   else if (state.tab === "calls") content = renderCalls(detail);
   else if (state.tab === "files") content = renderFiles(detail);
-  else if (state.tab === "events") content = detail.events.length ? el("div", {class: "box"}, el("table", {},
-    el("thead", {}, el("tr", {}, el("th", {}, "Time"), el("th", {}, "Node"), el("th", {}, "Details"))),
-    el("tbody", {}, detail.events.map(e => {
-      const rest = Object.fromEntries(Object.entries(e).filter(([k]) => k !== "time" && k !== "node"));
-      return el("tr", {}, el("td", {class: "muted", style: "white-space:nowrap"}, when(e.time)), el("td", {class: "mono"}, e.node ? nodeTag(e.node) : ""),
-        el("td", {class: "mono", style: "word-break:break-all"}, Object.keys(rest).length ? JSON.stringify(rest) : ""));
-    })))) : emptyState("log", "No node events recorded", "This run wrote no events.jsonl, or it was empty.");
-  else content = el("div", {}, table, el("div", {class: "overview"},
-    el("div", {class: "box"}, el("div", {class: "hd"}, "Workflow", el("span", {class: "sub"}, "the path this run took through the graph")),
-      stage, el("div", {class: "foot"}, readOut)),
-    el("div", {class: "box"}, el("div", {class: "hd"}, "Steps", el("span", {class: "sub"}, `${detail.steps.length} steps · ${detail.checkpoint_count} checkpoints`)), renderStepTable(detail))));
-  const running = s.status === "in_progress" && detail.steps.length ? detail.steps[detail.steps.length - 1] : null;
+  else content = el("div", {class: "stack"},
+    el("section", {}, el("h2", {}, "Tests"), testsGrid(detail)),
+    el("section", {}, el("h2", {}, "Attempts", el("span", {class: "sub"}, "open a row for the explanation and the diff")), attemptsTable(detail)));
   const tabbar = el("div", {class: "tabs", role: "tablist", "aria-label": "Run sections", onkeydown: event => {
     // Left and Right move between tabs, as in any tab strip.
     const step = {ArrowRight: 1, ArrowLeft: -1}[event.key];
@@ -1601,40 +1245,21 @@ function drawDetail() {
     state.tab = next; renderDetail();
     document.querySelector(`[data-key="tab:${next}"]`)?.focus();
   }}, tabs.map(([key, label, n]) => el("button", {class: "tab", role: "tab", "aria-selected": String(state.tab === key), tabindex: state.tab === key ? "0" : "-1",
-    "data-key": "tab:" + key, onclick: () => { state.tab = key; renderDetail(); }}, lucide(tabIcon[key], 15), label, n !== undefined ? el("span", {class: "n"}, n) : null)));
+    "data-key": "tab:" + key, onclick: () => { state.tab = key; renderDetail(); }}, label, n !== undefined ? el("span", {class: "n"}, n) : null)));
+  const line = running
+    ? [el("b", {class: "t-run"}, "Running"), el("span", {}, ` · step ${detail.steps.length}, ${s.current || "starting"}`)]
+    : [el("b", {class: "t-" + st.tone}, st.text), s.reason && st.tone !== "ok" ? el("span", {}, ": " + s.reason) : null];
   document.getElementById("content").replaceChildren(el("div", {class: "page"},
     el("nav", {class: "crumbs", "aria-label": "Breadcrumb"}, el("a", {href: "#", onclick: event => { event.preventDefault(); select(null); }}, "Run history"), " / ", groupName(s)),
-    el("div", {class: "headline"}, statusIcon(s.status, 20), el("h1", {}, s.build_type || "Repair run"), el("span", {class: "num"}, s.name)),
-    el("div", {class: "result"}, el("span", {class: "why"}, el("b", {class: "t-" + st.tone}, st.text),
-      running ? el("span", {class: "muted"}, ` · step ${running.index + 1}, ${running.node}`) : null,
-      s.reason && st.tone !== "ok" ? el("span", {class: "reason"}, ": " + s.reason) : null),
-      s.pr_url ? el("a", {class: "pr", href: s.pr_url, target: "_blank", rel: "noreferrer"}, lucide("pr", 14), "Open pull request", lucide("external", 12, "out")) : null,
-      actionBar(detail)),
-    runNotices(detail),
-    el("div", {class: "subline"}, `${s.tests.length} failing test${s.tests.length === 1 ? "" : "s"}: `,
-      el("span", {class: "mono", title: s.tests.join("\n")}, s.tests.length ? s.tests.slice(0, 4).join(", ") + (s.tests.length > 4 ? ` +${s.tests.length - 4} more` : "") : "—")),
-    el("div", {class: "facts"},
-      fact("Duration", duration(s.duration_seconds)), fact("Repair attempts", s.attempts),
-      s.inspections ? fact("Inspections", s.inspections) : null,
-      fact("Model calls", detail.model_calls.length), fact("Tokens", used ? used.toLocaleString() : "—")),
-    el("div", {class: "prov"},
-      prov("Started", el("span", {title: when(s.started)}, shortWhen(s.started))),
-      prov("TeamCity", s.build_url ? outLink(s.build_url, `build #${s.build_id}`) : s.build_id ? `#${s.build_id}` : null),
-      prov("Revision", s.revision ? copyable(s.revision, s.revision.slice(0, 12), "revision") : null),
-      prov("Verified head", s.head ? copyable(s.head, s.head.slice(0, 12), "verified head") : null),
-      prov("Branch", s.branch ? copyable(s.branch, s.branch, "branch") : null)),
+    el("div", {class: "titlebar"}, statusIcon(s.status, 20), el("h1", {}, s.build_type || "Repair run"), el("span", {class: "num"}, s.name), runActions(detail)),
+    el("div", {class: "statusline"}, line),
+    s.request ? el("div", {class: "notice"}, lucide("clock", 16), el("span", {},
+      `${s.request.request === "pause" ? "Pausing" : "Stopping"} after ${currentNode(detail)} finishes (asked by ${s.request.by} at ${when(s.request.at, false)}).`)) : null,
+    el("dl", {class: "info"}, info.map(([key, value]) => [el("dt", {}, key), el("dd", {}, value)])),
     tabbar,
     el("div", {role: "tabpanel"}, content)));
-  if (!stage.isConnected) return;
-  const onPick = (node, index) => {
-    const step = index !== undefined ? detail.steps[index] : detail.steps.find(item => item.node === node);
-    if (step) { state.tab = "log"; state.openSteps.add(step.index); renderDetail(); }
-  };
-  const onHover = indexes => document.querySelectorAll("tr[data-step]").forEach(row => row.classList.toggle("lit", indexes.includes(Number(row.dataset.step))));
-  const parts = [mountTable(detail, table, null, {onPick}), mountFlat(detail, stage, readOut, {onPick, onHover})];
-  state.figure = {pick: step => parts[1].pick(step), destroy: () => parts.forEach(part => part.destroy())};
 }
-/** Stops the Overview's live timers before its page is replaced. */
+/** Kept for the run page's lifecycle; the plain pages have no timers of their own. */
 function dropFigure() {
   state.figure?.destroy();
   state.figure = null;
@@ -1642,6 +1267,7 @@ function dropFigure() {
 
 document.getElementById("q").addEventListener("input", () => { renderSidebar(); if (!state.selected) renderHome(); });
 document.getElementById("home").addEventListener("click", event => { event.preventDefault(); select(null); });
+document.getElementById("queue-link").addEventListener("click", () => select(null));
 // Back and Forward between runs, and links pasted into the address bar.
 window.addEventListener("hashchange", () => {
   const id = new URLSearchParams(location.hash.slice(1)).get("run");
@@ -1649,16 +1275,19 @@ window.addEventListener("hashchange", () => {
 });
 async function refresh() {
   try {
-    await Promise.all([loadRuns(), loadJobs()]);
-    if (!state.selected) { keepFocus(renderHome); return; }
-    const current = state.runs.find(run => run.id === state.selected);
-    // Re-read a run only when it changed, and never while an artifact is open.
-    if (current && state.tab !== "files" && (current.status === "in_progress" || busy() || state.detail?.summary.updated !== current.updated)) await loadDetail();
+    const [runsChanged, jobsChanged] = await Promise.all([loadRuns(), loadJobs()]);
+    if (!state.selected) { if (runsChanged || jobsChanged) keepFocus(renderHome); }
+    else {
+      const current = state.runs.find(run => run.id === state.selected);
+      // Re-read a run only when it changed, and never while an artifact is open.
+      if (current && state.tab !== "files" && (current.status === "in_progress" || busy() || state.detail?.summary.updated !== current.updated)) await loadDetail();
+    }
+    tickClocks();
   } catch (error) { /* keep the last view while the server restarts */ }
 }
 loadRuns().then(() => state.selected && state.runs.some(r => r.id === state.selected) ? loadDetail() : (state.selected = null, renderSidebar(), renderHome()));
 setupControls().catch(() => { /* the run history still works without controls */ });
-/** Refresh every 4 seconds, or every 1.5 while a job runs or a request waits for its step to end. */
+/** Refresh every 4 seconds, or every 1.5 while a job runs or a stop request waits for its step to end. */
 const busy = () => controls.jobs.some(job => job.status === "running" || job.status === "queued") || Boolean(state.detail?.summary.request);
 let refreshTimer = 0;
 function wake() {

@@ -156,17 +156,17 @@ Open `http://127.0.0.1:8765/`. Each run shows its result and TeamCity, Git and P
 
 ### Start and control workflows
 
-Started with `--config`, the dashboard can also run workflows. **Start workflow** queues a daily repair batch, a retry of a stopped run, an evaluation, an operations evaluation or the demo, with a form for their parameters and the equivalent command line. Jobs run one at a time, in queue order, from the queue in the sidebar. A run page offers what its state allows:
+Started with `--config`, the dashboard can also run workflows, the way TeamCity runs builds. **Run** repairs today's failed tests; **…** opens a dialog to choose another workflow (retry a run, an evaluation, an operations evaluation or the demo) and its parameters. Jobs run one at a time; queued and running ones appear at the top of the run list, and a running run has a **Stop** button there. A run page has one main button for its state and an **Actions** menu for the rest:
 
-| Run state | Actions |
-| --- | --- |
-| Running | Pause or Cancel after the current step; Stop now kills the step (not while publishing) |
-| Paused | Resume from its checkpoint, Cancel, or re-run from a step |
-| Blocked or cancelled | Retry in a fresh worktree, or re-run from a step |
-| Ready | Publish the pull request, or re-run from a step |
-| Publication unknown | Reconcile with Bitbucket |
+| Run state | Main button | Actions menu |
+| --- | --- | --- |
+| Running | Stop… (after the current step, or immediately; not while publishing) | Pause after this step |
+| Paused | Resume | Re-run from a step, Cancel run |
+| Blocked or cancelled | Run again (a fresh worktree) | Re-run from a step |
+| Ready | Publish pull request | Re-run from a step |
+| Publication unknown | Reconcile with Bitbucket | |
 
-**Re-run from here** on a `baseline`, `investigate`, `repair` or `verify` step starts a new run (`<key>-rN`) from the same prepared commit, with the edits applied before that step and the checkpoint that step started from; the original run is kept. Pause and cancel also work on runs that the scheduled `run` command started.
+**Re-run from a step** (`baseline`, `investigate`, `repair` or `verify`) starts a new run (`<key>-rN`) from the same prepared commit, with the edits applied before that step and the checkpoint that step started from; the original run is kept. Stop and pause also work on runs that the scheduled `run` command started.
 
 The dashboard runs queued jobs itself unless it is started with `--no-runner`; then `auto-fix worker --config config.local.yaml` runs them, for example as a service. `auto-fix queue --config … --kind batch --param publish=true` adds a job from a terminal. Write requests need a token embedded in the page and are refused from other origins, so other sites cannot act through your browser.
 

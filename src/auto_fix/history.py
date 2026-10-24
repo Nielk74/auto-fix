@@ -159,6 +159,11 @@ def summarize(run_id: str, run: Path) -> dict[str, Any]:
         "model_calls": len(list(calls.glob("*.json"))) if calls.is_dir() else 0,
         # Run controls: a pending pause/cancel, whether a process still runs it, and its origin.
         "request": control.pending(run),
+        # The step a running run is in, for the run list.
+        "current": next(
+            (e["node"] for e in reversed(events) if e.get("node") not in {"model_call", "stopped"}),
+            "",
+        ),
         "live": control.process(run) is not None,
         "forked_from": next(
             (
