@@ -52,7 +52,9 @@ The PR includes the explanation, original revision, final verified commit, test 
 
 Each run directory under `state_dir/runs` contains context, events, final state, baseline checks and native validation evidence. `checkpoints.sqlite` holds the LangGraph state after every super-step. `model-calls/` records each model request with its context, response, latency, usage and error. Model evaluations additionally retain exact requests, responses, CLI events, usage, diffs, source snapshots and publication receipts. Keep this directory on company-managed storage because it contains source and issue context.
 
-`auto-fix dashboard` reconstructs every run from these files, read-only: the executed graph path, per-node state changes, complete checkpoint state, model calls and artifacts. Runs written before the dashboard existed are included; they lack only the `model-calls/` records.
+`auto-fix dashboard` reconstructs every run from these files: the executed graph path, per-node state changes, complete checkpoint state, model calls and artifacts. Runs written before the dashboard existed are included; they lack only the `model-calls/` records.
+
+With `--config` the dashboard also queues jobs in `state_dir/jobs` and controls runs. A pause or cancel request is a `control.json` in the run directory that `Workflow.run` honours after the step's checkpoint, so a paused run resumes from the next step. `process.json` names the process running a run, for "Stop now". Repair-type jobs hold `worker.lock` like `run`, so jobs and the scheduled command never share worktrees.
 
 ![Dashboard build log: each LangGraph step with its timestamp, duration, model call and changed state](images/dashboard-build-log.png)
 
@@ -69,6 +71,7 @@ Each run directory under `state_dir/runs` contains context, events, final state,
 | PR receipt checks | `src/auto_fix/publication.py` |
 | Endpoint prompts and validated responses | `src/auto_fix/llm.py`, `prompts.py` |
 | Run history dashboard | `src/auto_fix/history.py`, `dashboard.py`, `dashboard.html` |
+| Job queue, runner and run controls | `src/auto_fix/jobs.py`, `actions.py`, `control.py` |
 | Optional Phoenix OpenTelemetry export | `src/auto_fix/tracing.py` |
 
 ## Change the graph and measure the result

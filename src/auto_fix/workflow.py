@@ -13,7 +13,7 @@ from typing import Any, TypedDict
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, START, StateGraph
 
-from auto_fix import tracing
+from auto_fix import control, tracing
 from auto_fix.build import Builder
 from auto_fix.config import Settings
 from auto_fix.diagnostics import failure_diagnostics
@@ -47,6 +47,7 @@ class State(TypedDict, total=False):
     last_repair: dict[str, Any]
     inspection_round: int
     round_inspections: int
+    prepared_head: str
 
 
 def failure_key(failure: Failure) -> str:
@@ -168,6 +169,13 @@ class Workflow:
         self.workspace = Workspace(settings.repository, settings.state_dir, run_id)
         self.builder = Builder(settings.build, self.directory / "evidence")
 
+    def _saved_result(self) -> State:
+        """The run's last written state; kept if resuming fails before the graph starts."""
+        try:
+            return json.loads((self.directory / "result.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return {}
+
     def event(self, node: str, quiet: bool = False, **details: Any) -> None:
         event = {"time": datetime.now(UTC).isoformat(), "node": node, **details}
         with (self.directory / "events.jsonl").open("a", encoding="utf-8") as handle:
@@ -243,7 +251,8 @@ class Workflow:
         self.event("prepare")
         failure = Failure.model_validate(state["failure"])
         self.workspace.prepare(failure.revision)
-        return {"branch": self.workspace.branch}
+        # A re-run from a later step starts its worktree from this exact commit.
+        return {"branch": self.workspace.branch, "prepared_head": self.workspace.head()}
 
     def baseline(self, state: State) -> State:
         self.event("baseline")
@@ -732,8 +741,16 @@ class Workflow:
         graph.add_edge("blocked", END)
         return graph.compile(checkpointer=checkpointer)
 
-    def run(self, initial: State) -> State:
-        state = initial
+    def run(self, initial: State | None) -> State:
+        """Run the graph from ``initial``, or continue the run's thread from its last checkpoint.
+
+        After every step the run honours a pause or cancel request from ``control.json``: the
+        step's checkpoint is already saved, so a paused run resumes with the next step.
+        """
+        state: State = initial if initial is not None else self._saved_result()
+        # A request left from an earlier process must not stop this one before it starts.
+        control.clear(self.directory)
+        control.mark_process(self.directory)
         try:
             with (
                 tracing.session(self.run_id),
@@ -742,16 +759,28 @@ class Workflow:
                 ) as conn,
             ):
                 graph = self.graph(SqliteSaver(conn))
+                config = {"configurable": {"thread_id": self.run_id}, "recursion_limit": 60}
+                if initial is None:
+                    saved = graph.get_state(config).values
+                    if not saved:
+                        raise RuntimeError("This run has no checkpoint to resume from")
+                    state = dict(saved)
+                    self.event("resumed")
                 for update in graph.stream(
-                    initial,
-                    {"configurable": {"thread_id": self.run_id}, "recursion_limit": 60},
-                    stream_mode="updates",
-                    durability="sync",
+                    initial, config, stream_mode="updates", durability="sync"
                 ):
                     for value in update.values():
                         if isinstance(value, dict):
                             state = {**state, **value}
                             write_json(self.directory / "result.json", state)
+                    stop = control.pending(self.directory)
+                    if stop:
+                        status = "paused" if stop["request"] == "pause" else "cancelled"
+                        verb = "Paused" if status == "paused" else "Cancelled"
+                        state = {**state, "status": status, "reason": f"{verb} by {stop['by']}"}
+                        self.event(status, by=stop["by"])
+                        control.clear(self.directory)
+                        break
         except Exception as exc:
             publication = self.directory / "publication.json"
             unknown = (
@@ -763,5 +792,63 @@ class Workflow:
                 "reason": redact(f"{type(exc).__name__}: {exc}"),
             }
             self.event("stopped", status=state["status"], reason=state["reason"])
+        finally:
+            control.clear_process(self.directory)
         write_json(self.directory / "result.json", state)
         return state
+
+
+def fork(flow: Workflow, source: Path, step_index: int) -> None:
+    """Seed ``flow``, a new run, to continue ``source`` from one of its steps.
+
+    Call ``flow.run(None)`` afterwards.
+
+    The new worktree starts from the commit the source run prepared, with the edits its
+    earlier repairs applied, and the new thread starts from the checkpoint the chosen step
+    started from. The source run is never modified.
+    """
+    from auto_fix import history
+    from auto_fix.models import Edit
+
+    saved, executed = history.run_steps(source)
+    if not saved:
+        raise ValueError("This run has no checkpoints to re-run from")
+    if not 0 < step_index < len(executed):
+        raise ValueError("That step cannot be re-run")
+    step = executed[step_index]
+    if step["node"] not in {"baseline", "investigate", "repair", "verify"}:
+        raise ValueError(f"A re-run cannot start at {step['node']}")
+    values = next(item["values"] for item in saved if item["step"] == step["from_checkpoint"])
+    applied = []
+    for earlier in executed[:step_index]:
+        repair = earlier["changes"].get("last_repair") or {}
+        if earlier["node"] == "repair" and repair.get("applied"):
+            proposal = json.loads(
+                (source / f"proposal-{repair['attempt']}.json").read_text(encoding="utf-8")
+            )
+            applied.append([Edit.model_validate(edit) for edit in proposal["edits"]])
+    run_id = flow.run_id
+    start = values.get("prepared_head")
+    flow.workspace.prepare(values["failure"]["revision"], start=start)
+    for edits in applied:
+        flow.workspace.apply_edits(edits)
+    state = {
+        **values,
+        "run_id": run_id,
+        "branch": flow.workspace.branch,
+        "prepared_head": start or flow.workspace.head(),
+    }
+    with sqlite3.connect(flow.directory / "checkpoints.sqlite", check_same_thread=False) as conn:
+        graph = flow.graph(SqliteSaver(conn))
+        graph.update_state(
+            {"configurable": {"thread_id": run_id}}, state, as_node=executed[step_index - 1]["node"]
+        )
+    flow.event(
+        "forked",
+        source=source.name,
+        step=step_index,
+        from_node=step["node"],
+        edits_replayed=len(applied),
+        same_commit=bool(start),
+    )
+    write_json(flow.directory / "result.json", state)

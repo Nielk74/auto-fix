@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -11,9 +12,10 @@ from dotenv import load_dotenv
 from filelock import FileLock, Timeout
 
 from auto_fix import tracing
-from auto_fix.config import load_settings
+from auto_fix.config import Settings, load_settings
 from auto_fix.integrations import Bitbucket, Jira, TeamCity
 from auto_fix.llm import RepairModel
+from auto_fix.models import Failure
 from auto_fix.publication import require_verified_pr
 from auto_fix.workflow import Workflow, failure_key, redact, write_json
 
@@ -77,6 +79,111 @@ def recover_publication(state_dir: Path, key: str, bitbucket: Bitbucket, base: s
             )
         return saved
     return None
+
+
+def process_failure(
+    settings: Settings,
+    failure: Failure,
+    services: tuple[TeamCity, Bitbucket, Jira | None, RepairModel],
+    *,
+    publish: bool,
+    retry_blocked: bool,
+    on_run: Callable[[str], None] | None = None,
+) -> dict:
+    """Repair, publish or reconcile one failure according to its receipt; return its status.
+
+    Shared by ``run`` and the dashboard's repair jobs. ``on_run`` hears the run id before the
+    graph starts, so a job can link itself to the run it drives.
+    """
+    tc, bb, jira, model = services
+    key = failure_key(failure)
+    receipt = settings.state_dir / "receipts" / f"{key}.json"
+    previous = json.loads(receipt.read_text(encoding="utf-8")) if receipt.exists() else None
+    recovered = recover_publication(settings.state_dir, key, bb, settings.repository.base_branch)
+    if recovered:
+        write_json(receipt, recovered)
+        print(f"{key}: {recovered['status']} (publication journal)")
+        return recovered
+    if previous and previous["status"] == "publication_unknown":
+        existing = bb.find_pr(previous["branch"], settings.repository.base_branch)
+        try:
+            require_verified_pr(
+                existing,
+                previous.get("head"),
+                previous["branch"],
+                settings.repository.base_branch,
+            )
+        except RuntimeError as exc:
+            previous.update(reason=str(exc))
+            write_json(receipt, previous)
+            print(f"{key}: publication outcome unknown; {exc}")
+        else:
+            previous.update(status="published", pr=existing)
+            previous.pop("reason", None)
+            write_json(receipt, previous)
+        return previous
+    if previous and previous["status"] == "published":
+        try:
+            require_verified_pr(
+                previous.get("pr"),
+                previous.get("head"),
+                previous.get("branch", ""),
+                settings.repository.base_branch,
+            )
+        except RuntimeError as exc:
+            previous.update(status="publication_unknown", reason=str(exc))
+            write_json(receipt, previous)
+            print(f"{key}: publication receipt needs reconciliation; {exc}")
+        else:
+            print(f"{key}: already published")
+        return previous
+    ready = previous and previous["status"] == "ready"
+    if previous and not (ready and publish) and not retry_blocked:
+        print(f"{key}: {previous['status']} (saved candidate/evidence)")
+        return previous
+    if ready and not publish:
+        return previous
+    # A prior run directory without a receipt may have crashed between side effects.
+    # Inspect its persisted result/publication intent instead of replaying the graph.
+    if not previous:
+        original = settings.state_dir / "runs" / key
+        if original.exists():
+            result_file = original / "result.json"
+            publication_file = original / "publication.json"
+            if publication_file.exists():
+                saved = (
+                    json.loads(result_file.read_text(encoding="utf-8"))
+                    if result_file.exists()
+                    else {}
+                )
+                saved.update(status="publication_unknown", branch=f"auto-fix/{key}", run_id=key)
+                write_json(receipt, saved)
+                print(f"{key}: interrupted publication; rerun to reconcile the remote PR")
+                return saved
+            if not retry_blocked:
+                saved = {
+                    "run_id": key,
+                    "status": "blocked",
+                    "reason": ("Interrupted local run; use --retry-blocked for a fresh attempt"),
+                }
+                write_json(receipt, saved)
+                return saved
+    if ready:
+        run_id = previous["run_id"]
+        initial = {**previous, "resume_ready": True}
+    else:
+        attempt = 0
+        run_id = key
+        while (settings.state_dir / "runs" / run_id).exists():
+            attempt += 1
+            run_id = f"{key}-r{attempt}"
+        initial = {"run_id": run_id, "failure": failure.model_dump()}
+    if on_run:
+        on_run(run_id)
+    flow = Workflow(settings, run_id, tc, bb, jira, model, publish=publish)
+    result = flow.run(initial)
+    write_json(receipt, result)
+    return result
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -148,12 +255,32 @@ def main(argv: list[str] | None = None) -> int:
         "dashboard", help="Browse run history, executed graph paths and model calls"
     )
     source = dashboard.add_mutually_exclusive_group()
-    source.add_argument("--config", type=Path, help="Show the configured state_dir")
     source.add_argument(
-        "--directory", type=Path, help="A state_dir or an evaluation output directory"
+        "--config",
+        type=Path,
+        help="Show the configured state_dir and enable starting and controlling workflows",
+    )
+    source.add_argument(
+        "--directory", type=Path, help="A state_dir or an evaluation output directory (read-only)"
     )
     dashboard.add_argument("--host", default="127.0.0.1")
     dashboard.add_argument("--port", type=int, default=8765)
+    dashboard.add_argument(
+        "--no-runner",
+        action="store_true",
+        help="Queue jobs without running them here; an `auto-fix worker` runs them",
+    )
+    worker = commands.add_parser("worker", help="Run queued dashboard jobs one at a time")
+    worker.add_argument("--config", type=Path, required=True)
+    queue = commands.add_parser("queue", help="Add a job to the dashboard's queue")
+    queue.add_argument("--config", type=Path, required=True)
+    queue.add_argument("--kind", required=True)
+    queue.add_argument(
+        "--param", action="append", default=[], metavar="NAME=VALUE", help="JSON or text value"
+    )
+    job = commands.add_parser("job", help=argparse.SUPPRESS)
+    job.add_argument("--config", type=Path, required=True)
+    job.add_argument("--id", required=True)
     args = parser.parse_args(argv)
     if args.command == "graph":
         print(MERMAID)
@@ -164,11 +291,50 @@ def main(argv: list[str] | None = None) -> int:
         root = args.directory or (
             load_settings(args.config).state_dir if args.config else Path(".auto-fix")
         )
-        return run_dashboard(root, args.host, args.port)
+        return run_dashboard(
+            root, args.host, args.port, config=args.config, runner=not args.no_runner
+        )
+    if args.command in {"worker", "queue", "job"}:
+        return _jobs(args)
     try:
         return _execute(args)
     finally:
         tracing.shutdown()
+
+
+def _jobs(args: argparse.Namespace) -> int:
+    import getpass
+
+    from auto_fix import jobs
+
+    if args.command == "job":
+        return jobs.execute(args.config, args.id)
+    settings = load_settings(args.config)
+    if args.command == "queue":
+        params = {}
+        for item in args.param:
+            name, _, value = item.partition("=")
+            try:
+                params[name] = json.loads(value)
+            except ValueError:
+                params[name] = value
+        try:
+            job = jobs.JobStore(settings.state_dir).add(args.kind, params, getpass.getuser())
+        except jobs.JobError as exc:
+            print(f"{exc}: {exc.fields}" if exc.fields else str(exc))
+            return 2
+        print(f"Queued {job['id']}: {job['title']}")
+        return 0
+    runner = jobs.Runner(args.config, settings.state_dir)
+    print(
+        f"Running queued jobs for {settings.state_dir}. "
+        "Ctrl+C stops the worker; a running job finishes on its own."
+    )
+    try:
+        runner.serve_forever()
+    except KeyboardInterrupt:
+        runner.stop()
+    return 0
 
 
 def _execute(args: argparse.Namespace) -> int:
@@ -243,111 +409,16 @@ def _execute(args: argparse.Namespace) -> int:
             model = RepairModel(settings.llm)
             jira = Jira(settings.jira) if settings.jira else None
             services.extend([bb, model] + ([jira] if jira else []))
-            statuses = []
-            for failure in failures:
-                key = failure_key(failure)
-                receipt = settings.state_dir / "receipts" / f"{key}.json"
-                previous = (
-                    json.loads(receipt.read_text(encoding="utf-8")) if receipt.exists() else None
+            statuses = [
+                process_failure(
+                    settings,
+                    failure,
+                    (tc, bb, jira, model),
+                    publish=args.publish,
+                    retry_blocked=args.retry_blocked,
                 )
-                recovered = recover_publication(
-                    settings.state_dir, key, bb, settings.repository.base_branch
-                )
-                if recovered:
-                    write_json(receipt, recovered)
-                    statuses.append(recovered)
-                    print(f"{key}: {recovered['status']} (publication journal)")
-                    continue
-                if previous and previous["status"] == "publication_unknown":
-                    existing = bb.find_pr(previous["branch"], settings.repository.base_branch)
-                    try:
-                        require_verified_pr(
-                            existing,
-                            previous.get("head"),
-                            previous["branch"],
-                            settings.repository.base_branch,
-                        )
-                    except RuntimeError as exc:
-                        previous.update(reason=str(exc))
-                        write_json(receipt, previous)
-                        print(f"{key}: publication outcome unknown; {exc}")
-                    else:
-                        previous.update(status="published", pr=existing)
-                        previous.pop("reason", None)
-                        write_json(receipt, previous)
-                    statuses.append(previous)
-                    continue
-                if previous and previous["status"] == "published":
-                    try:
-                        require_verified_pr(
-                            previous.get("pr"),
-                            previous.get("head"),
-                            previous.get("branch", ""),
-                            settings.repository.base_branch,
-                        )
-                    except RuntimeError as exc:
-                        previous.update(status="publication_unknown", reason=str(exc))
-                        write_json(receipt, previous)
-                        print(f"{key}: publication receipt needs reconciliation; {exc}")
-                    else:
-                        print(f"{key}: already published")
-                    statuses.append(previous)
-                    continue
-                ready = previous and previous["status"] == "ready"
-                if previous and not (ready and args.publish) and not args.retry_blocked:
-                    print(f"{key}: {previous['status']} (saved candidate/evidence)")
-                    statuses.append(previous)
-                    continue
-                if ready and not args.publish:
-                    statuses.append(previous)
-                    continue
-                # A prior run directory without a receipt may have crashed between side effects.
-                # Inspect its persisted result/publication intent instead of replaying the graph.
-                if not previous:
-                    original = settings.state_dir / "runs" / key
-                    if original.exists():
-                        result_file = original / "result.json"
-                        publication_file = original / "publication.json"
-                        if publication_file.exists():
-                            saved = (
-                                json.loads(result_file.read_text(encoding="utf-8"))
-                                if result_file.exists()
-                                else {}
-                            )
-                            saved.update(
-                                status="publication_unknown", branch=f"auto-fix/{key}", run_id=key
-                            )
-                            write_json(receipt, saved)
-                            print(
-                                f"{key}: interrupted publication; rerun to reconcile the remote PR"
-                            )
-                            statuses.append(saved)
-                            continue
-                        if not args.retry_blocked:
-                            saved = {
-                                "run_id": key,
-                                "status": "blocked",
-                                "reason": (
-                                    "Interrupted local run; use --retry-blocked for a fresh attempt"
-                                ),
-                            }
-                            write_json(receipt, saved)
-                            statuses.append(saved)
-                            continue
-                if ready:
-                    run_id = previous["run_id"]
-                    initial = {**previous, "resume_ready": True}
-                else:
-                    attempt = 0
-                    run_id = key
-                    while (settings.state_dir / "runs" / run_id).exists():
-                        attempt += 1
-                        run_id = f"{key}-r{attempt}"
-                    initial = {"run_id": run_id, "failure": failure.model_dump()}
-                flow = Workflow(settings, run_id, tc, bb, jira, model, publish=args.publish)
-                result = flow.run(initial)
-                write_json(receipt, result)
-                statuses.append(result)
+                for failure in failures
+            ]
             print(redact(json.dumps({"date": str(day), "results": statuses}, indent=2)))
             return int(any(s["status"] not in {"ready", "published"} for s in statuses))
     except Timeout:

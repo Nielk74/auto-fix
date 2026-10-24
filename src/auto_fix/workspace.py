@@ -76,8 +76,13 @@ class Workspace:
             source=True,
         )
 
-    def prepare(self, revision: str) -> Path:
-        if not SHA.fullmatch(revision):
+    def prepare(self, revision: str, start: str | None = None) -> Path:
+        """Check out ``revision`` rebased onto the fetched base in a fresh worktree.
+
+        ``start`` instead reuses the exact commit an earlier run prepared, so a re-run from a
+        later step sees the same sources as the run it continues.
+        """
+        if not SHA.fullmatch(revision) or (start is not None and not SHA.fullmatch(start)):
             raise ValueError("Expected a full 40- or 64-character Git commit SHA")
         root = self._git(["rev-parse", "--show-toplevel"], source=True).strip()
         if Path(root).resolve() != self.source:
@@ -104,9 +109,17 @@ class Workspace:
                     "Submodule repositories require disposable-clone support; "
                     "this prototype supports repositories without submodules"
                 )
+        if start:
+            # The earlier run's branch keeps this commit alive in the shared object store.
+            found = self._git(["cat-file", "-t", start], source=True, check=False).strip()
+            if found != "commit":
+                raise WorkspaceError(f"Prepared commit {start[:12]} no longer exists")
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self._git(["worktree", "add", "-b", self.branch, str(self.path), revision], source=True)
-        self._rebase_fetched()
+        self._git(
+            ["worktree", "add", "-b", self.branch, str(self.path), start or revision], source=True
+        )
+        if not start:
+            self._rebase_fetched()
         return self.path
 
     def _rebase_fetched(self) -> str:

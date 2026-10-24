@@ -13,7 +13,11 @@ from datetime import datetime
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from auto_fix import control
+
 TERMINAL = {"ready", "published", "blocked", "publication_unknown"}
+# Runs stopped on a step boundary by a request; a paused run resumes from its checkpoint.
+STOPPED = {"paused", "cancelled"}
 RUN_MARKERS = ("events.jsonl", "checkpoints.sqlite", "result.json")
 # Large evidence directories are listed, never inlined into API responses.
 TEXT_LIMIT = 4000
@@ -41,6 +45,11 @@ def _events(run: Path) -> list[dict[str, Any]]:
         if isinstance(event, dict):
             events.append(event)
     return events
+
+
+def read_events(run: Path) -> list[dict[str, Any]]:
+    """A run's logged events in order; unreadable lines are skipped."""
+    return _events(run)
 
 
 def _time(value: str | None) -> datetime | None:
@@ -120,6 +129,9 @@ def summarize(run_id: str, run: Path) -> dict[str, Any]:
     failure = result.get("failure", {}) or {}
     started = events[0]["time"] if events else None
     updated = events[-1]["time"] if events else None
+    # Cancelling a paused or abandoned run is logged when the user acts, long after any work.
+    worked = [event for event in events if not event.get("idle")]
+    finished = worked[-1]["time"] if worked else updated
     calls = run / "model-calls"
     # ``case/state/runs/<run>`` groups evaluation runs by their case directory.
     group = PurePosixPath(run_id).parent.parent
@@ -128,12 +140,12 @@ def summarize(run_id: str, run: Path) -> dict[str, Any]:
         "id": run_id,
         "name": run.name,
         "group": "" if group == "." else group,
-        "status": status if status in TERMINAL else "in_progress",
+        "status": status if status in TERMINAL | STOPPED else "in_progress",
         "graph_status": result.get("status", ""),
         "reason": (receipt or {}).get("reason") or result.get("reason", ""),
         "started": started,
         "updated": updated,
-        "duration_seconds": _seconds(started, updated),
+        "duration_seconds": _seconds(started, finished),
         "build_id": failure.get("build_id", ""),
         "build_type": failure.get("build_type", ""),
         "build_url": failure.get("build_url", ""),
@@ -145,6 +157,21 @@ def summarize(run_id: str, run: Path) -> dict[str, Any]:
         "head": result.get("head", ""),
         "pr_url": _pr_url((receipt or {}).get("pr") or result.get("pr")),
         "model_calls": len(list(calls.glob("*.json"))) if calls.is_dir() else 0,
+        # Run controls: a pending pause/cancel, whether a process still runs it, and its origin.
+        "request": control.pending(run),
+        "live": control.process(run) is not None,
+        "forked_from": next(
+            (
+                {
+                    "source": event.get("source"),
+                    "step": event.get("step"),
+                    "node": event.get("from_node"),
+                }
+                for event in events
+                if event.get("node") == "forked"
+            ),
+            None,
+        ),
     }
 
 
@@ -194,7 +221,9 @@ def checkpoints(run: Path) -> list[dict[str, Any]]:
     return ordered
 
 
-def steps(saved: list[dict[str, Any]], events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def steps(
+    saved: list[dict[str, Any]], events: list[dict[str, Any]], stopped: bool = False
+) -> list[dict[str, Any]]:
     """Node executions with the state keys each one changed.
 
     Checkpoint ``n`` names the node scheduled next; checkpoint ``n + 1`` holds the state after
@@ -233,10 +262,13 @@ def steps(saved: list[dict[str, Any]], events: list[dict[str, Any]]) -> list[dic
                     "changes": clip(changes),
                     "status": after["values"].get("status", ""),
                     "checkpoint": after["step"],
+                    # The state this step started from: what a re-run from it is seeded with.
+                    "from_checkpoint": before["step"],
                 }
             )
     last = saved[-1]
-    for node in last["next"]:
+    # A paused or cancelled run has not started its next node; it is not an interrupted step.
+    for node in [] if stopped else last["next"]:
         # A scheduled node with no later checkpoint was running or stopped with an exception.
         result.append(
             {
@@ -248,12 +280,19 @@ def steps(saved: list[dict[str, Any]], events: list[dict[str, Any]]) -> list[dic
                 "changes": {},
                 "status": "interrupted",
                 "checkpoint": None,
+                "from_checkpoint": last["step"],
             }
         )
     executed = [step for step in result if step["node"] != "__input__"]
     for index, step in enumerate(executed):
         step["index"] = index
     return executed
+
+
+def run_steps(run: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """A run's checkpoints and the steps it completed, for re-running it from one of them."""
+    saved = checkpoints(run)
+    return saved, steps(saved, _events(run), stopped=True)
 
 
 def topology() -> dict[str, Any]:
@@ -305,7 +344,9 @@ def run_detail(root: Path, run_id: str) -> dict[str, Any] | None:
         return None
     events = _events(run)
     saved = checkpoints(run)
-    executed = steps(saved, events)
+    result = _json(run / "result.json", {}) or {}
+    stopped = result.get("status") in STOPPED
+    executed = steps(saved, events, stopped)
     path = ["__start__", *(step["node"] for step in executed)]
     # A node stopped by an exception never reaches END even though result.json is terminal.
     if executed and executed[-1]["status"] != "interrupted":
@@ -322,6 +363,8 @@ def run_detail(root: Path, run_id: str) -> dict[str, Any] | None:
         "result": clip(_json(run / "result.json", {})),
         "steps": executed,
         "checkpoint_count": len(saved),
+        # Where a paused run resumes, and which step a re-run may start from.
+        "next": saved[-1]["next"] if saved and stopped else [],
         "events": events,
         "model_calls": model_calls(run),
         "files": files(run),

@@ -148,11 +148,27 @@ The dashboard reads the state directory, including runs that finished before it 
 
 ```powershell
 uv run --no-sync auto-fix dashboard --config config.local.yaml
-# Or point it at any state directory or evaluation output tree.
+# Or, read-only, any state directory or evaluation output tree.
 uv run --no-sync auto-fix dashboard --directory .auto-fix/evaluation/luna
 ```
 
-Open `http://127.0.0.1:8765/`. Each run shows its result and TeamCity, Git and PR links. The workflow graph highlights the nodes and loops the run executed. A timestamped build log lists the state each node changed; you can open the complete LangGraph checkpoint after any step. Model calls show their latency, token usage, request context and proposed edits. Artifacts and raw events are also listed. A live refresh follows a running worker. The server only reads files and listens on localhost; use `--host` deliberately because the pages contain source and issue context.
+Open `http://127.0.0.1:8765/`. Each run shows its result and TeamCity, Git and PR links. The workflow graph highlights the nodes and loops the run executed. A timestamped build log lists the state each node changed; you can open the complete LangGraph checkpoint after any step. Model calls show their latency, token usage, request context and proposed edits. Artifacts and raw events are also listed. A live refresh follows a running worker. The server listens on localhost; use `--host` deliberately because the pages contain source and issue context.
+
+### Start and control workflows
+
+Started with `--config`, the dashboard can also run workflows. **Start workflow** queues a daily repair batch, a retry of a stopped run, an evaluation, an operations evaluation or the demo, with a form for their parameters and the equivalent command line. Jobs run one at a time, in queue order, from the queue in the sidebar. A run page offers what its state allows:
+
+| Run state | Actions |
+| --- | --- |
+| Running | Pause or Cancel after the current step; Stop now kills the step (not while publishing) |
+| Paused | Resume from its checkpoint, Cancel, or re-run from a step |
+| Blocked or cancelled | Retry in a fresh worktree, or re-run from a step |
+| Ready | Publish the pull request, or re-run from a step |
+| Publication unknown | Reconcile with Bitbucket |
+
+**Re-run from here** on a `baseline`, `investigate`, `repair` or `verify` step starts a new run (`<key>-rN`) from the same prepared commit, with the edits applied before that step and the checkpoint that step started from; the original run is kept. Pause and cancel also work on runs that the scheduled `run` command started.
+
+The dashboard runs queued jobs itself unless it is started with `--no-runner`; then `auto-fix worker --config config.local.yaml` runs them, for example as a service. `auto-fix queue --config … --kind batch --param publish=true` adds a job from a terminal. Write requests need a token embedded in the page and are refused from other origins, so other sites cannot act through your browser.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/dashboard-overview.png">

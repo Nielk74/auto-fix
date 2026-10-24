@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Auto Fix Runs</title>
+<!-- Filled in by the server when actions are enabled; write requests must echo it. -->
+<meta name="auto-fix-token" content="">
 <style>
 :root {
   color-scheme: light;
@@ -298,6 +300,98 @@ button.btn:hover { border-color: var(--faint); }
 pre.view { margin: 0; padding: 12px 16px; overflow: auto; max-height: 72vh; font-family: var(--mono); font-size: 12px; white-space: pre; }
 pre.view .add { color: var(--ok); } pre.view .del { color: var(--bad); } pre.view .hunk { color: var(--muted); }
 
+/* run controls: header slot, queue, side panel, action bar, popovers and toasts */
+#act { display: flex; align-items: center; }
+.badge { font-size: 11.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 10px; padding: 1px 8px; white-space: nowrap; }
+button.btn { display: inline-flex; align-items: center; gap: 6px; }
+button.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 500; }
+button.btn.primary:hover { background: color-mix(in srgb, var(--accent) 88%, #000); border-color: transparent; }
+button.btn.danger { background: var(--bad); color: #fff; border-color: var(--bad); font-weight: 500; }
+button.btn.icon { width: 30px; padding: 0; justify-content: center; }
+.ib { width: 24px; height: 24px; display: inline-grid; place-items: center; border: none; background: none; color: var(--muted);
+  border-radius: 4px; cursor: pointer; padding: 0; flex: none; }
+.ib:hover:not(:disabled) { background: var(--soft); color: var(--ink); }
+.ib:disabled { opacity: 0.35; cursor: default; }
+.ib .lu { vertical-align: 0; }
+.ib .up { transform: rotate(-90deg); } .ib .down { transform: rotate(90deg); }
+#queue { padding: 10px 8px 8px; border-bottom: 1px solid var(--line); display: grid; gap: 2px; }
+#queue[hidden] { display: none; }
+.qhd { display: flex; align-items: center; gap: 6px; padding: 0 6px 4px; font-weight: 600; }
+.qhd .n { color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums; }
+.qnote { padding: 2px 6px 6px; font-size: 12px; color: var(--muted); }
+.qnote.warn { color: var(--warn); }
+.job { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: 8px; align-items: start; padding: 6px; border-radius: 6px; }
+.job:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
+.job > .lu { margin-top: 2px; }
+.job .kind { color: var(--muted); }
+.jt { min-width: 0; }
+.jn { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; text-align: left; }
+button.link.jn { color: var(--ink); }
+.js { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.job.failed .js { color: var(--bad); white-space: normal; overflow-wrap: anywhere; }
+.ja { display: flex; margin-top: -3px; }
+.sheet { position: fixed; top: 48px; right: 0; bottom: 0; width: min(780px, 100vw); z-index: 20; background: var(--ground);
+  border-left: 1px solid var(--line); box-shadow: -16px 0 40px -16px rgb(0 0 0 / 0.3); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+.sheet[hidden] { display: none; }
+.shd { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--line); }
+.shd h2 { margin: 0; font-size: 16px; }
+.sbody { display: grid; grid-template-columns: 250px minmax(0, 1fr); min-height: 0; }
+.wflist { border-right: 1px solid var(--line); padding: 8px; overflow: auto; display: grid; align-content: start; gap: 2px; }
+.wf { display: flex; gap: 10px; align-items: flex-start; text-align: left; padding: 9px 10px; border-radius: 6px; border: 1px solid transparent;
+  background: none; color: var(--ink); font: inherit; cursor: pointer; }
+.wf:hover { background: var(--soft); }
+.wf.on { background: var(--sel); border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+.wf .lu { margin-top: 2px; color: var(--muted); } .wf.on .lu { color: var(--accent); }
+.wf b { display: block; font-weight: 600; }
+.wf .muted { display: block; font-size: 12px; line-height: 1.4; margin-top: 1px; }
+.sform-wrap { padding: 18px 22px; overflow: auto; }
+.sform-wrap h3 { margin: 0; font-size: 15px; }
+.sform-wrap > p { margin: 4px 0 18px; max-width: 60ch; }
+.field { display: grid; gap: 4px; margin-bottom: 14px; max-width: 440px; }
+.field label { font-weight: 500; }
+.field input:not([type="checkbox"]), .field select { height: 32px; padding: 0 10px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--ground); color: var(--ink); font: inherit; }
+.field.check label { display: flex; gap: 8px; align-items: center; font-weight: 400; cursor: pointer; }
+input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; margin: 0; }
+.fhelp { color: var(--muted); font-size: 12px; }
+.ferr { color: var(--bad); font-size: 12px; }
+.ferr:empty { display: none; }
+[aria-invalid="true"] { border-color: var(--bad) !important; }
+details.adv { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 4px; }
+details.adv > summary { cursor: pointer; color: var(--muted); margin-bottom: 12px; }
+.sfoot { border-top: 1px solid var(--line); padding: 12px 20px; display: grid; gap: 10px; }
+.cmdline { display: flex; gap: 8px; align-items: center; min-width: 0; }
+.cmd { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; background: var(--soft); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; }
+.sact { display: flex; justify-content: flex-end; gap: 8px; }
+pre.sheetlog { max-height: none; min-height: 0; border: none; }
+.actbar { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+.notice { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 12px 0 2px; padding: 8px 12px; border-radius: 6px;
+  background: color-mix(in srgb, var(--warn) 9%, var(--ground)); border: 1px solid color-mix(in srgb, var(--warn) 30%, var(--line)); }
+.notice > .lu { color: var(--warn); }
+.notice .btn { margin-left: auto; }
+.popover { position: fixed; z-index: 30; width: 320px; max-width: calc(100vw - 16px); padding: 12px; background: var(--ground);
+  border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 10px 28px -8px rgb(0 0 0 / 0.3); }
+.popover p { margin: 0 0 12px; }
+.popover .pa { display: flex; justify-content: flex-end; gap: 8px; }
+.popover.menu { width: 220px; padding: 4px; }
+.menu button { display: flex; width: 100%; gap: 8px; align-items: center; padding: 7px 10px; border: none; background: none;
+  color: var(--ink); font: inherit; border-radius: 4px; cursor: pointer; text-align: left; }
+.menu button:hover, .menu button:focus-visible { background: var(--soft); outline-offset: -2px; }
+.menu button.danger { color: var(--bad); }
+#toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 40; }
+.toast { background: var(--ink); color: var(--ground); padding: 9px 14px; border-radius: 6px; box-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.35);
+  max-width: min(560px, calc(100vw - 32px)); }
+.toast.bad { background: var(--bad); color: #fff; }
+button.btn.rowact { height: 24px; padding: 0 8px; font-size: 12px; opacity: 0; }
+tr:hover .rowact, .rowact:focus-visible { opacity: 1; }
+@media (hover: none) { button.btn.rowact { opacity: 1; } }
+@media (max-width: 700px) {
+  .sbody { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .wflist { border-right: none; border-bottom: 1px solid var(--line); grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; }
+  .wf .muted { display: none; }
+  .actbar { margin-left: 0; }
+}
+
 @media (max-width: 900px) {
   main { grid-template-columns: minmax(0, 1fr); grid-template-rows: 38vh minmax(0, 1fr); }
   aside { border-right: none; border-bottom: 1px solid var(--line); }
@@ -319,25 +413,31 @@ pre.view .add { color: var(--ok); } pre.view .del { color: var(--bad); } pre.vie
     Auto Fix
   </a>
   <div class="root" id="root"></div>
+  <div id="act"></div>
   <label class="live" title="Re-read the state directory every 4 seconds"><input type="checkbox" id="live" checked> Live refresh</label>
 </header>
 <main>
   <aside aria-label="Runs">
     <div class="search"><svg class="lu" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21l-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><input type="search" id="q" placeholder="Search runs, builds, tests, reasons" aria-label="Search runs"></div>
     <div class="filters" id="filters" role="group" aria-label="Filter by result"></div>
+    <section id="queue" aria-label="Job queue" hidden></section>
     <div id="tree"></div>
   </aside>
   <section id="content" aria-live="polite" aria-busy="false"><div class="page loading">Loading runs…</div></section>
 </main>
+<aside id="sheet" class="sheet" role="dialog" aria-modal="false" hidden></aside>
+<div id="toast" role="status" aria-live="polite"></div>
 <script>
 "use strict";
-const FILTERS = [["ok", "Successful"], ["bad", "Blocked"], ["warn", "Needs attention"], ["run", "Running"]];
+const FILTERS = [["ok", "Successful"], ["bad", "Blocked"], ["warn", "Needs attention"], ["run", "Running"], ["none", "Cancelled"]];
 const STATUS = {
   published: {tone: "ok", text: "Published"},
   ready: {tone: "ok", text: "Ready (local candidate)"},
   blocked: {tone: "bad", text: "Blocked"},
   publication_unknown: {tone: "warn", text: "Publication unknown"},
   in_progress: {tone: "run", text: "Running"},
+  paused: {tone: "warn", text: "Paused", icon: "paused"},
+  cancelled: {tone: "none", text: "Cancelled", icon: "cancelled"},
   running: {tone: "run", text: "running"},
   working: {tone: "none", text: "continued"},
   interrupted: {tone: "bad", text: "Interrupted"},
@@ -415,6 +515,17 @@ const ICONS = {
   stop: "<circle cx='12' cy='12' r='10'/><path d='M4.929 4.929L19.07 19.071'/>",
   start: "<path d='M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z'/>",
   end: "<path d='M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528'/>",
+  paused: "<circle cx='12' cy='12' r='10'/><path d='M10 15V9m4 6V9'/>",
+  halt: "<rect width='18' height='18' x='3' y='3' rx='2'/>",
+  rerun: "<path d='M3 12a9 9 0 1 0 9-9a9.75 9.75 0 0 0-6.74 2.74L3 8'/><path d='M3 3v5h5'/>",
+  close: "<path d='M18 6L6 18M6 6l12 12'/>",
+  more: "<circle cx='12' cy='12' r='1'/><circle cx='19' cy='12' r='1'/><circle cx='5' cy='12' r='1'/>",
+  plus: "<path d='M5 12h14m-7-7v14'/>",
+  queue: "<path d='M11 5h10m-10 7h10m-10 7h10M4 4h1v5M4 9h2m.5 11H3.4c0-1 2.6-1.925 2.6-3.5a1.5 1.5 0 0 0-2.6-1.02'/>",
+  logfile: "<path d='M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z'/><path d='M14 2v5a1 1 0 0 0 1 1h5M10 9H8m8 4H8m8 4H8'/>",
+  reconcile: "<path d='M3 12a9 9 0 0 1 9-9a9.75 9.75 0 0 1 6.74 2.74L21 8'/><path d='M21 3v5h-5m5 4a9 9 0 0 1-9 9a9.75 9.75 0 0 1-6.74-2.74L3 16'/><path d='M8 16H3v5'/>",
+  cancelled: "<circle cx='12' cy='12' r='10'/><path d='m9 15l6-6'/>",
+  play: "<path d='M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z'/>",
 };
 function lucide(name, size = 16, cls = "") {
   const s = svg("svg", {class: "lu" + (cls ? " " + cls : ""), width: size, height: size, viewBox: "0 0 24 24", "aria-hidden": "true"});
@@ -452,6 +563,11 @@ function nodeTag(name) {
   return el("span", {class: "node", title: `${info.group}: ${info.does || name}`}, lucide(info.icon, 14), name);
 }
 
+/** A run status mark: paused and cancelled have shapes of their own, the rest show their tone. */
+function statusIcon(key, size = 14) {
+  const st = status(key);
+  return st.icon ? lucide(st.icon, size, "ico t-" + st.tone) : icon(st.tone, size);
+}
 /** The expand marker for rows that open: a chevron that turns down when open. */
 const chevron = open => lucide("chevron", 12, "chev" + (open ? " open" : ""));
 /** A link that leaves the dashboard, marked as such. */
@@ -570,7 +686,7 @@ function drawSidebar() {
     if (collapsed) continue;
     for (const run of items) nodes.push(el("div", {class: "leaf" + (run.id === state.selected ? " sel" : ""), title: `${run.id} · ${status(run.status).text}`,
       "aria-current": run.id === state.selected ? "page" : null, "data-key": "run:" + run.id, onclick: () => select(run.id)},
-      icon(status(run.status).tone), el("span", {class: "nm"}, run.name), el("span", {class: "tm", title: when(run.started)}, ago(run.started))));
+      statusIcon(run.status), el("span", {class: "nm"}, run.name), el("span", {class: "tm", title: when(run.started)}, ago(run.started))));
   }
   box.replaceChildren(...nodes);
 }
@@ -611,7 +727,7 @@ function renderHome() {
       el("tbody", {}, runs.map(run => {
         const st = status(run.status), why = run.reason && st.tone !== "ok" ? run.reason : "";
         return el("tr", {class: "click", "data-key": "row:" + run.id, "aria-label": `${run.name}: ${st.text}`, onclick: () => select(run.id)},
-          el("td", {style: "width:28px"}, icon(st.tone)),
+          el("td", {style: "width:28px"}, statusIcon(run.status)),
           el("td", {class: "mono", style: "white-space:nowrap"}, run.name),
           grouped ? el("td", {class: "hide-sm muted", style: "white-space:nowrap"}, groupName(run)) : null,
           el("td", {class: "grow"}, el("span", {class: "ellipsis", title: why ? `${st.text}: ${why}` : st.text},
@@ -629,8 +745,10 @@ async function loadRuns() {
   const data = await api("/api/runs");
   document.getElementById("root").textContent = data.root;
   document.getElementById("root").title = data.root;
+  // Redraw only on change: a list rebuilt under the pointer can swallow a click.
+  const changed = JSON.stringify(data.runs) !== JSON.stringify(state.runs);
   state.runs = data.runs;
-  renderSidebar();
+  if (changed || !document.querySelector("#tree > *")) renderSidebar();
 }
 /** Opens a run (or the history, for null). A new entry in the browser history lets Back return to where you were. */
 async function select(id, push = true) {
@@ -950,6 +1068,8 @@ function phaseDetail(detail, row, report, calls, onPick) {
     row.kind === "finish" && detail.summary.reason ? el("div", {class: "muted"}, detail.summary.reason) : null,
     el("div", {class: "alinks"},
       el("button", {class: "link", onclick: e => { e.stopPropagation(); onPick(first); }}, "open in build log"),
+      row.kind === "attempt" && canReplay(detail, first)
+        ? el("button", {class: "link", onclick: e => { e.stopPropagation(); replayStep(first, e.currentTarget); }}, "re-run from this attempt") : null,
       calls.map(c => el("button", {class: "link", onclick: e => { e.stopPropagation(); state.tab = "calls"; state.call = c.file; renderDetail(); }}, `model call ${c.index}`))));
 }
 
@@ -989,7 +1109,7 @@ function renderStepTable(detail) {
   const t0 = Date.parse(steps[0].started), tn = Math.max(...steps.map(s => Date.parse(s.ended || s.started)));
   const span = Math.max(tn - t0, 1);
   return el("table", {},
-    el("thead", {}, el("tr", {}, el("th", {}, "#"), el("th", {}, "Node"), el("th", {class: "hide-sm"}, "Timeline"), el("th", {class: "num"}, "Duration"), el("th", {}, "Outcome"))),
+    el("thead", {}, el("tr", {}, el("th", {}, "#"), el("th", {}, "Node"), el("th", {class: "hide-sm"}, "Timeline"), el("th", {class: "num"}, "Duration"), el("th", {}, "Outcome"), el("th", {}, el("span", {class: "sr"}, "Actions")))),
     el("tbody", {}, steps.map(step => {
       const start = Date.parse(step.started) - t0, end = (step.ended ? Date.parse(step.ended) : tn) - t0;
       const st = status(step.status);
@@ -1000,7 +1120,10 @@ function renderStepTable(detail) {
         el("td", {class: "hide-sm", style: "width:40%"}, el("div", {class: "bar", title: `${when(step.started)} → ${when(step.ended)}`},
           el("i", {style: `left:${(start / span * 100).toFixed(2)}%;width:${Math.max((end - start) / span * 100, 0.4).toFixed(2)}%`}))),
         el("td", {class: "num"}, duration(step.duration_seconds)),
-        el("td", {class: "t-" + (stepTone(step) || "none")}, st.text));
+        el("td", {class: "t-" + (stepTone(step) || "none")}, st.text),
+        el("td", {style: "width:1%;white-space:nowrap"}, canReplay(detail, step) ? el("button", {class: "btn rowact", type: "button",
+          title: `Start a new run at step ${step.index + 1}`, onclick: event => { event.stopPropagation(); replayStep(step, event.currentTarget); }},
+          lucide("rerun", 13), "Re-run from here") : null));
     })));
 }
 function renderLog(detail) {
@@ -1107,6 +1230,338 @@ function renderFiles(detail) {
   return el("div", {class: "split"}, list, viewer);
 }
 
+/* ---------- run controls ---------- */
+// The server fills the token in only when it runs with --config; every write request echoes it.
+const TOKEN = document.querySelector('meta[name="auto-fix-token"]').content;
+const CAN_ACT = Boolean(TOKEN);
+const REPLAYABLE = new Set(["baseline", "investigate", "repair", "verify"]);
+const KIND_ICON = {batch: "context", retry: "wrench", repair: "wrench", resume: "play", replay: "rerun",
+  evaluation: "flask", operations: "branch", demo: "start"};
+const controls = {workflows: {}, user: "", jobs: [], runner: {alive: true, waiting: ""}};
+
+async function post(path, body) {
+  const response = await fetch(path, {method: "POST", cache: "no-store",
+    headers: {"Content-Type": "application/json", "X-Auto-Fix-Token": TOKEN}, body: JSON.stringify(body)});
+  const data = await response.json().catch(() => ({error: `${response.status} ${response.statusText}`}));
+  if (!response.ok) throw Object.assign(new Error(data.error || "Request failed"), {fields: data.fields || {}});
+  return data;
+}
+/** A short message at the bottom of the window; the region is announced to screen readers. */
+function toast(text, tone = "") {
+  const box = document.getElementById("toast");
+  box.replaceChildren(el("div", {class: "toast " + tone}, text));
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => box.replaceChildren(), 5000);
+}
+function iconButton(name, label, onclick, {disabled = false, cls = ""} = {}) {
+  return el("button", {class: "ib", type: "button", title: label, "aria-label": label, disabled, onclick}, lucide(name, 14, cls));
+}
+
+/* A popover anchored under the control that opened it: a confirmation or a small menu. */
+let popover = null;
+function closePopover(refocus) {
+  if (!popover) return;
+  const anchor = popover.anchor;
+  popover.remove();
+  popover = null;
+  if (refocus) anchor?.focus?.();
+}
+function openPopover(anchor, box) {
+  closePopover();
+  const rect = anchor.getBoundingClientRect();
+  box.anchor = anchor;
+  box.style.top = Math.round(rect.bottom + 6) + "px";
+  box.style.left = Math.round(Math.max(8, Math.min(rect.right - 320, innerWidth - 328))) + "px";
+  document.body.append(box);
+  popover = box;
+  box.querySelector("button")?.focus();
+}
+function confirmPopover(anchor, text, label, danger = false) {
+  return new Promise(resolve => {
+    const done = answer => { closePopover(true); resolve(answer); };
+    const yes = el("button", {class: "btn " + (danger ? "danger" : "primary"), type: "button", onclick: () => done(true)}, label);
+    openPopover(anchor, el("div", {class: "popover", role: "alertdialog", "aria-label": label},
+      el("p", {}, text), el("div", {class: "pa"}, el("button", {class: "btn", type: "button", onclick: () => done(false)}, "Back"), yes)));
+    yes.focus();
+  });
+}
+function openMenu(anchor, items) {
+  openPopover(anchor, el("div", {class: "popover menu", role: "menu"}, items.map(item =>
+    el("button", {type: "button", role: "menuitem", class: item.danger ? "danger" : "", onclick: () => { closePopover(true); item.run(anchor); }},
+      lucide(item.icon, 14), item.label))));
+}
+document.addEventListener("mousedown", event => { if (popover && !popover.contains(event.target)) closePopover(); });
+document.addEventListener("keydown", event => {
+  if (event.key !== "Escape") return;
+  if (popover) closePopover(true);
+  else if (!document.getElementById("sheet").hidden) closeSheet();
+});
+document.getElementById("content").addEventListener("scroll", () => closePopover());
+
+/* ---------- run page actions ---------- */
+const ACTIONS = {
+  resume: {label: "Resume", icon: "play", primary: true},
+  retry: {label: "Retry", icon: "rerun", primary: true},
+  publish: {label: "Publish PR", icon: "pr", primary: true},
+  reconcile: {label: "Reconcile", icon: "reconcile", primary: true},
+  pause: {label: "Pause", icon: "paused"},
+  cancel: {label: "Cancel", icon: "cancelled"},
+};
+const currentNode = detail => [...detail.events].reverse().find(e => e.node && e.node !== "model_call")?.node || "step";
+function confirmText(action, detail) {
+  const s = detail.summary;
+  if (action === "cancel") return s.live
+    ? `Cancel after ${currentNode(detail)} finishes? The run keeps its evidence and can be retried or re-run from a step, but not resumed.`
+    : "Cancel this run? It can be retried or re-run from a step afterwards.";
+  if (action === "stop") return `Stop now kills ${currentNode(detail)} immediately, builds and tests included. The run can't be resumed afterwards, only retried or re-run from a step.`;
+  if (action === "publish") return "Push the verified branch and open a pull request on Bitbucket?";
+  return "";
+}
+async function runAction(action, anchor, extra = {}) {
+  const detail = state.detail, text = extra.confirm ?? confirmText(action, detail);
+  const label = {stop: "Stop now", cancel: "Cancel run", publish: "Publish", replay: "Queue re-run"}[action] || "Confirm";
+  if (text && !await confirmPopover(anchor, text, label, action === "stop" || action === "cancel")) return;
+  try {
+    const done = await post("/api/runs/action", {run: detail.summary.id, action, step: extra.step});
+    toast(done.job ? `Queued: ${done.job.title}` : done.request
+      ? `${action === "pause" ? "Pause" : "Cancel"} requested. The run stops after ${currentNode(detail)} finishes.`
+      : action === "stop" ? "Run stopped" : "Run cancelled");
+    await Promise.all([loadJobs(), loadDetail()]);
+    wake();
+  } catch (error) { toast(error.message, "bad"); }
+}
+/** The buttons beside a run's result: its main action filled, the rest plain, Stop now in a menu. */
+function actionBar(detail) {
+  if (!CAN_ACT || !detail.controls) return null;
+  const {actions, note} = detail.controls;
+  const buttons = actions.filter(action => ACTIONS[action]).map(action => el("button",
+    {class: "btn" + (ACTIONS[action].primary ? " primary" : ""), type: "button", "data-key": "act:" + action,
+      onclick: event => runAction(action, event.currentTarget)}, lucide(ACTIONS[action].icon, 14), ACTIONS[action].label));
+  const menu = [];
+  if (actions.includes("replay")) menu.push({label: "Re-run from a step…", icon: "rerun", run: () => focusReplay()});
+  if (actions.includes("stop")) menu.push({label: "Stop now", icon: "halt", danger: true, run: anchor => runAction("stop", anchor)});
+  return el("div", {class: "actbar"}, note ? el("span", {class: "muted"}, note) : null, buttons,
+    menu.length ? el("button", {class: "btn icon", type: "button", "aria-label": "More actions", "aria-haspopup": "menu",
+      "data-key": "act:more", onclick: event => openMenu(event.currentTarget, menu)}, lucide("more", 16)) : null);
+}
+/** A pending request, a paused run's next step, or where a re-run came from. */
+function runNotices(detail) {
+  const s = detail.summary, notes = [];
+  if (s.request) {
+    const verb = s.request.request === "pause" ? "Pause" : "Cancel", stop = detail.controls?.actions.includes("stop");
+    notes.push(el("div", {class: "notice", role: "status"}, lucide(s.request.request === "pause" ? "paused" : "cancelled", 16),
+      el("span", {}, `${verb} requested by ${s.request.by} at ${when(s.request.at, false)}. The run stops after ${currentNode(detail)} finishes.`),
+      stop ? el("button", {class: "btn", type: "button", onclick: event => runAction("stop", event.currentTarget)}, lucide("halt", 14), "Stop now") : null));
+  } else if (s.status === "paused" && detail.next.length) {
+    notes.push(el("div", {class: "notice"}, lucide("paused", 16),
+      el("span", {}, `Paused before `, nodeTag(detail.next[0]), `. Resume continues from there with the same worktree.`)));
+  }
+  if (s.forked_from) {
+    const source = s.forked_from;
+    notes.push(el("div", {class: "subline"}, "Re-run of ",
+      el("a", {href: "#run=" + encodeURIComponent("runs/" + source.source), onclick: event => { event.preventDefault(); select("runs/" + source.source); }}, source.source),
+      ` from step ${source.step + 1} (`, source.node, ")"));
+  }
+  return notes;
+}
+const canReplay = (detail, step) => CAN_ACT && detail.controls?.actions.includes("replay") && step.index > 0 && REPLAYABLE.has(step.node);
+function replayStep(step, anchor) {
+  const detail = state.detail;
+  const edits = detail.steps.slice(0, step.index).filter(s => s.node === "repair" && s.changes?.last_repair?.applied).length;
+  const text = `A new run starts at step ${step.index + 1} (${step.node}) from the same commit` +
+    (edits ? `, with ${edits} earlier edit${edits === 1 ? "" : "s"} applied` : "") + ". This run stays as it is.";
+  runAction("replay", anchor, {step: step.index, confirm: text});
+}
+function focusReplay() {
+  if (state.tab !== "overview") { state.tab = "overview"; renderDetail(); }
+  const first = document.querySelector(".rowact");
+  first?.closest(".box")?.scrollIntoView({behavior: "smooth", block: "start"});
+  first?.focus({preventScroll: true});
+}
+
+/* ---------- queue ---------- */
+async function loadJobs() {
+  if (!CAN_ACT) return;
+  const data = await api("/api/jobs");
+  const changed = JSON.stringify(data) !== JSON.stringify({jobs: controls.jobs, runner: controls.runner});
+  controls.jobs = data.jobs;
+  controls.runner = data.runner;
+  if (changed) keepFocus(drawQueue);
+  // A running job's clock moves on every refresh; only its line of text changes.
+  else for (const job of controls.jobs.filter(item => item.status === "running")) {
+    const line = document.querySelector(`[data-key="job:${CSS.escape(job.id)}"] .js`);
+    if (line && line.textContent.startsWith("Running for")) line.textContent = `Running for ${elapsed(job.started)}`;
+  }
+}
+const elapsed = iso => duration((Date.now() - Date.parse(iso)) / 1000);
+function drawQueue() {
+  const box = document.getElementById("queue");
+  const {jobs, runner} = controls;
+  box.hidden = !CAN_ACT || (!jobs.length && runner.alive && !runner.waiting);
+  if (box.hidden) { box.replaceChildren(); return; }
+  const queued = jobs.filter(job => job.status === "queued");
+  const waiting = jobs.filter(job => job.status !== "failed").length;
+  box.replaceChildren(...[
+    el("div", {class: "qhd"}, lucide("queue", 14), "Queue", waiting ? el("span", {class: "n"}, waiting) : null),
+    !runner.alive ? el("div", {class: "qnote warn"}, "No runner is active, so jobs wait. Restart the dashboard with --config, or run ", el("code", {}, "auto-fix worker"), ".")
+      : runner.waiting ? el("div", {class: "qnote"}, runner.waiting) : null,
+    ...jobs.map(job => queueItem(job, queued))].filter(Boolean));
+}
+function queueItem(job, queued) {
+  const index = queued.indexOf(job), run = job.run_id && state.runs.find(item => item.id === "runs/" + job.run_id);
+  const mark = job.status === "running" ? icon("run", 14) : job.status === "failed" ? icon("bad", 14) : lucide(KIND_ICON[job.kind] || "queue", 14, "kind");
+  const sub = job.status === "running"
+    ? (run?.request ? `${run.request.request === "pause" ? "Pausing" : "Cancelling"} after the current step` : `Running for ${elapsed(job.started)}`)
+    : job.status === "failed" ? job.error || "Failed" : job.note || `Queued by ${job.created_by}`;
+  const name = run ? el("button", {class: "link jn", type: "button", onclick: () => select(run.id)}, job.title) : el("span", {class: "jn"}, job.title);
+  return el("div", {class: "job " + job.status, "data-key": "job:" + job.id}, mark,
+    el("div", {class: "jt"}, name, el("div", {class: "js", title: sub}, sub)),
+    el("div", {class: "ja"},
+      job.status === "queued" ? [
+        iconButton("chevron", "Move up", () => moveJob(job, -1), {disabled: index === 0, cls: "up"}),
+        iconButton("chevron", "Move down", () => moveJob(job, 1), {disabled: index === queued.length - 1, cls: "down"}),
+        iconButton("close", "Remove from queue", () => removeJob(job))] : null,
+      job.status === "running" ? el("button", {class: "ib", type: "button", title: "Stop this job", "aria-label": "Stop this job",
+        onclick: event => stopJob(job, event.currentTarget)}, lucide("halt", 13)) : null,
+      job.status !== "queued" ? iconButton("logfile", "View log", () => openLog(job)) : null,
+      job.status === "failed" ? iconButton("close", "Dismiss", () => removeJob(job)) : null));
+}
+async function stopJob(job, anchor) {
+  const text = `Stop "${job.title}" now? Its process and everything it started are killed.` + (job.run_id ? " Its run can be retried or re-run from a step afterwards." : "");
+  if (!await confirmPopover(anchor, text, "Stop job", true)) return;
+  try { await post("/api/jobs/stop", {id: job.id}); toast("Job stopped"); await loadJobs(); } catch (error) { toast(error.message, "bad"); }
+}
+async function moveJob(job, delta) {
+  try { await post("/api/jobs/move", {id: job.id, delta}); await loadJobs(); } catch (error) { toast(error.message, "bad"); }
+}
+async function removeJob(job) {
+  try { await post("/api/jobs/remove", {id: job.id}); await loadJobs(); } catch (error) { toast(error.message, "bad"); }
+}
+
+/* ---------- side panel: start a workflow, or read a job log ---------- */
+const sheet = document.getElementById("sheet");
+let sheetReturn = null, startKind = null, previewTimer = 0;
+function openSheet(label, ...children) {
+  if (sheet.hidden) sheetReturn = document.activeElement;
+  sheet.setAttribute("aria-label", label);
+  sheet.replaceChildren(...children);
+  sheet.hidden = false;
+}
+function closeSheet() {
+  sheet.hidden = true;
+  sheet.replaceChildren();
+  sheetReturn?.focus?.();
+}
+async function openLog(job) {
+  const text = await fetch("/api/jobs/log?id=" + encodeURIComponent(job.id), {cache: "no-store"})
+    .then(response => response.ok ? response.text() : "No output recorded yet.");
+  openSheet("Job log",
+    el("div", {class: "shd"}, el("div", {}, el("h2", {}, "Job log"), el("div", {class: "muted"}, job.title)), iconButton("close", "Close", closeSheet)),
+    el("pre", {class: "view sheetlog"}, text || "No output recorded yet."),
+    el("div", {class: "sfoot"}, el("div", {class: "sact"},
+      job.run_id ? el("button", {class: "btn", type: "button", onclick: () => { closeSheet(); select("runs/" + job.run_id); }}, "Open run") : null,
+      el("button", {class: "btn primary", type: "button", onclick: closeSheet}, "Close"))));
+  sheet.querySelector(".ib")?.focus();
+}
+const saved = kind => { try { return JSON.parse(sessionStorage.getItem("start:" + kind)) || {}; } catch (error) { return {}; } };
+const remember = (kind, params) => { try { sessionStorage.setItem("start:" + kind, JSON.stringify(params)); } catch (error) { /* private mode */ } };
+function openStart(kind) {
+  startKind = kind || startKind || Object.keys(controls.workflows)[0];
+  drawStart();
+  sheet.querySelector(".wf.on")?.focus();
+}
+/** One form field built from the workflow's parameter schema. */
+function field(param, value) {
+  const id = "f-" + param.name, today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  value = value ?? (param.default === "today" ? today : param.default);
+  let input;
+  if (param.type === "bool") input = el("input", {type: "checkbox", id, checked: value ? "" : null});
+  else if (param.type === "choice") input = el("select", {id}, param.choices.map(choice => el("option", {value: choice, selected: choice === value ? "" : null}, choice || "Any")));
+  else if (param.type === "run") {
+    const runs = state.runs.filter(run => run.id.startsWith("runs/") && (!param.statuses || param.statuses.includes(run.status)));
+    input = el("select", {id}, el("option", {value: ""}, runs.length ? "Choose a run" : "No run can be retried"),
+      runs.map(run => el("option", {value: run.name, selected: run.name === value ? "" : null}, `${run.name} · ${status(run.status).text}`)));
+  } else input = el("input", {id, type: param.type === "int" ? "number" : param.type === "date" ? "date" : "text",
+    value: value ?? "", min: param.min, max: param.max, step: param.type === "int" ? "1" : null, spellcheck: "false"});
+  const help = param.help ? el("div", {class: "fhelp", id: id + "-help"}, param.help) : null;
+  const error = el("div", {class: "ferr", id: id + "-err", role: "alert"});
+  input.setAttribute("aria-describedby", [help && id + "-help", id + "-err"].filter(Boolean).join(" "));
+  const node = param.type === "bool"
+    ? el("div", {class: "field check"}, el("label", {for: id}, input, param.label), help, error)
+    : el("div", {class: "field"}, el("label", {for: id}, param.label), input, help, error);
+  return {param, node,
+    read: () => param.type === "bool" ? input.checked : param.type === "int" ? (input.value === "" ? null : Number(input.value))
+      : param.type === "run" ? input.value || null : input.value,
+    error: message => { error.textContent = message || ""; input.setAttribute("aria-invalid", message ? "true" : "false"); }};
+}
+const readParams = fields => Object.fromEntries(fields.map(item => [item.param.name, item.read()]));
+function showErrors(fields, errors) { for (const item of fields) item.error(errors[item.param.name]); }
+function drawStart() {
+  const workflow = controls.workflows[startKind], previous = saved(startKind);
+  const fields = workflow.params.map(param => field(param, previous[param.name]));
+  const basic = fields.filter(item => !item.param.advanced), advanced = fields.filter(item => item.param.advanced);
+  const command = el("code", {class: "cmd"}, "…"), formError = el("div", {class: "ferr", role: "alert"});
+  const idle = !controls.jobs.some(job => job.status === "running" || job.status === "queued");
+  const preview = async () => {
+    try {
+      const done = await post("/api/jobs/preview", {kind: startKind, params: readParams(fields)});
+      command.textContent = done.command.map(part => /[\s"']/.test(part) ? JSON.stringify(part) : part).join(" ");
+      showErrors(fields, {});
+      formError.textContent = "";
+    } catch (error) { command.textContent = "—"; showErrors(fields, error.fields); }
+  };
+  const form = el("form", {class: "sform", id: "start-form", novalidate: "",
+    oninput: () => { clearTimeout(previewTimer); previewTimer = setTimeout(preview, 200); },
+    onsubmit: async event => {
+      event.preventDefault();
+      const params = readParams(fields);
+      try {
+        const done = await post("/api/jobs", {kind: startKind, params});
+        remember(startKind, params);
+        closeSheet();
+        toast(`${idle ? "Started" : "Queued"}: ${done.job.title}`);
+        await loadJobs();
+        wake();
+      } catch (error) {
+        showErrors(fields, error.fields);
+        formError.textContent = Object.keys(error.fields).length ? "Fix the highlighted fields." : error.message;
+        sheet.querySelector('[aria-invalid="true"]')?.focus();
+      }
+    }},
+    basic.map(item => item.node), basic.length ? null : el("p", {class: "muted"}, "This workflow has no settings."),
+    advanced.length ? el("details", {class: "adv"}, el("summary", {}, "Advanced"), advanced.map(item => item.node)) : null, formError);
+  const copy = el("button", {class: "ib", type: "button", title: "Copy command", "aria-label": "Copy command", onclick: async () => {
+    try { await navigator.clipboard.writeText(command.textContent); toast("Command copied"); } catch (error) { /* clipboard blocked */ }
+  }}, lucide("copy", 14));
+  openSheet("Start a workflow",
+    el("div", {class: "shd"}, el("h2", {}, "Start a workflow"), iconButton("close", "Close", closeSheet)),
+    el("div", {class: "sbody"},
+      el("nav", {class: "wflist", "aria-label": "Workflows"}, Object.entries(controls.workflows).map(([kind, item]) =>
+        el("button", {class: "wf" + (kind === startKind ? " on" : ""), type: "button", "aria-pressed": String(kind === startKind), "data-key": "wf:" + kind,
+          onclick: () => { startKind = kind; drawStart(); sheet.querySelector(`[data-key="wf:${kind}"]`)?.focus(); }},
+          lucide(item.icon, 16), el("span", {}, el("b", {}, item.title), el("span", {class: "muted"}, item.description))))),
+      el("div", {class: "sform-wrap"}, el("h3", {}, workflow.title), el("p", {class: "muted"}, workflow.description), form)),
+    el("div", {class: "sfoot"},
+      el("div", {class: "cmdline"}, el("span", {class: "muted"}, "Same as"), command, copy),
+      el("div", {class: "sact"}, el("button", {class: "btn", type: "button", onclick: closeSheet}, "Cancel"),
+        el("button", {class: "btn primary", type: "submit", form: "start-form"}, lucide(idle ? "play" : "plus", 14), idle ? "Start" : "Add to queue"))));
+  preview();
+}
+
+/** The header's Start button, or a note that this dashboard only reads. */
+async function setupControls() {
+  const slot = document.getElementById("act");
+  if (!CAN_ACT) {
+    slot.replaceChildren(el("span", {class: "badge", title: "Start the dashboard with --config to start and control workflows"}, "Read-only"));
+    return;
+  }
+  const data = await api("/api/workflows");
+  controls.workflows = data.workflows;
+  controls.user = data.user;
+  slot.replaceChildren(el("button", {class: "btn primary", type: "button", id: "start", onclick: () => openStart()}, lucide("plus", 14), "Start workflow"));
+  await loadJobs();
+}
+
 /* ---------- run page ---------- */
 function renderDetail() { keepFocus(drawDetail); }
 function drawDetail() {
@@ -1149,11 +1604,13 @@ function drawDetail() {
     "data-key": "tab:" + key, onclick: () => { state.tab = key; renderDetail(); }}, lucide(tabIcon[key], 15), label, n !== undefined ? el("span", {class: "n"}, n) : null)));
   document.getElementById("content").replaceChildren(el("div", {class: "page"},
     el("nav", {class: "crumbs", "aria-label": "Breadcrumb"}, el("a", {href: "#", onclick: event => { event.preventDefault(); select(null); }}, "Run history"), " / ", groupName(s)),
-    el("div", {class: "headline"}, icon(st.tone, 20), el("h1", {}, s.build_type || "Repair run"), el("span", {class: "num"}, s.name)),
+    el("div", {class: "headline"}, statusIcon(s.status, 20), el("h1", {}, s.build_type || "Repair run"), el("span", {class: "num"}, s.name)),
     el("div", {class: "result"}, el("span", {class: "why"}, el("b", {class: "t-" + st.tone}, st.text),
       running ? el("span", {class: "muted"}, ` · step ${running.index + 1}, ${running.node}`) : null,
       s.reason && st.tone !== "ok" ? el("span", {class: "reason"}, ": " + s.reason) : null),
-      s.pr_url ? el("a", {class: "pr", href: s.pr_url, target: "_blank", rel: "noreferrer"}, lucide("pr", 14), "Open pull request", lucide("external", 12, "out")) : null),
+      s.pr_url ? el("a", {class: "pr", href: s.pr_url, target: "_blank", rel: "noreferrer"}, lucide("pr", 14), "Open pull request", lucide("external", 12, "out")) : null,
+      actionBar(detail)),
+    runNotices(detail),
     el("div", {class: "subline"}, `${s.tests.length} failing test${s.tests.length === 1 ? "" : "s"}: `,
       el("span", {class: "mono", title: s.tests.join("\n")}, s.tests.length ? s.tests.slice(0, 4).join(", ") + (s.tests.length > 4 ? ` +${s.tests.length - 4} more` : "") : "—")),
     el("div", {class: "facts"},
@@ -1192,15 +1649,26 @@ window.addEventListener("hashchange", () => {
 });
 async function refresh() {
   try {
-    await loadRuns();
+    await Promise.all([loadRuns(), loadJobs()]);
     if (!state.selected) { keepFocus(renderHome); return; }
     const current = state.runs.find(run => run.id === state.selected);
     // Re-read a run only when it changed, and never while an artifact is open.
-    if (current && state.tab !== "files" && (current.status === "in_progress" || state.detail?.summary.updated !== current.updated)) await loadDetail();
+    if (current && state.tab !== "files" && (current.status === "in_progress" || busy() || state.detail?.summary.updated !== current.updated)) await loadDetail();
   } catch (error) { /* keep the last view while the server restarts */ }
 }
 loadRuns().then(() => state.selected && state.runs.some(r => r.id === state.selected) ? loadDetail() : (state.selected = null, renderSidebar(), renderHome()));
-setInterval(() => document.getElementById("live").checked && refresh(), 4000);
+setupControls().catch(() => { /* the run history still works without controls */ });
+/** Refresh every 4 seconds, or every 1.5 while a job runs or a request waits for its step to end. */
+const busy = () => controls.jobs.some(job => job.status === "running" || job.status === "queued") || Boolean(state.detail?.summary.request);
+let refreshTimer = 0;
+function wake() {
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(async () => {
+    if (document.getElementById("live").checked) await refresh();
+    wake();
+  }, busy() ? 1500 : 4000);
+}
+wake();
 </script>
 </body>
 </html>
