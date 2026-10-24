@@ -23,6 +23,10 @@
   }
 }
 * { box-sizing: border-box; }
+[hidden] { display:none !important; }
+.btn:disabled { opacity:0.45; cursor:default; }
+a.btn { display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border:1px solid var(--line); border-radius:6px; color:var(--ink); background:var(--ground); text-decoration:none; }
+a.btn:hover { border-color:var(--accent); color:var(--accent); }
 html, body { margin: 0; height: 100%; }
 body {
   background: var(--ground); color: var(--ink);
@@ -46,6 +50,17 @@ header { border-bottom: 1px solid var(--line); display: flex; align-items: cente
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: right; }
 .live { display: flex; align-items: center; gap: 7px; color: var(--muted); cursor: pointer; white-space: nowrap; user-select: none; }
 .live input { accent-color: var(--accent); margin: 0; }
+.history-filters, .pagination { display:flex; align-items:end; gap:12px; flex-wrap:wrap; margin:16px 0; }
+.history-filters label { display:grid; gap:4px; color:var(--muted); font-size:12px; }
+.history-filters input, .history-filters select, .pagination select { font:inherit; color:var(--ink); background:var(--ground); border:1px solid var(--line); border-radius:5px; padding:6px 8px; }
+.history-filters input[type="search"] { min-width:220px; }
+.pagination { align-items:center; justify-content:flex-end; }
+.pagination .muted { margin-right:auto; }
+.execution-path { display:flex; gap:8px; flex-wrap:wrap; list-style:none; padding:0; margin:0; }
+.execution-path li { display:flex; align-items:center; gap:8px; }
+.execution-path button { display:grid; gap:5px; text-align:left; min-width:145px; padding:12px; background:var(--soft); color:var(--ink); border:1px solid var(--line); border-radius:6px; cursor:pointer; }
+.execution-path button:hover { border-color:var(--accent); }
+.attention-list { max-height:340px; overflow:auto; }
 
 main { display: grid; grid-template-columns: 300px minmax(0, 1fr); min-height: 0; }
 
@@ -319,6 +334,9 @@ pre.log-view { max-height: 60vh; border: 1px solid var(--line); border-radius: 6
 .runbtn.small .btn:last-child { padding: 0 7px; }
 
 @media (max-width: 900px) {
+  body { grid-template-rows:auto minmax(0,1fr); }
+  header { min-height:48px; padding:8px 12px; gap:8px; flex-wrap:wrap; }
+  header .live { margin-left:auto; }
   main { grid-template-columns: minmax(0, 1fr); grid-template-rows: 38vh minmax(0, 1fr); }
   aside { border-right: none; border-bottom: 1px solid var(--line); }
 
@@ -329,6 +347,7 @@ pre.log-view { max-height: 60vh; border: 1px solid var(--line); border-radius: 6
   .line { grid-template-columns: 62px 14px minmax(0, 1fr) auto; }
   .nest { margin-left: 16px; }
   .box { overflow-x: auto; }
+  .split { grid-template-columns:minmax(0,1fr); }
 }
 </style>
 </head>
@@ -340,6 +359,8 @@ pre.log-view { max-height: 60vh; border: 1px solid var(--line); border-radius: 6
   </a>
   <div class="root" id="root"></div>
   <button id="queue-link" class="qlink" type="button" hidden></button>
+  <button id="schedules-link" class="btn small" type="button">Schedules</button>
+  <button id="batches-link" class="btn small" type="button">Batches</button>
   <label class="live" title="Re-read the state directory every 4 seconds"><input type="checkbox" id="live" checked> Live refresh</label>
 </header>
 <main>
@@ -373,7 +394,11 @@ const status = key => STATUS[key] || {tone: "none", text: key || "—"};
 const link = new URLSearchParams(location.hash.slice(1));
 const state = {runs: [], show: "all", workflow: link.get("wf"), openAttempts: new Set(), collapsed: new Set(), selected: link.get("run"), detail: null,
   tab: link.get("tab") || "overview", openSteps: new Set((link.get("open") || "").split(",").filter(Boolean).map(Number)),
-  file: link.get("file"), call: link.get("call"), figure: null};
+  file: link.get("file"), call: link.get("call"), figure: null, catalog: [], total:0, allTotal:0, pages:1,
+  history: {page:Math.max(1, Number(link.get("page")) || 1), page_size:[25,50,100].includes(Number(link.get("size"))) ? Number(link.get("size")) : 25,
+    status:link.get("status") || "", q:link.get("search") || "", since:link.get("since") || "", until:link.get("until") || ""},
+  returnHash:link.get("back") || "", request:0, view:link.get("view"), schedules:[],timezone:"Europe/Paris",attention:[],active:[],attentionTotal:0,
+  batches:[],batchPage:Number(link.get("batch_page"))||1,batchPages:1,batchTotal:0};
 
 function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
@@ -602,12 +627,12 @@ function workflowOfJob(job) {
 /** Projects and their workflows, from the configured build configurations and the runs on disk. */
 function projects() {
   const types = new Set(controls.buildTypes);
-  for (const run of state.runs) if (run.id.startsWith("runs/") && run.build_type) types.add(run.build_type);
+  for (const entry of state.catalog) if (entry.key.startsWith("bt:") && entry.last.build_type) types.add(entry.last.build_type);
   const describe = kind => controls.workflows[kind]?.description || "";
   const list = [
-    {key: "repairs", title: "Repairs", description: "Failed TeamCity tests, repaired and verified. One workflow per build configuration.",
+    {key: "repairs", title: "Repairs", description: "LangGraph workflows investigate failures, propose changes and verify the result.",
       run: {kind: "batch", params: {}, title: "all build configurations"},
-      workflows: [...types].sort().map(type => ({key: "bt:" + type, title: pretty(type), id: type,
+      workflows: [...types].sort().map(type => ({key: "bt:" + type, title: "Repair failures · " + pretty(type), id: type,
         description: `Repairs the failed tests of the TeamCity build configuration ${type}.`,
         run: {kind: "batch", params: {build_type: type}, fixed: ["build_type"], title: pretty(type)}}))},
     {key: "evaluations", title: "Evaluations", description: "Measure the repair workflow on known C++ failures.",
@@ -617,14 +642,14 @@ function projects() {
     {key: "tools", title: "Tools", description: "", workflows: [
       {key: "demo", title: "Demo", description: describe("demo") || "The offline sample repair.", run: {kind: "demo", params: {}, title: "Demo"}}]},
   ];
-  const other = [...new Set(state.runs.map(workflowOf).filter(key => key.startsWith("other:")))];
+  const other = state.catalog.map(entry => entry.key).filter(key => key.startsWith("other:"));
   if (other.length) list.push({key: "other", title: "Other runs", description: "", workflows: other.map(key =>
     ({key, title: key.slice(6), description: "Runs found in this directory."}))});
   for (const project of list) {
     // Read-only, the tree shows only workflows that have runs, and nothing can be started.
     if (!CAN_ACT) {
       project.run = null;
-      project.workflows = project.workflows.filter(item => state.runs.some(run => workflowOf(run) === item.key));
+      project.workflows = project.workflows.filter(item => state.catalog.some(entry => entry.key === item.key));
       for (const item of project.workflows) item.run = null;
     }
     for (const item of project.workflows) item.project = project;
@@ -634,6 +659,7 @@ function projects() {
 const allWorkflows = () => projects().flatMap(project => project.workflows);
 const findWorkflow = key => allWorkflows().find(item => item.key === key);
 const runsOf = key => state.runs.filter(run => workflowOf(run) === key);
+const catalogOf = key => state.catalog.find(entry => entry.key === key);
 const jobsOf = key => (CAN_ACT ? controls.jobs : []).filter(job => workflowOfJob(job) === key);
 const activeJob = key => jobsOf(key).find(job => job.status === "running") || jobsOf(key).find(job => job.status === "queued");
 
@@ -643,7 +669,7 @@ function drawSidebar() {
   const q = document.getElementById("q").value.trim().toLowerCase();
   const here = state.workflow || (state.detail ? workflowOf(state.detail.summary) : null);
   const nodes = [el("div", {class: "leaf top" + (!here && !state.selected ? " sel" : ""), "data-key": "nav:projects",
-    "aria-current": !here && !state.selected ? "page" : null, onclick: () => openWorkflow(null)}, lucide("overview", 14), el("span", {class: "nm wf"}, "All projects"))];
+    "aria-current": !here && !state.selected ? "page" : null, onclick: () => openWorkflow(null)}, lucide("overview", 14), el("span", {class: "nm wf"}, "All workflows"))];
   for (const project of projects()) {
     const items = project.workflows.filter(item => !q || `${item.title} ${item.id || ""}`.toLowerCase().includes(q));
     if (!items.length) continue;
@@ -653,7 +679,7 @@ function drawSidebar() {
       chevron(!collapsed), project.title, el("span", {class: "count"}, String(items.length))));
     if (collapsed) continue;
     for (const item of items) {
-      const last = runsOf(item.key)[0], active = activeJob(item.key);
+      const last = catalogOf(item.key)?.last, active = activeJob(item.key);
       nodes.push(el("div", {class: "leaf" + (here === item.key ? " sel" : ""), title: item.id || item.title,
         "aria-current": here === item.key ? "page" : null, "data-key": "wf:" + item.key, onclick: () => openWorkflow(item.key)},
         active?.status === "running" || last?.live ? icon("run") : last ? statusIcon(last.status) : lucide("clock", 14, "ico t-none idle"),
@@ -678,17 +704,10 @@ const elapsed = iso => duration((Date.now() - Date.parse(iso)) / 1000);
 const clock = iso => el("span", {"data-since": iso}, elapsed(iso));
 function tickClocks() { for (const node of document.querySelectorAll("[data-since]")) node.textContent = elapsed(node.dataset.since); }
 /** "1 of 2 failing" from the run's latest test report, filled in once its details arrive. */
-const testCounts = new Map();
 function testsCell(run) {
-  const cell = el("span", {class: "muted"}, "…"), key = run.id + "@" + run.updated;
-  if (!testCounts.has(key)) testCounts.set(key, api("/api/run?id=" + encodeURIComponent(run.id))
-    .then(detail => ({counts: failingTrail(detail).filter(n => n !== null), total: detail.summary.tests.length})).catch(() => null));
-  testCounts.get(key).then(found => {
-    const failing = found?.counts.at(-1);
-    cell.className = failing === undefined ? "muted" : failing ? "t-bad" : "t-ok";
-    cell.textContent = failing === undefined ? "—" : failing ? `${failing} of ${found.total} failing` : `All ${found.total} pass`;
-  });
-  return cell;
+  const report = run.validation;
+  return el("span", {class:!report ? "muted" : report.failed ? "t-bad" : "t-ok"},
+    !report ? "—" : `${report.passed} passed` + (report.failed ? ` · ${report.failed} failed` : "") + (report.skipped ? ` · ${report.skipped} skipped` : ""));
 }
 function pageHead(title, sub, ...tools) {
   return el("div", {class: "pagehead"}, el("div", {}, el("h1", {}, title), sub ? el("div", {class: "muted"}, sub) : null),
@@ -701,7 +720,9 @@ function runButtons(spec, small = false) {
     el("button", {class: "btn primary" + (small ? " small" : ""), type: "button", title: `Run ${spec.title} with the default parameters`,
       onclick: event => { event.stopPropagation(); quickRun(spec); }}, lucide("play", 12), "Run"),
     el("button", {class: "btn primary" + (small ? " small" : ""), type: "button", title: "Run with parameters", "aria-label": `Run ${spec.title} with parameters`,
-      onclick: event => { event.stopPropagation(); openRunDialog(spec); }}, "…"));
+      onclick: event => { event.stopPropagation(); openRunDialog(spec); }}, "…"),
+    el("button",{class:"btn"+(small?" small":""),type:"button",title:"Schedule "+spec.title,"aria-label":"Schedule "+spec.title,
+      onclick:event=>{event.stopPropagation();openRunDialog(spec,true);}},lucide("clock",12),small?null:"Schedule"));
 }
 async function quickRun(spec) {
   try {
@@ -715,7 +736,7 @@ async function quickRun(spec) {
 }
 /** A queued, running or failed job that has no run of its own in the list yet. */
 function jobRow(job) {
-  if (job.run_id && state.runs.some(run => run.id === "runs/" + job.run_id)) return null;
+  if (job.run_id) return null;
   const queued = job.status === "queued", failed = job.status === "failed";
   const result = queued ? [el("span", {class: "muted", style: "font-weight:500"}, "Queued"), el("span", {class: "muted"}, ` · ${job.note || "by " + job.created_by}`)]
     : failed ? [el("span", {class: "t-bad", style: "font-weight:500"}, "Failed"), el("span", {class: "muted"}, " · " + (job.error || "see the log"))]
@@ -747,7 +768,8 @@ function runRow(run) {
     el("td", {class: "hide-sm", style: "white-space:nowrap"}, testsCell(run)),
     el("td", {class: "hide-sm muted", style: "white-space:nowrap", title: when(run.started)}, shortWhen(run.started)),
     el("td", {class: "num"}, running && run.started ? clock(run.started) : duration(run.duration_seconds)),
-    el("td", {class: "rowtools"}, running && CAN_ACT ? el("button", {class: "btn small", type: "button",
+    el("td", {class: "rowtools"},run.output_files?.includes("fix.diff")?el("a",{class:"btn small",href:"/api/download?"+new URLSearchParams({id:run.id,path:"fix.diff"}),download:"",onclick:event=>event.stopPropagation()},"Patch ↓"):null,
+      el("a",{class:"btn small",href:"/api/download?id="+encodeURIComponent(run.id),download:"",title:"Download evidence bundle",onclick:event=>event.stopPropagation()},lucide("logfile",12),"Artifacts ↓"), running && CAN_ACT ? el("button", {class: "btn small", type: "button",
       onclick: async event => { event.stopPropagation(); stopDialog(await api("/api/run?id=" + encodeURIComponent(run.id))); }},
       lucide("halt", 12), "Stop") : null));
 }
@@ -756,7 +778,7 @@ function runsTable(jobs, runs) {
   if (!rows.length && !runs.length) return null;
   return el("div", {class: "box"}, el("table", {class: "runs"},
     el("thead", {}, el("tr", {}, el("th", {}, el("span", {class: "sr"}, "Status")), el("th", {}, "Run"), el("th", {}, "Result"),
-      el("th", {class: "hide-sm"}, "Tests"), el("th", {class: "hide-sm"}, "Started"), el("th", {class: "num"}, "Duration"), el("th", {}, el("span", {class: "sr"}, "Actions")))),
+      el("th", {class: "hide-sm"}, "Validation"), el("th", {class: "hide-sm"}, "Started"), el("th", {class: "num"}, "Duration"), el("th", {}, el("span", {class: "sr"}, "Actions")))),
     el("tbody", {}, rows, runs.map(runRow))));
 }
 function runnerNotice() {
@@ -766,6 +788,9 @@ function runnerNotice() {
 }
 function renderHome() {
   dropFigure();
+  if(state.view==="schedules") {document.getElementById("content").replaceChildren(schedulesPage());return;}
+  if(state.view==="batches") {document.getElementById("content").replaceChildren(batchesPage());return;}
+  if(state.view==="history") {document.getElementById("content").replaceChildren(el("div",{class:"page"},pageHead("Run history",`${state.total} matching workflow runs`),historyFilters(),runsTable([],state.runs)||el("p",{class:"muted"},"No runs match these filters."),pagination()));return;}
   const workflow = state.workflow && findWorkflow(state.workflow);
   if (state.workflow && !workflow) state.workflow = null;
   document.getElementById("content").replaceChildren(workflow ? workflowPage(workflow) : projectsPage());
@@ -780,7 +805,7 @@ function projectsPage() {
       el("thead", {}, el("tr", {}, el("th", {}, el("span", {class: "sr"}, "Status")), el("th", {}, "Workflow"), el("th", {}, "Last run"),
         el("th", {class: "hide-sm"}, "Started"), el("th", {class: "num hide-sm"}, "Runs"), el("th", {}, el("span", {class: "sr"}, "Run")))),
       el("tbody", {}, project.workflows.map(item => {
-        const runs = runsOf(item.key), last = runs[0], active = activeJob(item.key), st = last && status(last.status);
+        const entry = catalogOf(item.key), last = entry?.last, active = activeJob(item.key), st = last && status(last.status);
         const lastText = active ? el("span", {class: active.status === "running" ? "t-run" : "muted"}, active.status === "running" ? "Running" : "Queued")
           : last ? [el("span", {class: "t-" + st.tone, style: "font-weight:500"}, last.status === "in_progress" && last.live ? "Running" : st.text),
                     last.reason && st.tone !== "ok" ? el("span", {class: "muted"}, " · " + last.reason) : null]
@@ -790,61 +815,109 @@ function projectsPage() {
           el("td", {style: "white-space:nowrap"}, el("b", {class: "wfname"}, item.title), item.id && item.id !== item.title ? el("span", {class: "muted mono small"}, "  " + item.id) : null),
           el("td", {class: "grow"}, el("span", {class: "ellipsis"}, lastText)),
           el("td", {class: "hide-sm muted", style: "white-space:nowrap"}, last ? shortWhen(last.started) : "—"),
-          el("td", {class: "num hide-sm"}, runs.length || "—"),
+          el("td", {class: "num hide-sm"}, entry?.count || "—"),
           el("td", {class: "rowtools"}, runButtons(item.run, true)));
       }))))));
-  const waiting = queue.filter(job => !job.run_id || !state.runs.some(run => run.id === "runs/" + job.run_id));
+  const waiting = queue.filter(job => !job.run_id);
   return el("div", {class: "page"},
-    pageHead("Projects", `${allWorkflows().length} workflows · ${state.runs.length} runs` + (queue.length ? ` · ${queue.filter(j => j.status !== "failed").length} in the queue` : "")),
+    pageHead("Workflows", `${allWorkflows().length} workflows · ${state.allTotal} runs` + (queue.length ? ` · ${queue.filter(j => j.status !== "failed").length} in the queue` : "")),
     runnerNotice(),
+    el("div",{class:"tools",style:"margin-bottom:16px"},el("a",{class:"btn",href:"#view=history"},"All run history")),
+    el("section",{class:"project"},el("h2",{},"Needs attention",el("span",{class:"sub"},state.attentionTotal)),
+      state.attention.length?el("div",{class:"box attention-list"},el("table",{},el("thead",{},el("tr",{},el("th",{},"Run"),el("th",{},"Outcome"),el("th",{},"Next action"))),
+        el("tbody",{},state.attention.map(run=>el("tr",{},el("td",{},el("a",{href:"#run="+encodeURIComponent(run.id),onclick:event=>{event.preventDefault();select(run.id);}},run.name)),
+          el("td",{},statusIcon(run.status)," ",run.status==="in_progress"?"Worker stopped unexpectedly":status(run.status).text,run.reason?el("div",{class:"muted"},run.reason):null),
+          el("td",{},el("button",{class:"btn small",type:"button",onclick:()=>select(run.id)},({ready:"Review and publish",paused:"Resume workflow",publication_unknown:"Reconcile publication",blocked:"Inspect and retry"})[run.status]||"Inspect run")))))))
+        :el("p",{class:"muted"},"No runs need attention."),state.attentionTotal>25?el("a",{href:"#view=history&status=attention"},`View all ${state.attentionTotal} attention items`):null),
+    state.active.length?el("section",{class:"project"},el("h2",{},"Running workflows"),runsTable([],state.active)):null,
     waiting.length ? el("section", {class: "project"}, el("div", {class: "projhead"}, el("h2", {}, "Queue")), runsTable(waiting, [])) : null,
+    state.schedules.some(spec=>spec.enabled&&spec.next_run)?el("section",{class:"project"},el("h2",{},"Upcoming schedules"),
+      state.schedules.filter(spec=>spec.enabled&&spec.next_run).sort((a,b)=>a.next_run.localeCompare(b.next_run)).slice(0,3).map(spec=>el("p",{},el("a",{href:"#view=schedules"},spec.name)," · ",new Date(spec.next_run).toLocaleString(undefined,{timeZone:spec.timezone})," ",spec.timezone))):null,
+    state.batches.length?el("section",{class:"project"},el("h2",{},"Recent repair batches"),batchTable(state.batches.slice(0,5)),el("a",{href:"#view=batches"},"All batch history")):null,
     sections.length ? sections : emptyState("runs", "No workflows yet", "Start the dashboard with --config to see and run the configured TeamCity build configurations."));
 }
 /** One workflow, like a TeamCity build configuration: its runs, newest first, and Run. */
 function workflowPage(item) {
-  const runs = runsOf(item.key).filter(run => state.show === "all" || status(run.status).tone === state.show);
-  const show = el("label", {class: "show"}, "Show ", el("select", {"data-key": "show", onchange: event => { state.show = event.target.value; renderHome(); }},
-    SHOW.map(([value, label]) => el("option", {value, selected: value === state.show ? "" : null}, label))));
+  const runs = runsOf(item.key);
   const table = runsTable(jobsOf(item.key), runs);
   return el("div", {class: "page"},
-    el("nav", {class: "crumbs", "aria-label": "Breadcrumb"}, el("a", {href: "#", onclick: event => { event.preventDefault(); openWorkflow(null); }}, "Projects"), " / ", item.project.title),
-    pageHead(item.title, item.description, runsOf(item.key).length ? show : null, runButtons(item.run)),
+    el("nav", {class: "crumbs", "aria-label": "Breadcrumb"}, el("a", {href: "#", onclick: event => { event.preventDefault(); openWorkflow(null); }}, "Workflows"), " / ", item.project.title),
+    pageHead(item.title, item.description, runButtons(item.run)),
     runnerNotice(),
-    table || (runsOf(item.key).length ? emptyState("search", "No run matches", "No run of this workflow has that result.",
-        el("button", {class: "btn", type: "button", onclick: () => { state.show = "all"; renderHome(); }}, "Show all runs"))
-      : emptyState("runs", "Never run", item.run ? "Run starts it with the default parameters; … lets you set them first." : "Runs of this workflow appear here.", runButtons(item.run))));
+    historyFilters(),
+    table || emptyState("search", "No run matches", "Adjust the search, status or date filters to find a run."), pagination());
 }
-const SHOW = [["all", "All runs"], ["bad", "Blocked"], ["run", "Running"], ["warn", "Needs attention"], ["ok", "Successful"], ["none", "Cancelled"]];
+function historyHash() {
+  const hash = new URLSearchParams();
+  if(state.view) hash.set("view",state.view);
+  if(state.view==="batches") hash.set("batch_page",state.batchPage);
+  if (state.workflow) hash.set("wf", state.workflow);
+  for (const [key, value] of Object.entries(state.history)) if (value && !(key === "page" && value === 1) && !(key === "page_size" && value === 25))
+    hash.set(key === "page_size" ? "size" : key === "q" ? "search" : key, value);
+  return hash.toString();
+}
+async function changeHistory(patch) {
+  state.history = {...state.history, page:1, ...patch};
+  history.pushState(null, "", "#" + historyHash());
+  try { await loadRuns(); renderHome(); } catch(error) { toast(error.message,"bad"); }
+}
+function historyFilters() {
+  const h=state.history;
+  return el("form", {class:"history-filters", onsubmit:event=>{event.preventDefault(); changeHistory({q:event.currentTarget.elements.search.value});}},
+    el("label", {}, "Search runs", el("input", {name:"search", type:"search", value:h.q, placeholder:"Run, test, revision, branch…", "data-key":"history-search"})),
+    el("button", {class:"btn",type:"submit"},"Search"),
+    el("label", {}, "Status", el("select", {"data-key":"history-status", onchange:event=>changeHistory({status:event.target.value})},
+      [["","All statuses"],["attention","Needs attention"],...["in_progress","ready","published","blocked","paused","cancelled","publication_unknown"].map(key=>[key,status(key).text])].map(([value,label])=>el("option",{value,selected:value===h.status?"":null},label)))),
+    ...[["since","Started from"],["until","Through"]].map(([key,label])=>el("label",{},label,el("input",{type:"date",value:h[key],"data-key":"history-"+key,onchange:event=>changeHistory({[key]:event.target.value})}))),
+    h.q||h.status||h.since||h.until ? el("button",{class:"btn",type:"button",onclick:()=>changeHistory({q:"",status:"",since:"",until:""})},"Clear filters") : null);
+}
+function pagination() {
+  const h=state.history, start=state.total ? (h.page-1)*h.page_size+1 : 0;
+  return el("nav",{class:"pagination","aria-label":"History pages"},
+    el("span",{class:"muted"},`${start}–${Math.min(h.page*h.page_size,state.total)} of ${state.total} runs`),
+    el("label",{},"Per page ",el("select",{"aria-label":"Runs per page",onchange:event=>changeHistory({page_size:Number(event.target.value)})},[25,50,100].map(n=>el("option",{value:n,selected:n===h.page_size?"":null},n)))),
+    el("button",{class:"btn",type:"button",disabled:h.page<=1,onclick:()=>changeHistory({page:h.page-1})},"Previous"),
+    el("span",{},`Page ${h.page} of ${state.pages}`),
+    el("button",{class:"btn",type:"button",disabled:h.page>=state.pages,onclick:()=>changeHistory({page:h.page+1})},"Next"));
+}
 /** Opens a workflow's page, or all projects for null. Back returns to where you were. */
-function openWorkflow(key, push = true) {
-  const changed = key !== state.workflow || state.selected;
-  if (push && changed) history.pushState(null, "", key ? "#wf=" + encodeURIComponent(key) : location.pathname + location.search);
+async function openWorkflow(key, push = true) {
+  const changed = key !== state.workflow || state.selected || state.view;
+  if (key !== state.workflow && push) state.history = {...state.history,page:1,status:"",q:"",since:"",until:""};
   state.workflow = key;
+  state.view=null;
   state.selected = null;
   state.detail = null;
-  if (changed) { state.show = "all"; document.getElementById("content").scrollTop = 0; }
+  if (push && changed) history.pushState(null, "", "#" + historyHash());
+  if (changed) document.getElementById("content").scrollTop = 0;
+  await loadRuns();
   renderSidebar();
   renderHome();
 }
 
 async function loadRuns() {
-  const data = await api("/api/runs");
+  const request=++state.request, params=new URLSearchParams({...state.history,workflow:state.workflow||""});
+  const data = await api("/api/runs?"+params);
+  if(request!==state.request) return false;
   document.getElementById("root").textContent = data.root;
   document.getElementById("root").title = data.root;
   // Redraw only on change: a list rebuilt under the pointer can swallow a click.
-  const changed = JSON.stringify(data.runs) !== JSON.stringify(state.runs);
+  const changed = JSON.stringify(data) !== state.pageData;
+  state.pageData=JSON.stringify(data);
   state.runs = data.runs;
+  state.catalog=data.catalog; state.total=data.total; state.allTotal=data.all_total; state.pages=data.pages; state.history.page=data.page;
+  state.attention=data.attention;state.attentionTotal=data.attention_total;state.active=data.active;
   if (changed || !document.querySelector("#tree > *")) renderSidebar();
   return changed;
 }
 /** Opens a run (or the history, for null). A new entry in the browser history lets Back return to where you were. */
 async function select(id, push = true) {
   if (!id) { openWorkflow(null, push); return; }
-  state.workflow = null;
+  if (!state.selected) state.returnHash=historyHash();
   const changed = id !== state.selected;
   if (changed) { state.openSteps.clear(); state.openAttempts.clear(); state.file = null; state.call = null; state.tab = "overview"; }
   state.selected = id;
-  if (push && changed) history.pushState(null, "", id ? "#run=" + encodeURIComponent(id) : location.pathname + location.search);
+  if (push && changed) history.pushState(null, "", "#"+new URLSearchParams({run:id,back:state.returnHash}));
   const content = document.getElementById("content");
   if (changed) content.scrollTop = 0;
   if (changed) {
@@ -1029,14 +1102,15 @@ function highlight(text, path) {
 }
 const size = bytes => bytes < 1024 ? bytes + " B" : bytes < 1048576 ? (bytes / 1024).toFixed(1) + " KB" : (bytes / 1048576).toFixed(1) + " MB";
 function renderFiles(detail) {
+  const downloadLink=path=>el("a",{class:"btn small",download:"",href:"/api/download?"+new URLSearchParams({id:state.selected,...(path?{path}:{})}),onclick:event=>event.stopPropagation()},path?"Download":"Download all (.zip)");
   const viewer = el("div", {class: "box"}, emptyState("file", "No artifact open", "Pick a file on the left to view it."));
   const list = el("div", {class: "box", style: "padding:6px 0;max-height:74vh;overflow:auto"}, detail.files.map(file =>
     el("div", {class: "file" + (file.path === state.file ? " sel" : ""), "aria-current": file.path === state.file ? "true" : null, "data-key": "file:" + file.path, onclick: () => { state.file = file.path; renderDetail(); }},
-      el("span", {}, file.path), el("span", {}, size(file.size)))));
+      el("span", {}, file.path), el("span", {}, size(file.size)),downloadLink(file.path))));
   if (state.file) api(`/api/file?id=${encodeURIComponent(state.selected)}&path=${encodeURIComponent(state.file)}`)
-    .then(text => viewer.replaceChildren(el("div", {class: "hd mono"}, state.file), highlight(typeof text === "string" ? text : JSON.stringify(text, null, 2), state.file)))
-    .catch(() => viewer.replaceChildren(emptyState("missing", "Can't show this artifact", "It is too large to display or no longer available.")));
-  return el("div", {class: "split"}, list, viewer);
+    .then(text => viewer.replaceChildren(el("div", {class: "hd mono"}, state.file,downloadLink(state.file)), highlight(typeof text === "string" ? text : JSON.stringify(text, null, 2), state.file)))
+    .catch(() => viewer.replaceChildren(emptyState("missing", "Preview unavailable", "Download the original file to inspect large or binary evidence.",downloadLink(state.file))));
+  return el("div",{class:"stack"},el("div",{},downloadLink("")),el("div", {class: "split"}, list, viewer));
 }
 
 /* ---------- run overview: tests and attempts ---------- */
@@ -1281,37 +1355,62 @@ function field(param, value) {
   value = value ?? (param.default === "today" ? today : param.default);
   let input;
   if (param.type === "bool") input = el("input", {type: "checkbox", id, checked: value ? "" : null});
-  else if (param.type === "choice") input = el("select", {id}, param.choices.map(choice => el("option", {value: choice, selected: choice === value ? "" : null}, choice || "Any")));
+  else if (param.type === "choice") input = el("select", {id}, param.choices.map(choice => el("option", {value: choice, selected: choice === value ? "" : null}, param.labels?.[choice] || choice || "Any")));
+  else if(param.type==="weekdays") input=el("div",{id,style:"display:flex;flex-wrap:wrap;gap:12px"},["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((label,day)=>
+    el("label",{class:"check"},el("input",{type:"checkbox",value:day,checked:value?.includes(day)?"":null}),label)));
   else if (param.type === "run") {
     const runs = state.runs.filter(run => run.id.startsWith("runs/") && (!param.statuses || param.statuses.includes(run.status)));
     input = el("select", {id}, el("option", {value: ""}, runs.length ? "Choose a run" : "No run can be retried"),
       runs.map(run => el("option", {value: run.name, selected: run.name === value ? "" : null}, `${run.name} · ${status(run.status).text}`)));
-  } else input = el("input", {id, type: param.type === "int" ? "number" : param.type === "date" ? "date" : "text",
-    value: value ?? "", min: param.min, max: param.max, step: param.type === "int" ? "1" : null, spellcheck: "false"});
+  } else input = el("input", {id, type: param.type === "int" ? "number" : ["date","time","datetime-local"].includes(param.type) ? param.type : "text",
+    value: value === "today" ? today : value ?? "", min: param.min, max: param.max, step: param.type === "int" ? "1" : null, spellcheck: "false"});
   const help = param.help ? el("div", {class: "fhelp", id: id + "-help"}, param.help) : null;
   const error = el("div", {class: "ferr", id: id + "-err"});
   input.setAttribute("aria-describedby", [help && id + "-help", id + "-err"].filter(Boolean).join(" "));
   const node = param.type === "bool"
     ? el("div", {class: "field check"}, el("label", {for: id}, input, param.label), help, error)
     : el("div", {class: "field"}, el("label", {for: id}, param.label), input, help, error);
-  return {param, node,
+  return {param, node,input,
     read: () => param.type === "bool" ? input.checked : param.type === "int" ? (input.value === "" ? null : Number(input.value))
+      : param.type==="weekdays" ? [...input.querySelectorAll("input:checked")].map(box=>Number(box.value))
       : param.type === "run" ? input.value || null : input.value,
     error: message => { error.textContent = message || ""; input.setAttribute("aria-invalid", message ? "true" : "false"); }};
 }
 /** The "…" dialog for one workflow: its parameters, with the workflow's fixed ones (its build configuration) set. */
-function openRunDialog(spec) {
+function openRunDialog(spec, scheduled=false, existing=null) {
   const schema = controls.workflows[spec.kind], memory = spec.kind + ":" + (spec.params.build_type || "");
-  const previous = saved(memory), fixed = new Set(spec.fixed || []);
+  if(!schema) {toast("Workflow settings are still loading");return;}
+  const previous = existing?.params || saved(memory), fixed = new Set(spec.fixed || []);
+  const values={name:existing?.name||spec.title,frequency:existing?.frequency||"daily",timezone:existing?.timezone||state.timezone,
+    time:existing?.time||"17:30",at:existing?.at||"",weekdays:existing?.weekdays||[0,1,2,3,4],
+    missed:existing?.missed||"once",overlap:existing?.overlap||"skip",relative:!existing||existing.params.date==="today"};
+  const settings=scheduled ? [
+    {name:"name",label:"Schedule name",type:"text"},
+    {name:"frequency",label:"Repeat",type:"choice",choices:["once","daily","weekly"],labels:{once:"One time",daily:"Every day",weekly:"Selected weekdays"}},
+    {name:"timezone",label:"Timezone",type:"text",help:"IANA name, for example Europe/Paris. DST gaps are skipped; repeated times run once."},
+    {name:"time",label:"Time",type:"time"},
+    {name:"at",label:"Date and time",type:"datetime-local",help:"In the selected timezone."},
+    {name:"weekdays",label:"Weekdays",type:"weekdays"},
+    {name:"missed",label:"When the worker was offline",type:"choice",choices:["once","skip"],labels:{once:"Catch up once",skip:"Skip missed occurrences"},help:"Occurrences more than a minute late follow this rule."},
+    {name:"overlap",label:"If this schedule still has active work",type:"choice",choices:["skip","queue"],labels:{skip:"Skip this occurrence",queue:"Queue another run"}},
+    ...(spec.kind==="batch"?[{name:"relative",label:"Use the execution day's failures",type:"bool"}]:[])
+  ].map(param=>field(param,values[param.name])) : [];
   const fields = schema.params.filter(param => !fixed.has(param.name)).map(param => field(param, previous[param.name] ?? spec.params[param.name]));
   const basic = fields.filter(item => !item.param.advanced), advanced = fields.filter(item => item.param.advanced);
-  openDialog("Run " + spec.title, el("div", {},
+  openDialog((scheduled?"Schedule ":"Run ") + spec.title, el("div", {},
     el("p", {class: "muted"}, schema.description),
     basic.length ? basic.map(item => item.node) : el("p", {}, "This workflow has no parameters."),
-    advanced.length ? el("details", {class: "adv"}, el("summary", {}, "More options"), advanced.map(item => item.node)) : null),
-  "Run", async () => {
+    advanced.length ? el("details", {class: "adv"}, el("summary", {}, "More options"), advanced.map(item => item.node)) : null,
+    scheduled?el("h3",{},"Schedule"):null,settings.map(item=>item.node)),
+  scheduled?"Save schedule":"Run", async () => {
     const params = {...spec.params, ...Object.fromEntries(fields.map(item => [item.param.name, item.read()]))};
     try {
+      if(scheduled) {
+        const config=Object.fromEntries(settings.map(item=>[item.param.name,item.read()]));
+        if(config.relative) params.date="today";
+        await post("/api/schedules",{...config,kind:spec.kind,params,...(existing?{id:existing.id,enabled:existing.enabled}:{})});
+        await loadSchedules(); if(!state.selected) renderHome();toast("Schedule saved");return;
+      }
       const done = await post("/api/jobs", {kind: spec.kind, params});
       remember(memory, params);
       toast(`Queued: ${done.job.title}`);
@@ -1320,12 +1419,26 @@ function openRunDialog(spec) {
       if (!state.selected) renderHome();
       wake();
     } catch (error) {
-      for (const item of fields) item.error(error.fields[item.param.name]);
+      for (const item of [...fields,...settings]) item.error(error.fields[item.param.name]);
       if (!Object.keys(error.fields).length) throw error;
       dialog.querySelector('[aria-invalid="true"]')?.focus();
       return false;
     }
   });
+  if(scheduled) {
+    const update=()=>{
+      const frequency=settings.find(item=>item.param.name==="frequency").read();
+      for(const item of settings) {
+        if(item.param.name==="at") item.node.hidden=frequency!=="once";
+        if(item.param.name==="time") item.node.hidden=frequency==="once";
+        if(item.param.name==="weekdays") item.node.hidden=frequency!=="weekly";
+      }
+      const relative=settings.find(item=>item.param.name==="relative");
+      const date=fields.find(item=>item.param.name==="date");
+      if(relative&&date) date.node.hidden=relative.read();
+    };
+    settings.forEach(item=>item.input.addEventListener("change",update));update();
+  }
 }
 async function setupControls() {
   if (!CAN_ACT) return;
@@ -1337,17 +1450,70 @@ async function setupControls() {
   if (!state.selected) renderHome();
 }
 
+async function loadSchedules() {
+  const data=await api("/api/schedules"),changed=JSON.stringify(data.schedules)!==JSON.stringify(state.schedules);
+  state.schedules=data.schedules;state.timezone=data.timezone;return changed;
+}
+function schedulesPage() {
+  return el("div",{class:"page"},pageHead("Schedules","Workflow schedules use their own timezone and run through the active worker."),runnerNotice(),
+    CAN_ACT?el("div",{class:"tools"},allWorkflows().filter(item=>item.run).map(item=>el("button",{class:"btn",type:"button",onclick:()=>openRunDialog(item.run,true)},"Schedule "+item.title))):null,
+    !state.schedules.length?emptyState("runs","No schedules yet","Add a schedule from a workflow's clock button."):el("div",{class:"stack",style:"margin-top:16px"},state.schedules.map(spec=>
+      el("section",{class:"box"},el("div",{class:"hd"},el("b",{},spec.name),el("span",{class:"muted"},spec.enabled?"Enabled":"Disabled")),
+        el("div",{class:"bd"},el("p",{},`${({once:"One time",daily:"Every day",weekly:"Selected weekdays"})[spec.frequency]} · ${spec.timezone} · ${controls.workflows[spec.kind]?.title||spec.name}`),
+          el("p",{},"Next: ",spec.enabled&&spec.next_run?new Date(spec.next_run).toLocaleString(undefined,{timeZone:spec.timezone})+" "+spec.timezone:"—"),
+          spec.upcoming.length?el("details",{},el("summary",{},"Upcoming occurrences"),el("ul",{},spec.upcoming.map(time=>el("li",{},new Date(time).toLocaleString(undefined,{timeZone:spec.timezone})+" "+spec.timezone)))):null,
+          el("p",{},"Last trigger: ",({skipped_overlap:"Skipped because previous work is still active",skipped_missed:"Skipped while the worker was offline",queued:"Added to queue"})[spec.last_status]||"Never triggered"),
+          spec.last_outcome?el("p",{},"Last job: ",`${spec.last_outcome.status} · ${spec.last_outcome.result||spec.last_outcome.error||""}`):null,
+          CAN_ACT?el("div",{class:"tools"},
+            el("button",{class:"btn",type:"button",onclick:()=>openRunDialog({kind:spec.kind,params:{},title:spec.name},true,spec)},"Edit"),
+            el("button",{class:"btn",type:"button",onclick:async()=>{await post("/api/schedules/toggle",{id:spec.id,enabled:!spec.enabled});await loadSchedules();renderHome();}},spec.enabled?"Disable":"Enable"),
+            el("button",{class:"btn",type:"button",onclick:async()=>{if(await confirmDialog("Delete schedule",`Delete ${spec.name}? Existing runs stay in history.`,"Delete")){await post("/api/schedules/remove",{id:spec.id});await loadSchedules();renderHome();}}},"Delete")):null)))));
+}
+
+async function loadBatches() {
+  const data=await api("/api/batches?page="+state.batchPage),changed=JSON.stringify(data)!==state.batchData;
+  state.batchData=JSON.stringify(data);state.batches=data.batches;state.batchPage=data.page;state.batchPages=data.pages;state.batchTotal=data.total;return changed;
+}
+function batchSummary(batch) {
+  if(batch.job.status==="failed") return "Discovery failed · "+(batch.job.error||"Inspect the log");
+  if(batch.no_failures) return "No failures found";
+  if(batch.discovered===undefined||batch.discovered===null) return batch.job.result||"Waiting for discovery";
+  if(!batch.scan_complete) return (batch.job.status==="cancelled"?"Discovery cancelled":"Discovery incomplete")+(batch.children.length?` · ${batch.children.length} repairs retained`:"");
+  const labels={already_handled:"already handled",publication_unknown:"publication uncertain",ready:"ready to review"};
+  return `${batch.discovered} found · `+Object.entries(batch.counts).filter(([,count])=>count).map(([key,count])=>`${count} ${labels[key]||key}`).join(" · ");
+}
+function batchTable(batches) {
+  return el("div",{class:"box"},el("table",{},el("thead",{},el("tr",{},el("th",{},"Batch"),el("th",{},"Started"),el("th",{},"Progress and outcomes"))),
+    el("tbody",{},batches.map(batch=>el("tr",{},
+      el("td",{},el("details",{},el("summary",{},batch.job.title),el("p",{class:"muted"},"Started by "+batch.job.created_by),
+        batch.children.length?el("ul",{},batch.children.map(child=>el("li",{},child.run_id?el("a",{href:"#run="+encodeURIComponent("runs/"+child.run_id),onclick:event=>{event.preventDefault();select("runs/"+child.run_id);}},child.title):child.title," · ",child.run_status==="already_handled"?"Already handled":status(child.run_status).text,
+          CAN_ACT?[" · ",el("button",{class:"link",type:"button",onclick:()=>openLog(child)},"View log")]:null))):null,
+        CAN_ACT?el("button",{class:"link",type:"button",onclick:()=>openLog(batch.job)},"View discovery log"):null)),
+      el("td",{class:"muted"},shortWhen(batch.job.created)),el("td",{},batchSummary(batch)))))));
+}
+function batchesPage() {
+  const move=async page=>{state.batchPage=page;history.pushState(null,"","#view=batches&batch_page="+page);await loadBatches();renderHome();};
+  return el("div",{class:"page"},pageHead("Repair batch history",`${state.batchTotal} workflow invocations · outcomes update as child repairs finish`),
+    state.batches.length?batchTable(state.batches):emptyState("runs","No repair batches yet","Manual and scheduled scans will appear here, including scans that find no failures."),
+    el("nav",{class:"pagination","aria-label":"Batch history pages"},el("button",{class:"btn",type:"button",disabled:state.batchPage<=1,onclick:()=>move(state.batchPage-1)},"Previous"),
+      el("span",{},`Page ${state.batchPage} of ${state.batchPages}`),el("button",{class:"btn",type:"button",disabled:state.batchPage>=state.batchPages,onclick:()=>move(state.batchPage+1)},"Next")));
+}
+
 /* ---------- run page ---------- */
 function renderDetail() { keepFocus(drawDetail); }
 function drawDetail() {
   if (!["overview", "log", "calls", "files"].includes(state.tab)) state.tab = "overview";
   const hash = new URLSearchParams({run: state.selected});
+  if(state.returnHash) hash.set("back",state.returnHash);
   if (state.tab !== "overview") hash.set("tab", state.tab);
+  if(state.file) hash.set("file",state.file);
+  if(state.call) hash.set("call",state.call);
+  if(state.openSteps.size) hash.set("open",[...state.openSteps].join(","));
   history.replaceState(null, "", "#" + hash);
   const detail = state.detail, s = detail.summary, st = status(s.status);
   const running = s.status === "in_progress" && s.live, workflow = findWorkflow(workflowOf(s));
   const used = detail.model_calls.reduce((sum, c) => sum + (tokens(c.usage, "in") || 0) + (tokens(c.usage, "out") || 0), 0);
-  const tabs = [["overview", "Overview"], ["log", "Build log", detail.steps.length], ["calls", "Model calls", detail.model_calls.length],
+  const tabs = [["overview", "Overview"], ["log", "Execution log", detail.steps.length], ["calls", "Model calls", detail.model_calls.length],
     ["files", "Artifacts", detail.files.length]];
   dropFigure();
   const info = [
@@ -1368,7 +1534,13 @@ function drawDetail() {
   else if (state.tab === "calls") content = renderCalls(detail);
   else if (state.tab === "files") content = renderFiles(detail);
   else content = el("div", {class: "stack"},
-    el("section", {}, el("h2", {}, "Tests"), testsGrid(detail)),
+    el("section",{},el("h2",{},"Outcome"),el("p",{},s.reason || [...detail.model_calls].reverse().find(call=>call.response?.summary)?.response.summary || status(s.status).text)),
+    el("section",{},el("h2",{},"Workflow execution",el("span",{class:"sub"},"LangGraph · executed path")),executionPath(detail)),
+    el("section",{},el("h2",{},"Outputs"),el("div",{class:"tools"},
+      el("a",{class:"btn",download:"",href:"/api/download?id="+encodeURIComponent(s.id)},"Download evidence (.zip)"),
+      el("button",{class:"btn",type:"button",onclick:()=>{state.tab="files";renderDetail();}},"Browse artifacts"),
+      s.pr_url?outLink(s.pr_url,"Open pull request"):null)),
+    el("section", {}, el("h2", {}, "Validation"), testsGrid(detail)),
     el("section", {}, el("h2", {}, "Attempts", el("span", {class: "sub"}, "open a row for the explanation and the diff")), attemptsTable(detail)));
   const tabbar = el("div", {class: "tabs", role: "tablist", "aria-label": "Run sections", onkeydown: event => {
     // Left and Right move between tabs, as in any tab strip.
@@ -1383,7 +1555,8 @@ function drawDetail() {
     ? [el("b", {class: "t-run"}, "Running"), el("span", {}, ` · step ${detail.steps.length}, ${s.current || "starting"}`)]
     : [el("b", {class: "t-" + st.tone}, st.text), s.reason && st.tone !== "ok" ? el("span", {}, ": " + s.reason) : null];
   document.getElementById("content").replaceChildren(el("div", {class: "page"},
-    el("nav", {class: "crumbs", "aria-label": "Breadcrumb"}, el("a", {href: "#", onclick: event => { event.preventDefault(); openWorkflow(null); }}, "Projects"),
+    el("nav", {class: "crumbs", "aria-label": "Breadcrumb"}, el("a", {href: "#", onclick: event => { event.preventDefault(); openWorkflow(null); }}, "Workflows"),
+      state.returnHash ? [" / ",el("a",{href:"#"+state.returnHash},"Back to history")] : null,
       workflow ? [" / ", workflow.project.title, " / ", el("a", {href: "#wf=" + encodeURIComponent(workflow.key), onclick: event => { event.preventDefault(); openWorkflow(workflow.key); }}, workflow.title)] : null),
     el("div", {class: "titlebar"}, statusIcon(s.status, 20), el("h1", {}, workflow?.title || s.build_type || "Run"), el("span", {class: "num"}, s.name), runActions(detail)),
     el("div", {class: "statusline"}, line),
@@ -1392,6 +1565,17 @@ function drawDetail() {
     el("dl", {class: "info"}, info.map(([key, value]) => [el("dt", {}, key), el("dd", {}, value)])),
     tabbar,
     el("div", {role: "tabpanel"}, content)));
+}
+function executionPath(detail) {
+  if(!detail.steps.length) return el("p",{class:"muted"},"Waiting for the first recorded step.");
+  const visits={};
+  return el("ol",{class:"execution-path","aria-label":"Executed workflow steps"},detail.steps.map((step,index)=>{
+    const visit=visits[step.node]=(visits[step.node]||0)+1;
+    return el("li",{},index?el("span",{"aria-hidden":"true",class:"muted"},"→"):null,
+      el("button",{type:"button",title:"Inspect "+step.node,"data-key":"step:"+index,onclick:()=>{state.tab="log";state.openSteps.add(step.index);renderDetail();}},
+        nodeTag(step.node),el("span",{class:"small "+(stepTone(step)?"t-"+stepTone(step):"muted")},
+          (visit>1?`Visit ${visit} · `:"")+(step.status?status(step.status).text:"Recorded")+" · "+duration(step.duration_seconds))));
+  }));
 }
 /** Kept for the run page's lifecycle; the plain pages have no timers of their own. */
 function dropFigure() {
@@ -1402,25 +1586,44 @@ function dropFigure() {
 document.getElementById("q").addEventListener("input", () => renderSidebar());
 document.getElementById("home").addEventListener("click", event => { event.preventDefault(); openWorkflow(null); });
 document.getElementById("queue-link").addEventListener("click", () => openWorkflow(null));
+document.getElementById("schedules-link").addEventListener("click",async()=>{state.selected=null;state.detail=null;state.view="schedules";history.pushState(null,"","#view=schedules");await loadSchedules();renderHome();});
+document.getElementById("batches-link").addEventListener("click",async()=>{state.selected=null;state.detail=null;state.view="batches";state.batchPage=1;history.pushState(null,"","#view=batches");await loadBatches();renderHome();});
 // Back and Forward between runs, and links pasted into the address bar.
-window.addEventListener("hashchange", () => {
-  const hash = new URLSearchParams(location.hash.slice(1)), id = hash.get("run");
-  if (id) { if (id !== state.selected) select(id, false); }
-  else if (state.selected || hash.get("wf") !== state.workflow) openWorkflow(hash.get("wf"), false);
-});
+function readHistoryRoute(hash) {
+  state.history={page:Math.max(1,Number(hash.get("page"))||1),page_size:[25,50,100].includes(Number(hash.get("size")))?Number(hash.get("size")):25,
+    status:hash.get("status")||"",q:hash.get("search")||"",since:hash.get("since")||"",until:hash.get("until")||""};
+  state.workflow=hash.get("wf");
+  state.view=hash.get("view");
+}
+async function route() {
+  const hash=new URLSearchParams(location.hash.slice(1)), id=hash.get("run");
+  if(id) {
+    const back=hash.get("back")||"";
+    readHistoryRoute(new URLSearchParams(back));
+    await select(id,false);
+    state.returnHash=back;state.tab=hash.get("tab")||"overview";state.file=hash.get("file");state.call=hash.get("call");
+    state.openSteps=new Set((hash.get("open")||"").split(",").filter(Boolean).map(Number));
+    if(state.detail) renderDetail();
+  } else if(hash.get("view")==="schedules") {state.selected=null;state.detail=null;state.view="schedules";await loadSchedules();renderHome();}
+  else if(hash.get("view")==="batches") {state.selected=null;state.detail=null;state.view="batches";state.batchPage=Number(hash.get("batch_page"))||1;await loadBatches();renderHome();}
+  else if(hash.get("view")==="history") {readHistoryRoute(hash);state.selected=null;state.detail=null;await loadRuns();renderHome();}
+  else {readHistoryRoute(hash);await openWorkflow(hash.get("wf"),false);}
+}
+window.addEventListener("hashchange",()=>route().catch(error=>toast(error.message,"bad")));
 async function refresh() {
   try {
-    const [runsChanged, jobsChanged] = await Promise.all([loadRuns(), loadJobs()]);
-    if (!state.selected) { if (runsChanged || jobsChanged) keepFocus(renderHome); }
+    const [runsChanged, jobsChanged,schedulesChanged,batchesChanged] = await Promise.all([loadRuns(), loadJobs(),loadSchedules(),loadBatches()]);
+    if (!state.selected) { if (runsChanged || jobsChanged || schedulesChanged || batchesChanged) keepFocus(renderHome); }
     else {
       const current = state.runs.find(run => run.id === state.selected);
       // Re-read a run only when it changed, and never while an artifact is open.
-      if (current && state.tab !== "files" && (current.status === "in_progress" || busy() || state.detail?.summary.updated !== current.updated)) await loadDetail();
+      if (state.tab !== "files" && (!current || current.status === "in_progress" || busy() || state.detail?.summary.updated !== current.updated)) await loadDetail();
     }
     tickClocks();
   } catch (error) { /* keep the last view while the server restarts */ }
 }
-loadRuns().then(() => state.selected && state.runs.some(r => r.id === state.selected) ? loadDetail() : (state.selected = null, renderSidebar(), renderHome()));
+if(state.selected) readHistoryRoute(new URLSearchParams(state.returnHash));
+Promise.all([loadRuns(),loadSchedules(),loadBatches()]).then(() => state.selected ? loadDetail() : (renderSidebar(), renderHome())).catch(error=>toast(error.message,"bad"));
 setupControls().catch(() => { /* the run history still works without controls */ });
 /** Refresh every 4 seconds, or every 1.5 while a job runs or a stop request waits for its step to end. */
 const busy = () => controls.jobs.some(job => job.status === "running" || job.status === "queued") || Boolean(state.detail?.summary.request);

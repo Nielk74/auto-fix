@@ -156,7 +156,7 @@ Open `http://127.0.0.1:8765/`. Each run shows its result and TeamCity, Git and P
 
 ### Start and control workflows
 
-Started with `--config`, the dashboard can also run workflows, the way TeamCity runs builds. The tree on the left lists them by project: **Repairs** has one workflow per configured TeamCity build configuration, **Evaluations** has the model and operations evaluations, and **Tools** has the demo. **Projects** shows every workflow with its last run. A workflow's page is its run history; **Run** starts it with the default parameters (for a build configuration: repair today's failed tests of that build) and **…** sets the parameters first. Jobs run one at a time; queued and running ones appear at the top of their workflow's runs, and a running run has a **Stop** button there. A run page has one main button for its state and an **Actions** menu for the rest:
+Started with `--config`, the dashboard can also run workflows. The tree groups **Repairs**, **Evaluations** and **Tools**. Repair workflows are named by their purpose, with the TeamCity configuration as their scope. **Workflows** leads with runs needing attention, active work, upcoming schedules and recent repair batches, followed by the workflow catalogue. **Run** uses default parameters; **…** lets you set them first. Jobs run one at a time. A run page has one main button for its state and an **Actions** menu for the rest:
 
 | Run state | Main button | Actions menu |
 | --- | --- | --- |
@@ -169,6 +169,47 @@ Started with `--config`, the dashboard can also run workflows, the way TeamCity 
 **Re-run from a step** (`baseline`, `investigate`, `repair` or `verify`) starts a new run (`<key>-rN`) from the same prepared commit, with the edits applied before that step and the checkpoint that step started from; the original run is kept. Stop and pause also work on runs that the scheduled `run` command started.
 
 The dashboard runs queued jobs itself unless it is started with `--no-runner`; then `auto-fix worker --config config.local.yaml` runs them, for example as a service. `auto-fix queue --config … --kind batch --param publish=true` adds a job from a terminal. Write requests need a token embedded in the page and are refused from other origins, so other sites cannot act through your browser.
+
+### Find runs and download evidence
+
+Each workflow's history, and **All run history**, supports 25/50/100 runs per page, search,
+exact status filters and a start-date range. The URL preserves the page and filters, including
+when returning from a run. History rows use stored summaries without loading every checkpoint.
+**Patch ↓** downloads the verified patch when available; **Artifacts ↓** downloads the run's
+ZIP evidence bundle. The Artifacts tab also downloads individual files. Downloads support large
+logs and binary evidence; text previews retain their 2 MB limit. Text downloads redact configured
+secret values, and checkpoint databases and files outside the evidence directory are excluded.
+
+The run overview shows the outcome, the executed LangGraph path (including repeat visits),
+outputs, native validation and repair attempts. Click a step to inspect its state changes and
+checkpoint in **Execution log**. The attention list includes verified local candidates awaiting
+publication, paused and blocked runs, uncertain publication and runs whose worker disappeared.
+
+### Schedule workflows
+
+Use a workflow's clock button or **Schedules** to create a one-time, daily or weekday schedule
+with saved parameters and an explicit IANA timezone, such as `Europe/Paris`. A repair schedule
+can use the execution day's failures, resolved in that timezone, or a fixed date. Schedules show
+their next five occurrences, last trigger and last job outcome, and can be edited, disabled or
+deleted without deleting past runs.
+
+Schedules are persisted in the state directory and dispatched by the same embedded runner or
+standalone `auto-fix worker`; a worker must be running for them to fire. The default missed-run
+policy catches up once after downtime. **Skip missed occurrences** skips triggers more than a
+minute late. The default overlap policy skips an occurrence while that schedule still has queued
+or running work; alternatively queue another invocation. Nonexistent local times during a DST
+spring-forward are skipped, and repeated fall-back times run once at their first occurrence.
+Re-enabling a schedule starts from its next future occurrence. No Windows tasks are registered
+by the dashboard; the existing Task Scheduler scripts remain available separately.
+
+### Follow a repair batch
+
+**Batches** retains manual and scheduled discovery invocations and their child repair jobs.
+Expand a batch to see individual outcomes and open run evidence or job logs. Summaries include
+ready/published/blocked repairs, already-handled failures and scans that found no failures.
+Discovery errors and partial discovery remain visible. Dismissing a failed job hides it from the
+queue while retaining its record for batch history. Older jobs retain their recorded outcome;
+parent/child links are available for batches created with this version.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/dashboard-overview.png">

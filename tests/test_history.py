@@ -263,6 +263,75 @@ def test_artifact_reads_stay_inside_the_run_and_exclude_checkpoints(run_flow, tm
     assert all("checkpoints" not in f["path"] for f in history.files(state / "runs/tc-7-eeee"))
 
 
+def seed_history(root, count=6):
+    for index in range(count):
+        folder = root / "runs" / f"tc-{index}"
+        folder.mkdir(parents=True)
+        result = {
+            "status": "blocked" if index % 2 else "ready",
+            "failure": {"build_type": "Cpp_Tests", "tests": [{"name": "math.add"}]},
+            "verification": {"report": {"passed": ["math.add"], "failed": []}},
+        }
+        (folder / "result.json").write_text(json.dumps(result), encoding="utf-8")
+        event = {"node": "verify", "time": f"2026-10-{20 + index:02d}T10:00:00+00:00"}
+        (folder / "events.jsonl").write_text(json.dumps(event) + "\n", encoding="utf-8")
+
+
+def test_history_pages_filter_before_pagination_and_keep_the_whole_catalog(tmp_path, monkeypatch):
+    seed_history(tmp_path)
+    monkeypatch.setattr(history, "checkpoints", lambda *_: pytest.fail("Summary read checkpoints"))
+    found = history.run_page(tmp_path, page=2, page_size=2, workflow="bt:Cpp_Tests")
+    assert [run["id"] for run in found["runs"]] == ["runs/tc-3", "runs/tc-2"]
+    assert (found["total"], found["pages"], found["page"]) == (6, 3, 2)
+    assert found["catalog"][0]["count"] == 6
+    assert found["runs"][0]["validation"] == {"passed": 1, "failed": 0, "skipped": 0}
+    filtered = history.run_page(tmp_path, status="ready", since="2026-10-21", q="math.add")
+    assert [run["name"] for run in filtered["runs"]] == ["tc-4", "tc-2"]
+    assert history.run_page(tmp_path, q="absent")["total"] == 0
+    assert history.run_page(tmp_path, page=99, page_size=2)["page"] == 3
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"page": 0},
+        {"page_size": 0},
+        {"page_size": 101},
+        {"status": "green"},
+        {"since": "yesterday"},
+        {"since": "2026-10-24", "until": "2026-10-20"},
+    ],
+)
+def test_history_rejects_invalid_page_filters(tmp_path, params):
+    with pytest.raises(ValueError):
+        history.run_page(tmp_path, **params)
+
+
+def test_attention_is_global_and_includes_candidates_and_abandoned_runs(tmp_path):
+    seed_history(tmp_path)
+    statuses = ["ready", "paused", "blocked", "publication_unknown", "published", "cancelled"]
+    for index, value in enumerate(statuses):
+        path = tmp_path / "runs" / f"tc-{index}" / "result.json"
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data["status"] = value
+        path.write_text(json.dumps(data), encoding="utf-8")
+    abandoned = tmp_path / "runs" / "abandoned"
+    abandoned.mkdir()
+    (abandoned / "events.jsonl").write_text(
+        '{"node":"repair","time":"2026-10-26T10:00:00Z"}\n', encoding="utf-8"
+    )
+    page = history.run_page(tmp_path, page_size=1, status="published")
+    assert {run["name"] for run in page["attention"]} == {
+        "tc-0",
+        "tc-1",
+        "tc-2",
+        "tc-3",
+        "abandoned",
+    }
+    assert page["attention_total"] == 5
+    assert len(page["runs"]) == 1
+
+
 @pytest.fixture
 def dashboard(run_flow, tmp_path):
     state = tmp_path / "state"
@@ -292,6 +361,18 @@ def test_dashboard_serves_page_and_run_api_with_restrictive_headers(dashboard):
     assert json.loads(body)["summary"]["status"] == "blocked"
     _, headers, _ = fetch(dashboard + "/api/file?id=runs%2Ftc-7-ffff&path=events.jsonl")
     assert headers["Content-Type"].startswith("text/plain")
+
+
+def test_dashboard_history_is_bounded_and_download_is_an_attachment(dashboard):
+    _, _, body = fetch(dashboard + "/api/runs?page_size=1&workflow=bt%3ACpp_Tests")
+    data = json.loads(body)
+    assert len(data["runs"]) == 1 and data["page_size"] == 1
+    _, headers, body = fetch(dashboard + "/api/download?id=runs%2Ftc-7-ffff&path=result.json")
+    assert headers["Content-Disposition"].startswith("attachment;")
+    assert json.loads(body)["status"] == "blocked"
+    with pytest.raises(urllib.error.HTTPError) as error:
+        fetch(dashboard + "/api/runs?page_size=101")
+    assert error.value.code == 400
 
 
 def test_dashboard_rejects_traversal_unknown_runs_and_foreign_hosts(dashboard):

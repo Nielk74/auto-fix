@@ -5,17 +5,19 @@ from __future__ import annotations
 import getpass
 import json
 import secrets
+import shutil
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from importlib.resources import files
 from pathlib import Path
 from typing import Any
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, quote, urlsplit
 
-from auto_fix import history, jobs
+from auto_fix import artifacts, history, jobs
 from auto_fix.actions import Actions
 from auto_fix.config import load_settings
 from auto_fix.jobs import JobError
+from auto_fix.schedules import ScheduleStore
 from auto_fix.workflow import redact
 
 LOOPBACK = {"127.0.0.1", "localhost", "::1"}
@@ -43,6 +45,7 @@ class Handler(BaseHTTPRequestHandler):
     token: str
     # TeamCity build configurations from the config: the Repairs project's workflows.
     build_types: list[str]
+    schedules: ScheduleStore
 
     def log_message(self, format: str, *args: Any) -> None:  # noqa: A002 - stdlib signature
         pass
@@ -93,7 +96,20 @@ class Handler(BaseHTTPRequestHandler):
                 )
             self._send(HTTPStatus.OK, page, "text/html")
         elif url.path == "/api/runs":
-            self._json({"root": self.shown_root, "runs": history.list_runs(self.root)})
+            try:
+                found = history.run_page(
+                    self.root,
+                    page=int(query.get("page", "1")),
+                    page_size=int(query.get("page_size", "25")),
+                    **{
+                        key: query.get(key, "")
+                        for key in ("workflow", "status", "q", "since", "until")
+                    },
+                )
+            except ValueError as exc:
+                self._error(HTTPStatus.BAD_REQUEST, str(exc))
+                return
+            self._json({"root": self.shown_root, **found})
         elif url.path == "/api/run":
             detail = history.run_detail(self.root, run_id)
             if detail is not None and self.actions:
@@ -114,6 +130,25 @@ class Handler(BaseHTTPRequestHandler):
                 body, kind = found
                 text = redact(body.decode("utf-8", errors="replace")).encode("utf-8")
                 self._send(HTTPStatus.OK, text, kind)
+        elif url.path == "/api/download":
+            found = artifacts.download(self.root, run_id, query.get("path", ""))
+            if found is None:
+                self._send(HTTPStatus.NOT_FOUND, b"Artifact not found", "text/plain")
+                return
+            handle, kind, filename = found
+            with handle:
+                length = handle.seek(0, 2)
+                handle.seek(0)
+                self.send_response(HTTPStatus.OK)
+                self.send_header("Content-Type", kind)
+                self.send_header("Content-Length", str(length))
+                self.send_header(
+                    "Content-Disposition", "attachment; filename*=UTF-8''" + quote(filename)
+                )
+                for key, value in SECURITY_HEADERS.items():
+                    self.send_header(key, value)
+                self.end_headers()
+                shutil.copyfileobj(handle, self.wfile, length=1024 * 1024)
         elif url.path == "/api/workflows":
             self._json(
                 {
@@ -123,6 +158,8 @@ class Handler(BaseHTTPRequestHandler):
                     "build_types": self.build_types,
                 }
             )
+        elif url.path == "/api/schedules":
+            self._json({"schedules": self.schedules.all(), "timezone": self.schedules.timezone})
         elif url.path == "/api/jobs":
             if not self.actions:
                 self._json({"jobs": [], "runner": {"alive": False, "waiting": ""}})
@@ -133,6 +170,33 @@ class Handler(BaseHTTPRequestHandler):
                 if job.get("status") in {"running", "queued", "failed"}
             ]
             self._json({"jobs": shown, "runner": jobs.runner_state(self.actions.state_dir)})
+        elif url.path == "/api/batches":
+            try:
+                page, page_size = int(query.get("page", "1")), int(query.get("page_size", "25"))
+                if page < 1 or not 1 <= page_size <= 100:
+                    raise ValueError("Invalid history page")
+            except ValueError as exc:
+                self._error(HTTPStatus.BAD_REQUEST, str(exc))
+                return
+            store = self.actions.store if self.actions else jobs.JobStore(self.root, create=False)
+            batches = sorted(
+                [job for job in store.all(include_dismissed=True) if job["kind"] == "batch"],
+                key=lambda job: job["created"],
+                reverse=True,
+            )
+            pages = max(1, (len(batches) + page_size - 1) // page_size)
+            page = min(page, pages)
+            self._json(
+                {
+                    "batches": [
+                        store.batch_summary(job["id"])
+                        for job in batches[(page - 1) * page_size : page * page_size]
+                    ],
+                    "total": len(batches),
+                    "page": page,
+                    "pages": pages,
+                }
+            )
         elif url.path == "/api/jobs/log" and self.actions:
             try:
                 job = self.actions.store.get(query.get("id", ""))
@@ -215,6 +279,14 @@ class Handler(BaseHTTPRequestHandler):
                     str(body.get("run", "")), str(body.get("action", "")), by, body.get("step")
                 )
                 self._json(done)
+            elif path == "/api/schedules":
+                self._json({"schedule": self.schedules.save(body, by, str(body.get("id", "")))})
+            elif path == "/api/schedules/toggle":
+                self.schedules.toggle(str(body.get("id", "")), body.get("enabled"))
+                self._json({"ok": True})
+            elif path == "/api/schedules/remove":
+                self.schedules.remove(str(body.get("id", "")))
+                self._json({"ok": True})
             else:
                 self._send(HTTPStatus.NOT_FOUND, b"Not found", "text/plain")
         except JobError as exc:
@@ -235,6 +307,9 @@ def serve(
         "config": config.resolve() if config else None,
         "token": secrets.token_urlsafe(32),
         "build_types": list(load_settings(config).teamcity.build_types) if config else [],
+        "schedules": ScheduleStore(
+            root.resolve(), load_settings(config).timezone if config else "Europe/Paris"
+        ),
     }
     handler = type("DashboardHandler", (Handler,), attributes)
     return ThreadingHTTPServer((host, port), handler)

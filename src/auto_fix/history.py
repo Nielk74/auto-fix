@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 import os
 import sqlite3
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -136,6 +136,7 @@ def summarize(run_id: str, run: Path) -> dict[str, Any]:
     # ``case/state/runs/<run>`` groups evaluation runs by their case directory.
     group = PurePosixPath(run_id).parent.parent
     group = (group.parent if group.name == "state" else group).as_posix()
+    report = (result.get("verification") or result.get("baseline") or {}).get("report")
     return {
         "id": run_id,
         "name": run.name,
@@ -151,12 +152,18 @@ def summarize(run_id: str, run: Path) -> dict[str, Any]:
         "build_url": failure.get("build_url", ""),
         "revision": failure.get("revision", ""),
         "tests": [test.get("name", "") for test in failure.get("tests", [])],
+        "validation": {key: len(report.get(key, [])) for key in ("passed", "failed", "skipped")}
+        if isinstance(report, dict)
+        else None,
         "attempts": result.get("attempt", 0),
         "inspections": result.get("inspections", 0),
         "branch": result.get("branch", ""),
         "head": result.get("head", ""),
         "pr_url": _pr_url((receipt or {}).get("pr") or result.get("pr")),
         "model_calls": len(list(calls.glob("*.json"))) if calls.is_dir() else 0,
+        "output_files": [
+            name for name in ("fix.diff", "result.json", "events.jsonl") if (run / name).is_file()
+        ],
         # Run controls: a pending pause/cancel, whether a process still runs it, and its origin.
         "request": control.pending(run),
         # The step a running run is in, for the run list.
@@ -182,7 +189,98 @@ def summarize(run_id: str, run: Path) -> dict[str, Any]:
 
 def list_runs(root: Path) -> list[dict[str, Any]]:
     runs = [summarize(run_id, run) for run_id, run in discover_runs(root).items()]
-    return sorted(runs, key=lambda run: run["started"] or "", reverse=True)
+    return sorted(runs, key=lambda run: (run["started"] or "", run["id"]), reverse=True)
+
+
+def workflow_key(run: dict[str, Any]) -> str:
+    if run["id"].startswith("runs/"):
+        return "bt:" + (run["build_type"] or "unknown")
+    if run["id"].startswith("evaluations/"):
+        return "operations" if "-operations-" in run["id"] else "evaluation"
+    if run["id"].startswith("demos/"):
+        return "demo"
+    return "other:" + (run["group"] or "State directory")
+
+
+def run_page(
+    root: Path,
+    *,
+    page: int = 1,
+    page_size: int = 25,
+    workflow: str = "",
+    status: str = "",
+    q: str = "",
+    since: str = "",
+    until: str = "",
+) -> dict[str, Any]:
+    """Filter lightweight evidence summaries before slicing a bounded history page."""
+    if page < 1 or not 1 <= page_size <= 100:
+        raise ValueError("Page must be positive and page size between 1 and 100")
+    if status and status not in TERMINAL | STOPPED | {"in_progress", "attention"}:
+        raise ValueError("Unknown run status")
+    for value in (since, until):
+        if value:
+            date.fromisoformat(value)
+    if since and until and since > until:
+        raise ValueError("From date must not be after the until date")
+    all_runs = list_runs(root)
+    catalog: dict[str, Any] = {}
+    for run in all_runs:
+        key = workflow_key(run)
+        entry = catalog.setdefault(key, {"key": key, "count": 0, "last": run})
+        entry["count"] += 1
+    needle = q.strip().casefold()
+    runs = [
+        run
+        for run in all_runs
+        if (
+            (not workflow or workflow_key(run) == workflow)
+            and (
+                not status
+                or (needs_attention(run) if status == "attention" else run["status"] == status)
+            )
+            and (not since or (run["started"] or "")[:10] >= since)
+            and (not until or bool(run["started"]) and run["started"][:10] <= until)
+            and (
+                not needle
+                or needle
+                in " ".join(
+                    str(run.get(key, ""))
+                    for key in (
+                        "id",
+                        "build_type",
+                        "build_id",
+                        "revision",
+                        "branch",
+                        "reason",
+                        "tests",
+                    )
+                ).casefold()
+            )
+        )
+    ]
+    total = len(runs)
+    pages = max(1, (total + page_size - 1) // page_size)
+    page = min(page, pages)
+    attention = [run for run in all_runs if needs_attention(run)]
+    return {
+        "runs": runs[(page - 1) * page_size : page * page_size],
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "pages": pages,
+        "all_total": len(all_runs),
+        "catalog": list(catalog.values()),
+        "attention": attention[:25],
+        "attention_total": len(attention),
+        "active": [run for run in all_runs if run["status"] == "in_progress" and run["live"]][:10],
+    }
+
+
+def needs_attention(run: dict[str, Any]) -> bool:
+    return run["status"] in {"ready", "paused", "blocked", "publication_unknown"} or (
+        run["status"] == "in_progress" and not run["live"]
+    )
 
 
 def checkpoints(run: Path) -> list[dict[str, Any]]:
@@ -318,7 +416,12 @@ def topology() -> dict[str, Any]:
 def files(run: Path) -> list[dict[str, Any]]:
     listed = []
     for path in sorted(run.rglob("*")):
-        if path.is_file() and not path.name.startswith("checkpoints.sqlite"):
+        if (
+            path.is_file()
+            and not path.is_symlink()
+            and path.resolve().is_relative_to(run.resolve())
+            and not path.name.casefold().startswith("checkpoints.sqlite")
+        ):
             listed.append({"path": path.relative_to(run).as_posix(), "size": path.stat().st_size})
     return listed
 
@@ -396,7 +499,10 @@ def read_file(root: Path, run_id: str, relative: str) -> tuple[bytes, str] | Non
     target = (run / relative).resolve()
     if not target.is_relative_to(run.resolve()) or not target.is_file():
         return None
-    if target.name.startswith("checkpoints.sqlite") or target.stat().st_size > FILE_LIMIT:
+    if (
+        target.name.casefold().startswith("checkpoints.sqlite")
+        or target.stat().st_size > FILE_LIMIT
+    ):
         return None
     kind = "application/json" if target.suffix == ".json" else "text/plain"
     return target.read_bytes(), kind

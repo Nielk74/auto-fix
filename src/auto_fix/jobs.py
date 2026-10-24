@@ -18,6 +18,7 @@ import time
 from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from filelock import FileLock, Timeout
 
@@ -319,10 +320,11 @@ def command(kind: str, params: dict[str, Any], config: Path) -> list[str]:
 class JobStore:
     """The job files of one state directory. Every write holds ``jobs/.lock``."""
 
-    def __init__(self, state_dir: Path):
+    def __init__(self, state_dir: Path, *, create: bool = True):
         self.state_dir = state_dir
         self.dir = state_dir / "jobs"
-        self.dir.mkdir(parents=True, exist_ok=True)
+        if create:
+            self.dir.mkdir(parents=True, exist_ok=True)
         self.lock = FileLock(str(self.dir / ".lock"), timeout=10)
 
     def _path(self, job_id: str) -> Path:
@@ -345,12 +347,14 @@ class JobStore:
     def get(self, job_id: str) -> dict[str, Any] | None:
         return self._read(self._path(job_id))
 
-    def all(self) -> list[dict[str, Any]]:
+    def all(self, *, include_dismissed: bool = False) -> list[dict[str, Any]]:
         # runner.json lives here too; a job file is named after its id.
         jobs = [
             job
             for path in self.dir.glob("*.json")
-            if (job := self._read(path)) and job.get("id") == path.stem
+            if (job := self._read(path))
+            and job.get("id") == path.stem
+            and (include_dismissed or not job.get("dismissed"))
         ]
         order = {"running": 0, "queued": 1}
         return sorted(
@@ -370,14 +374,23 @@ class JobStore:
         *,
         front: bool = False,
         title: str | None = None,
+        job_id: str | None = None,
+        schedule_id: str | None = None,
+        scheduled_for: str | None = None,
+        parent_id: str | None = None,
+        date_timezone: str | None = None,
     ) -> dict[str, Any]:
         clean = validate(kind, params, self.state_dir)
+        if kind == "batch" and date_timezone and params.get("date") == "today":
+            clean["date"] = "today"
         with self.lock:
+            if job_id and (existing := self.get(job_id)):
+                return existing
             queued = [job["position"] for job in self.all() if job.get("status") == "queued"]
             position = (min(queued, default=1) - 1) if front else (max(queued, default=-1) + 1)
             stamp = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
             job = {
-                "id": f"{stamp}-{kind}-{secrets.token_hex(2)}",
+                "id": job_id or f"{stamp}-{kind}-{secrets.token_hex(4)}",
                 "kind": kind,
                 "title": title or describe(kind, clean),
                 "params": clean,
@@ -385,6 +398,10 @@ class JobStore:
                 "position": position,
                 "created": now(),
                 "created_by": by,
+                "schedule_id": schedule_id,
+                "scheduled_for": scheduled_for,
+                "parent_id": parent_id,
+                "date_timezone": date_timezone,
             }
             self._write(job)
             return job
@@ -405,7 +422,52 @@ class JobStore:
                 raise JobError("Unknown job")
             if job["status"] == "running":
                 raise JobError("A running job cannot be removed; stop its run instead")
-            self._path(job_id).unlink(missing_ok=True)
+            if job["status"] == "queued":
+                job.update(status="cancelled", ended=now(), error="Removed from queue")
+            job["dismissed"] = True
+            self._write(job)
+
+    def batch_summary(self, job_id: str) -> dict[str, Any]:
+        from auto_fix import history
+
+        parent = self.get(job_id)
+        if parent is None or parent["kind"] != "batch":
+            raise JobError("Unknown batch")
+        children = [
+            job for job in self.all(include_dismissed=True) if job.get("parent_id") == job_id
+        ]
+        counts = dict.fromkeys(
+            (
+                "queued",
+                "running",
+                "ready",
+                "published",
+                "blocked",
+                "paused",
+                "cancelled",
+                "failed",
+                "already_handled",
+                "publication_unknown",
+            ),
+            0,
+        )
+        for child in children:
+            result = child.get("result") or child["status"]
+            directory = run_dir(self.state_dir, child.get("run_id") or "")
+            if directory and child["status"] not in {"queued", "running"}:
+                result = history.summarize("runs/" + directory.name, directory)["status"]
+            if child.get("reused"):
+                result = "already_handled"
+            child["run_status"] = result
+            counts[result if result in counts else "failed"] += 1
+        return {
+            "job": parent,
+            "children": children,
+            "counts": counts,
+            "discovered": parent.get("discovered"),
+            "scan_complete": parent.get("scan_complete", False),
+            "no_failures": parent.get("scan_complete", False) and parent.get("discovered") == 0,
+        }
 
     def move(self, job_id: str, delta: int) -> None:
         with self.lock:
@@ -505,6 +567,11 @@ class Runner:
         self.children: dict[str, subprocess.Popen] = {}
         self.active = False
         self._stop = threading.Event()
+        from auto_fix.config import load_settings
+        from auto_fix.schedules import ScheduleStore
+
+        zone = load_settings(config).timezone if config.is_file() else "Europe/Paris"
+        self.schedules = ScheduleStore(state_dir, zone)
 
     def heartbeat(self, waiting: str = "") -> None:
         record = {"pid": os.getpid(), "beat": time.time(), "waiting": waiting}
@@ -520,6 +587,7 @@ class Runner:
                 return
             self.active = True
         waiting = ""
+        self.schedules.tick(self.store)
         running = [job for job in self.store.all() if job.get("status") == "running"]
         for job in running:
             child = self.children.get(job["id"])
@@ -662,15 +730,21 @@ def _repair(settings: Any, store: JobStore, job: dict[str, Any], services: Any) 
         "publish": (True, False),
         "reconcile": (False, False),
     }.get(params["mode"], (params["publish"], params["retry_blocked"]))
+    started: list[str] = []
+
+    def on_run(run_id: str) -> None:
+        started.append(run_id)
+        store.update(job["id"], run_id=run_id)
+
     result = process_failure(
         settings,
         Failure.model_validate(failure),
         services,
         publish=publish,
         retry_blocked=retry,
-        on_run=lambda run_id: store.update(job["id"], run_id=run_id),
+        on_run=on_run,
     )
-    return _outcome(result)
+    return {**_outcome(result), "reused": not started and params["mode"] == "new"}
 
 
 def _continue(settings: Any, store: JobStore, job: dict[str, Any], services: Any) -> dict[str, Any]:
@@ -768,15 +842,25 @@ def _evaluate(settings: Any, job: dict[str, Any]) -> dict[str, Any]:
 def _dispatch(settings: Any, store: JobStore, job: dict[str, Any]) -> dict[str, Any]:
     kind, params = job["kind"], job["params"]
     if kind == "batch":
+        from auto_fix.cli import failure_key
         from auto_fix.integrations import TeamCity
 
         teamcity = TeamCity(settings.teamcity)
         try:
-            failures = teamcity.failures(date.fromisoformat(params["date"]), settings.timezone)
+            zone = job.get("date_timezone") or settings.timezone
+            day = (
+                datetime.now(ZoneInfo(zone)).date()
+                if params["date"] == "today"
+                else date.fromisoformat(params["date"])
+            )
+            failures = teamcity.failures(day, zone)
+            store.update(job["id"], effective_date=day.isoformat(), effective_timezone=zone)
         finally:
             teamcity.close()
         if params.get("build_type"):
             failures = [f for f in failures if f.build_type == params["build_type"]]
+        failures = list({failure_key(f): f for f in failures}.values())
+        store.update(job["id"], discovered=len(failures), scan_complete=False)
         # Front of the queue in reverse keeps TeamCity's order ahead of jobs queued later.
         for failure in reversed(failures):
             store.add(
@@ -789,7 +873,11 @@ def _dispatch(settings: Any, store: JobStore, job: dict[str, Any]) -> dict[str, 
                 },
                 job.get("created_by", ""),
                 front=True,
+                parent_id=job["id"],
+                schedule_id=job.get("schedule_id"),
+                job_id=job["id"] + "-" + failure_key(failure),
             )
+        store.update(job["id"], scan_complete=True)
         return {"status": "done", "result": f"Queued {len(failures)} repairs"}
     if kind in {"evaluation", "operations", "demo"}:
         return _evaluate(settings, job)

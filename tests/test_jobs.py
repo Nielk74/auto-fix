@@ -421,3 +421,131 @@ def test_a_batch_for_one_build_configuration_queues_only_its_failures(tmp_path, 
     queued = [item for item in store.all() if item["kind"] == "repair"]
     assert [item["params"]["failure"]["build_type"] for item in queued] == ["Cpp_Tests"]
     assert store.get(job["id"])["result"] == "Queued 1 repairs"
+    summary = store.batch_summary(job["id"])
+    assert summary["discovered"] == 1 and summary["scan_complete"]
+    assert summary["counts"]["queued"] == 1
+    assert summary["children"][0]["parent_id"] == job["id"]
+    # Repeating a partially completed discovery must not duplicate repairs.
+    assert jobs.execute(config, job["id"]) == 0
+    assert len(store.batch_summary(job["id"])["children"]) == 1
+
+
+def test_batch_summary_retains_dismissed_children_and_resolves_later_publication(tmp_path):
+    store = JobStore(state(tmp_path))
+    parent = store.add("batch", {}, "me")
+    store.update(parent["id"], status="done", discovered=3, scan_complete=True)
+    first = store.add("repair", {"failure": failure().model_dump()}, "me", parent_id=parent["id"])
+    second = store.add("repair", {"failure": failure().model_dump()}, "me", parent_id=parent["id"])
+    third = store.add("repair", {"failure": failure().model_dump()}, "me", parent_id=parent["id"])
+    store.update(first["id"], status="done", result="ready", run_id="tc-ready")
+    store.update(second["id"], status="done", result="published", reused=True)
+    store.remove(third["id"])
+    run = tmp_path / "state/runs/tc-ready"
+    run.mkdir(parents=True)
+    (run / "result.json").write_text('{"status":"published"}', encoding="utf-8")
+    summary = store.batch_summary(parent["id"])
+    assert summary["counts"]["published"] == 1
+    assert summary["counts"]["already_handled"] == 1
+    assert summary["counts"]["cancelled"] == 1
+    assert len(summary["children"]) == 3
+
+
+def test_empty_batch_and_dismissed_discovery_failure_keep_their_outcomes(tmp_path):
+    store = JobStore(state(tmp_path))
+    empty = store.add("batch", {}, "me")
+    store.update(empty["id"], status="done", discovered=0, scan_complete=True)
+    assert store.batch_summary(empty["id"])["no_failures"]
+    failed = store.add("batch", {}, "me")
+    store.update(failed["id"], status="failed", error="TeamCity unavailable")
+    store.remove(failed["id"])
+    assert store.batch_summary(failed["id"])["job"]["error"] == "TeamCity unavailable"
+
+
+def test_schedule_api_protects_mutations_and_persists_parameters(controlled):
+    base, token = controlled
+    data = {
+        "name": "Nightly",
+        "kind": "batch",
+        "params": {"date": "today"},
+        "timezone": "Europe/Paris",
+        "frequency": "weekly",
+        "time": "17:30",
+        "weekdays": [0, 1, 2, 3, 4],
+    }
+    for endpoint, payload in [
+        ("/api/schedules", data),
+        ("/api/schedules/toggle", {"id": "unknown", "enabled": False}),
+        ("/api/schedules/remove", {"id": "unknown"}),
+    ]:
+        with pytest.raises(urllib.error.HTTPError) as error:
+            post(base + endpoint, payload)
+        assert error.value.code == 403
+    _, created = post(base + "/api/schedules", data, token)
+    schedule = created["schedule"]
+    assert schedule["params"]["date"] == "today"
+    with urllib.request.urlopen(base + "/api/schedules") as response:
+        listed = json.loads(response.read())
+    assert len(listed["schedules"][0]["upcoming"]) == 5
+    post(base + "/api/schedules/toggle", {"id": schedule["id"], "enabled": False}, token)
+    with urllib.request.urlopen(base + "/api/schedules") as response:
+        assert json.loads(response.read())["schedules"][0]["enabled"] is False
+    post(base + "/api/schedules/remove", {"id": schedule["id"]}, token)
+
+
+def test_batch_history_api_retains_empty_and_failed_invocations(controlled, tmp_path):
+    base, _ = controlled
+    store = JobStore(tmp_path / "state")
+    batch = store.add("batch", {}, "me")
+    store.update(batch["id"], status="done", discovered=0, scan_complete=True)
+    with urllib.request.urlopen(base + "/api/batches") as response:
+        data = json.loads(response.read())
+    assert data["total"] == 1 and data["batches"][0]["no_failures"]
+
+
+def test_scheduled_relative_date_uses_the_day_execution_starts(tmp_path, monkeypatch):
+    from datetime import UTC, datetime
+    from zoneinfo import ZoneInfo
+
+    from auto_fix.schedules import ScheduleStore
+
+    config = write_config(tmp_path)
+    folder = state(tmp_path)
+    store = JobStore(folder)
+    schedules = ScheduleStore(folder)
+    schedules.save(
+        {
+            "name": "Late scan",
+            "kind": "batch",
+            "params": {"date": "today"},
+            "frequency": "once",
+            "at": "2026-10-24T23:55",
+            "timezone": "Europe/Paris",
+        },
+        "me",
+        at=datetime(2026, 10, 24, 12, tzinfo=UTC),
+    )
+    schedules.tick(store, at=datetime(2026, 10, 24, 21, 55, tzinfo=UTC))
+    queued = store.all()[0]
+
+    class Clock(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 10, 25, 0, 30, tzinfo=ZoneInfo("Europe/Paris")).astimezone(tz)
+
+    days = []
+
+    class TeamCity:
+        def __init__(self, settings):
+            pass
+
+        def failures(self, day, timezone):
+            days.append(day.isoformat())
+            return []
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(jobs, "datetime", Clock)
+    monkeypatch.setattr("auto_fix.integrations.TeamCity", TeamCity)
+    assert jobs.execute(config, queued["id"]) == 0
+    assert days == ["2026-10-25"]
