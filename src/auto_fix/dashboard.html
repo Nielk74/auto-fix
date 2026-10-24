@@ -51,8 +51,9 @@ main { display: grid; grid-template-columns: 300px minmax(0, 1fr); min-height: 0
 
 /* sidebar tree */
 aside { background: var(--soft); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; min-width: 0; }
-.search { padding: 14px 14px 8px; }
-.search input { width: 100%; height: 32px; padding: 0 10px; font: inherit; color: var(--ink); border-radius: 6px;
+.search { padding: 14px 14px 8px; position: relative; }
+.search .lu { position: absolute; left: 24px; top: 23px; color: var(--muted); pointer-events: none; }
+.search input { width: 100%; height: 32px; padding: 0 10px 0 32px; font: inherit; color: var(--ink); border-radius: 6px;
   border: 1px solid var(--line); background: var(--ground); }
 .search input::placeholder { color: var(--muted); }
 .search input:focus-visible { outline-offset: 0; border-color: var(--accent); }
@@ -68,7 +69,6 @@ aside { background: var(--soft); border-right: 1px solid var(--line); display: f
 .group { display: flex; align-items: center; gap: 6px; padding: 5px 14px; color: var(--ink); font-weight: 600;
   cursor: pointer; user-select: none; }
 .group:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
-.group .chev { width: 10px; color: var(--muted); font-size: 9px; }
 .group .count { margin-left: auto; color: var(--muted); font-weight: 400; font-size: 12px; font-variant-numeric: tabular-nums; }
 .group .count .bad { color: var(--bad); }
 .leaf { display: flex; align-items: center; gap: 9px; padding: 5px 14px 5px 30px; cursor: pointer; min-width: 0; }
@@ -77,10 +77,20 @@ aside { background: var(--soft); border-right: 1px solid var(--line); display: f
 .leaf .nm { font-family: var(--mono); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
 .leaf .tm { color: var(--muted); font-size: 11.5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
-/* status marks: one stroke, in the colour of the state */
-.ico { flex: none; display: inline-block; vertical-align: -3px; }
-.ico circle, .ico path { fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
-.ico .dot { fill: currentColor; stroke: none; }
+/* Lucide icons, one stroke family; status marks take the colour of their state */
+.lu { flex: none; display: inline-block; vertical-align: -3px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ico { stroke-width: 2.1; }
+.chev { width: 12px; height: 12px; color: var(--muted); vertical-align: -1px; transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.chev.open { transform: rotate(90deg); }
+span.chev { display: inline-block; }
+@media (prefers-reduced-motion: reduce) { .chev { transition: none; } }
+.lu.out { width: 12px; height: 12px; margin-left: 3px; vertical-align: -1px; opacity: 0.7; }
+.copyable { display: inline-flex; align-items: center; gap: 2px; }
+button.copy { display: inline-grid; place-items: center; width: 22px; height: 22px; padding: 0; border: none; border-radius: 4px; background: none;
+  color: var(--muted); cursor: pointer; }
+button.copy:hover { background: var(--soft); color: var(--ink); }
+button.copy.done { color: var(--ok); }
+button.copy .lu { vertical-align: 0; }
 .spin { animation: spin 1.1s linear infinite; transform-origin: 50% 50%; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
@@ -99,7 +109,7 @@ aside { background: var(--soft); border-right: 1px solid var(--line); display: f
 .result b { font-weight: 600; }
 .result .why { white-space: pre-wrap; }
 .result .reason { color: var(--ink); }
-a.pr { display: inline-flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 6px; font-size: 12.5px; font-weight: 500;
+a.pr { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border-radius: 6px; font-size: 12.5px; font-weight: 500;
   background: var(--accent); color: #fff; }
 a.pr:hover { text-decoration: none; background: color-mix(in srgb, var(--accent) 88%, #000); }
 .subline { color: var(--muted); }
@@ -111,11 +121,12 @@ a.pr:hover { text-decoration: none; background: color-mix(in srgb, var(--accent)
 .prov > span { white-space: nowrap; }
 .prov .k { color: var(--muted); margin-right: 6px; }
 .tabs { display: flex; gap: 22px; border-bottom: 1px solid var(--line); margin: 14px 0 18px; overflow-x: auto; overflow-y: hidden; }
-.tab { background: none; border: none; font: inherit; color: var(--muted); padding: 9px 0 8px; cursor: pointer;
+.tab { display: inline-flex; align-items: center; gap: 6px; background: none; border: none; font: inherit; color: var(--muted); padding: 9px 0 8px; cursor: pointer;
   border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
 .tab:hover { color: var(--ink); }
 .tab[aria-selected="true"] { color: var(--ink); font-weight: 500; border-bottom-color: var(--accent); }
-.tab .n { color: var(--muted); margin-left: 5px; font-weight: 400; font-variant-numeric: tabular-nums; }
+.tab[aria-selected="true"] .lu { color: var(--accent); }
+.tab .n { color: var(--muted); margin-left: -1px; font-weight: 400; font-variant-numeric: tabular-nums; }
 .tab:focus-visible { outline-offset: -2px; }
 h2 { font-size: 14px; font-weight: 600; margin: 0 0 10px; }
 .box { border: 1px solid var(--line); border-radius: 8px; background: var(--ground); min-width: 0; overflow: hidden; }
@@ -127,7 +138,19 @@ h2 { font-size: 14px; font-weight: 600; margin: 0 0 10px; }
 .overview { display: grid; grid-template-columns: minmax(320px, 1fr) minmax(0, 1.2fr); gap: 16px; align-items: start; margin-top: 16px; }
 .muted { color: var(--muted); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.empty { color: var(--muted); padding: 48px 0; text-align: center; }
+.empty { color: var(--muted); padding: 40px 16px 48px; text-align: center; display: grid; justify-items: center; gap: 4px; }
+.empty .et { color: var(--ink); font-weight: 600; font-size: 14px; margin-top: 8px; }
+.empty .eb { max-width: 46ch; }
+.empty .ea { margin-top: 10px; }
+/* empty-state drawings: grey line art, one accent, the icons' round caps */
+.art * { fill: none; stroke: var(--faint); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.art .il-card { fill: var(--soft); stroke: var(--muted); }
+.art path:not([class]), .art circle:not([class]) { stroke: var(--muted); }
+.art .il-dash { stroke: var(--faint); stroke-dasharray: 3 4; }
+.art .il-accent { stroke: var(--accent); }
+.art .il-fill { fill: var(--ground); }
+.art .il-dot { fill: var(--accent); stroke: none; }
+.art .il-ground { stroke: var(--line); stroke-dasharray: 2 5; }
 .loading { color: var(--muted); padding: 48px 0; display: flex; gap: 8px; align-items: center; justify-content: center; }
 tr.lit td { background: var(--sel); }
 
@@ -157,7 +180,11 @@ tr.lit td { background: var(--sel); }
 .arow.idle { cursor: default; color: var(--faint); }
 .arow.ahead { cursor: default; background: none; color: var(--muted); font-size: 12px; padding-top: 8px; padding-bottom: 8px; }
 .alabel { font-weight: 600; white-space: nowrap; }
-.alabel .chev { display: inline-block; width: 14px; color: var(--muted); font-size: 9px; }
+.alabel .chev { margin-right: 4px; }
+.alabel .kind { margin-right: 6px; color: var(--muted); }
+.node { display: inline-flex; align-items: center; gap: 6px; }
+.node .lu { color: var(--muted); }
+.line.bad .node .lu { color: var(--bad); } .line.warn .node .lu { color: var(--warn); }
 .atime { position: relative; min-width: 0; }
 .aticks { position: relative; height: 14px; font-size: 11px; font-variant-numeric: tabular-nums; }
 .aticks span { position: absolute; transform: translateX(-50%); color: var(--muted); }
@@ -201,6 +228,9 @@ svg.flat .fn.end rect { stroke-width: 2; }
 svg.flat .fn.on rect { fill: var(--sel); }
 svg.flat .fn[tabindex] { cursor: pointer; outline: none; }
 svg.flat .fn[tabindex]:focus-visible rect { stroke: var(--accent); stroke-width: 2; }
+svg.flat .glyph { fill: none; stroke: var(--muted); }
+svg.flat .fn.ran .glyph { stroke: var(--ink); }
+svg.flat .fn.bad .glyph { stroke: var(--bad); }
 svg.flat .fn .count { font: 11px var(--mono); fill: var(--muted); }
 svg.flat .fe { fill: none; stroke: var(--line); stroke-width: 1; stroke-dasharray: 3 3; }
 svg.flat .fe.on { stroke: var(--ink); stroke-width: 1.4; stroke-dasharray: none; }
@@ -221,7 +251,8 @@ tr.sel td { background: var(--sel); }
 td.grow { width: 100%; max-width: 0; }
 td .ellipsis { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trail { font-variant-numeric: tabular-nums; white-space: nowrap; }
-.trail .to { color: var(--faint); margin: 0 3px; }
+.trail .to { color: var(--faint); margin: 0 4px; }
+.trail .to .lu { vertical-align: -1px; }
 
 /* step table with duration bars */
 .bar { height: 7px; position: relative; min-width: 80px; }
@@ -292,7 +323,7 @@ pre.view .add { color: var(--ok); } pre.view .del { color: var(--bad); } pre.vie
 </header>
 <main>
   <aside aria-label="Runs">
-    <div class="search"><input type="search" id="q" placeholder="Search runs, builds, tests, reasons" aria-label="Search runs"></div>
+    <div class="search"><svg class="lu" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21l-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><input type="search" id="q" placeholder="Search runs, builds, tests, reasons" aria-label="Search runs"></div>
     <div class="filters" id="filters" role="group" aria-label="Filter by result"></div>
     <div id="tree"></div>
   </aside>
@@ -354,17 +385,115 @@ function svg(tag, attrs = {}, ...children) {
   for (const child of children.flat()) if (child) node.append(child instanceof Node ? child : document.createTextNode(String(child)));
   return node;
 }
-/* Status marks: a ring with one stroke inside; success is a filled dot, running a turning arc. */
-function icon(tone, size = 14) {
-  const s = svg("svg", {class: "ico t-" + tone + (tone === "run" ? " spin" : ""), width: size, height: size, viewBox: "0 0 16 16", "aria-hidden": "true"});
-  if (tone === "run") {
-    s.append(svg("circle", {cx: 8, cy: 8, r: 6, "stroke-opacity": ".3"}), svg("path", {d: "M8 2a6 6 0 0 1 6 6"}));
-    return s;
-  }
-  s.append(svg("circle", {cx: 8, cy: 8, r: 6}));
-  if (tone === "ok") s.append(svg("circle", {cx: 8, cy: 8, r: 2.6, class: "dot"}));
-  else s.append(svg("path", {d: {bad: "M5.9 5.9l4.2 4.2M10.1 5.9l-4.2 4.2", warn: "M8 5v3.4M8 10.9v.1", none: "M5.6 8h4.8"}[tone]}));
+/* Lucide icons (ISC licence, lucide.dev), fetched from Iconify with better-icons. The .lu class draws them in one stroke. */
+const ICONS = {
+  chevron: "<path d='m9 18l6-6l-6-6'/>",
+  overview: "<rect width='7' height='9' x='3' y='3' rx='1'/><rect width='7' height='5' x='14' y='3' rx='1'/><rect width='7' height='9' x='14' y='12' rx='1'/><rect width='7' height='5' x='3' y='16' rx='1'/>",
+  log: "<path d='M15 12h-5m5-4h-5m9 9V5a2 2 0 0 0-2-2H4'/><path d='M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3'/>",
+  bot: "<path d='M12 8V4H8'/><rect width='16' height='12' x='4' y='8' rx='2'/><path d='M2 14h2m16 0h2m-7-1v2m-6-2v2'/>",
+  files: "<path d='m6 14l1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2'/>",
+  events: "<path d='M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2'/>",
+  external: "<path d='M15 3h6v6m-11 5L21 3m-3 10v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/>",
+  copy: "<rect width='14' height='14' x='8' y='8' rx='2' ry='2'/><path d='M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2'/>",
+  check: "<path d='M20 6L9 17l-5-5'/>",
+  search: "<path d='m21 21l-4.34-4.34'/><circle cx='11' cy='11' r='8'/>",
+  ok: "<circle cx='12' cy='12' r='10'/><path d='m16 9l-5.5 5.5L8 12'/>",
+  bad: "<circle cx='12' cy='12' r='10'/><path d='m15 9l-6 6m0-6l6 6'/>",
+  warn: "<circle cx='12' cy='12' r='10'/><path d='M12 8v4m0 4h.01'/>",
+  run: "<path d='M21 12a9 9 0 1 1-6.219-8.56'/>",
+  none: "<circle cx='12' cy='12' r='10'/><path d='M8 12h8'/>",
+  arrow: "<path d='M5 12h14m-7-7l7 7l-7 7'/>",
+  pr: "<circle cx='18' cy='18' r='3'/><circle cx='6' cy='6' r='3'/><path d='M13 6h3a2 2 0 0 1 2 2v7M6 9v12'/>",
+  context: "<rect width='8' height='4' x='8' y='2' rx='1' ry='1'/><path d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2m4 7h4m-4 5h4m-8-5h.01M8 16h.01'/>",
+  branch: "<path d='M15 6a9 9 0 0 0-9 9V3'/><circle cx='18' cy='6' r='3'/><circle cx='6' cy='18' r='3'/>",
+  flask: "<path d='M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2M6.453 15h11.094M8.5 2h7'/>",
+  flaskRound: "<path d='M10 2v6.292a7 7 0 1 0 4 0V2M5 15h14M8.5 2h7'/>",
+  inspect: "<path d='m13 13.5l2-2.5l-2-2.5M21 21l-4.3-4.3M9 8.5L7 11l2 2.5'/><circle cx='11' cy='11' r='8'/>",
+  wrench: "<path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z'/>",
+  package: "<path d='M12 22V12m4 5l2 2l4-4'/><path d='M21 11.127V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.729l7 4a2 2 0 0 0 2 .001l1.32-.753'/><path d='M3.29 7L12 12l8.71-5M7.5 4.27l8.997 5.148'/>",
+  publish: "<circle cx='5' cy='6' r='3'/><path d='M5 9v12'/><circle cx='19' cy='18' r='3'/><path d='m15 9l-3-3l3-3'/><path d='M12 6h5a2 2 0 0 1 2 2v7'/>",
+  stop: "<circle cx='12' cy='12' r='10'/><path d='M4.929 4.929L19.07 19.071'/>",
+  start: "<path d='M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z'/>",
+  end: "<path d='M4 22V4a1 1 0 0 1 .4-.8A6 6 0 0 1 8 2c3 0 5 2 7.333 2q2 0 3.067-.8A1 1 0 0 1 20 4v10a1 1 0 0 1-.4.8A6 6 0 0 1 16 16c-3 0-5-2-8-2a6 6 0 0 0-4 1.528'/>",
+};
+function lucide(name, size = 16, cls = "") {
+  const s = svg("svg", {class: "lu" + (cls ? " " + cls : ""), width: size, height: size, viewBox: "0 0 24 24", "aria-hidden": "true"});
+  s.innerHTML = ICONS[name];
   return s;
+}
+/** A run or step status as a Lucide circle in the colour of its tone; running turns. */
+function icon(tone, size = 14) {
+  const s = lucide(tone in ICONS ? tone : "none", size, "ico t-" + tone + (tone === "run" ? " spin" : ""));
+  if (tone === "run") s.insertAdjacentHTML("afterbegin", "<circle cx='12' cy='12' r='9' opacity='.25'/>");
+  return s;
+}
+/*
+ * What each workflow node is for. Nodes fall in four groups, and nodes of a group share a family
+ * of icon: setup (paperwork, a branch), tests (glassware), the model (search, a wrench) and
+ * shipping (a package, a pull request). Colour stays with status.
+ */
+const STEPS = {
+  collect_context: {icon: "context", group: "Setup", does: "reads the failure, its commits and their pull requests"},
+  prepare: {icon: "branch", group: "Setup", does: "checks out the failing revision on a work branch"},
+  baseline: {icon: "flask", group: "Tests", does: "builds and runs the failing tests before any edit"},
+  investigate: {icon: "inspect", group: "Model", does: "searches and reads source code before a repair"},
+  repair: {icon: "wrench", group: "Model", does: "asks the model for an edit that fixes the failure"},
+  verify: {icon: "flaskRound", group: "Tests", does: "rebuilds and reruns the tests with the edit applied"},
+  finalize: {icon: "package", group: "Ship", does: "re-checks the verified candidate before publishing"},
+  publish_pr: {icon: "publish", group: "Ship", does: "pushes the branch and opens the pull request"},
+  blocked: {icon: "stop", group: "Stop", does: "records why the run gave up"},
+  __start__: {icon: "start", group: "Graph", does: "where every run enters"},
+  __end__: {icon: "end", group: "Graph", does: "where every run leaves"},
+};
+const stepInfo = name => STEPS[name] || {icon: "none", group: "Step", does: ""};
+/** A node's name with its icon, and what the node does on hover. */
+function nodeTag(name) {
+  const info = stepInfo(name);
+  return el("span", {class: "node", title: `${info.group}: ${info.does || name}`}, lucide(info.icon, 14), name);
+}
+
+/** The expand marker for rows that open: a chevron that turns down when open. */
+const chevron = open => lucide("chevron", 12, "chev" + (open ? " open" : ""));
+/** A link that leaves the dashboard, marked as such. */
+const outLink = (href, ...text) => el("a", {href, target: "_blank", rel: "noreferrer"}, ...text, lucide("external", 12, "out"));
+/** A short value with a button that copies the full one. */
+function copyable(full, shown, what) {
+  const button = el("button", {class: "copy", type: "button", title: "Copy " + what, "aria-label": "Copy " + what, onclick: async () => {
+    try { await navigator.clipboard.writeText(full); } catch (error) { return; }
+    button.replaceChildren(lucide("check", 13));
+    button.classList.add("done");
+    setTimeout(() => { button.replaceChildren(lucide("copy", 13)); button.classList.remove("done"); }, 1200);
+  }}, lucide("copy", 13));
+  return el("span", {class: "copyable"}, el("code", {title: full}, shown), button);
+}
+
+/* Empty-state drawings: line art in the icons' stroke, grey with one accent, on a dashed ground. */
+const ART = {
+  runs: "<rect class='il-card' x='30' y='14' width='100' height='68' rx='7'/><path d='M30 28h100'/><circle cx='40' cy='21' r='1.6'/><circle cx='46' cy='21' r='1.6'/>"
+    + "<circle class='il-dash' cx='42' cy='41' r='4'/><path class='il-dash' d='M52 41h44m10 0h12'/><circle class='il-dash' cx='42' cy='55' r='4'/><path class='il-dash' d='M52 55h36m18 0h12'/>"
+    + "<circle class='il-dash' cx='42' cy='69' r='4'/><path class='il-dash' d='M52 69h40m14 0h12'/>"
+    + "<circle class='il-accent il-fill' cx='128' cy='16' r='11'/><path class='il-accent' d='M128 10.5v5.5l3.5 2.2'/>",
+  search: "<rect class='il-card' x='22' y='14' width='100' height='68' rx='7'/><path d='M22 28h100'/>"
+    + "<circle class='il-dash' cx='34' cy='41' r='4'/><path class='il-dash' d='M44 41h40'/><circle class='il-dash' cx='34' cy='55' r='4'/><path class='il-dash' d='M44 55h30'/>"
+    + "<circle class='il-dash' cx='34' cy='69' r='4'/><path class='il-dash' d='M44 69h36'/>"
+    + "<circle class='il-accent il-fill' cx='108' cy='54' r='17'/><path class='il-accent' d='M120 66l13 13M101 54h14'/>",
+  calls: "<rect class='il-card' x='34' y='40' width='44' height='34' rx='7'/><path d='M56 40V29h-8M47 53v5m18-5v5M28 57h6m44 0h6'/>"
+    + "<path class='il-dash' d='M92 20h44a6 6 0 0 1 6 6v18a6 6 0 0 1-6 6h-28l-10 8v-8h-6a6 6 0 0 1-6-6V26a6 6 0 0 1 6-6z'/>"
+    + "<circle class='il-dot' cx='106' cy='35' r='2'/><circle class='il-dot' cx='115' cy='35' r='2'/><circle class='il-dot' cx='124' cy='35' r='2'/>",
+  missing: "<path class='il-card' d='M58 52V18a4 4 0 0 1 4-4h26l14 14v24l-2 1.5-6-4-6 4-6-4-6 4-6-4-6 4-6-4z'/><path d='M88 14v10a4 4 0 0 0 4 4h10M66 30h14m-14 9h26'/>"
+    + "<path class='il-dash' d='M58 62v18a4 4 0 0 0 4 4h36a4 4 0 0 0 4-4V62'/>"
+    + "<circle class='il-accent il-fill' cx='110' cy='18' r='10'/><path class='il-accent' d='M106.5 14.5l7 7m0-7l-7 7'/>",
+  log: "<rect class='il-card' x='40' y='14' width='80' height='68' rx='7'/><path class='il-accent' d='M52 30h8'/><path d='M68 30h40'/>"
+    + "<path class='il-dash' d='M52 44h8m8 0h32M52 58h8m8 0h24M52 72h8m8 0h28'/>",
+  file: "<path class='il-card' d='M60 14h34l14 14v50a4 4 0 0 1-4 4H60a4 4 0 0 1-4-4V18a4 4 0 0 1 4-4z'/><path d='M94 14v10a4 4 0 0 0 4 4h10'/>"
+    + "<path class='il-dash' d='M66 42h32M66 54h24M66 66h28'/><path class='il-accent' d='M44 48H20m7-7l-7 7 7 7'/>",
+};
+/** An empty state: a drawing, what is missing, why, and what to do about it. */
+function emptyState(art, title, body, ...actions) {
+  const drawing = svg("svg", {class: "art", viewBox: "0 0 160 100", width: 160, height: 100, "aria-hidden": "true"});
+  drawing.innerHTML = ART[art] + "<path class='il-ground' d='M14 90h132'/>";
+  return el("div", {class: "empty"}, drawing, el("div", {class: "et"}, title), body ? el("div", {class: "eb"}, body) : null,
+    actions.length ? el("div", {class: "ea"}, actions) : null);
 }
 function duration(seconds) {
   if (seconds === null || seconds === undefined) return "—";
@@ -436,7 +565,7 @@ function drawSidebar() {
     const collapsed = state.collapsed.has(name);
     nodes.push(el("div", {class: "group", "aria-expanded": String(!collapsed), "data-key": "group:" + name,
       onclick: () => { collapsed ? state.collapsed.delete(name) : state.collapsed.add(name); renderSidebar(); }},
-      el("span", {class: "chev", "aria-hidden": "true"}, collapsed ? "▸" : "▾"), name,
+      chevron(!collapsed), name,
       el("span", {class: "count"}, String(items.length), bad ? el("span", {class: "bad"}, ` · ${bad} blocked`) : null)));
     if (collapsed) continue;
     for (const run of items) nodes.push(el("div", {class: "leaf" + (run.id === state.selected ? " sel" : ""), title: `${run.id} · ${status(run.status).text}`,
@@ -464,7 +593,7 @@ function trailCell(run) {
 }
 function trail(counts) {
   if (!counts?.length) return [el("span", {class: "muted"}, "—")];
-  return counts.flatMap((n, i) => [i ? el("span", {class: "to", "aria-label": "then"}, "→") : [],
+  return counts.flatMap((n, i) => [i ? el("span", {class: "to", "aria-label": "then"}, lucide("arrow", 11)) : [],
     el("b", {class: n === null ? "muted" : i === counts.length - 1 ? (n ? "t-bad" : "t-ok") : "", style: "font-weight:" + (i === counts.length - 1 ? 600 : 400)}, n === null ? "…" : String(n))]);
 }
 function renderHome() {
@@ -491,7 +620,9 @@ function renderHome() {
           el("td", {class: "hide-sm muted", style: "white-space:nowrap", title: when(run.started)}, shortWhen(run.started)),
           el("td", {class: "num"}, duration(run.duration_seconds)),
           el("td", {class: "num hide-sm"}, run.attempts));
-      })))) : el("div", {class: "empty"}, state.runs.length ? "No run matches the search or filter." : "No runs found below this directory yet.")));
+      })))) : state.runs.length ? emptyState("search", "No run matches", "Nothing in this directory fits the search and the result filters.",
+        el("button", {class: "btn", type: "button", onclick: () => { document.getElementById("q").value = ""; state.filters.clear(); renderSidebar(); renderHome(); }}, "Clear search and filters"))
+      : emptyState("runs", "No runs yet", ["Runs appear here as soon as Auto Fix writes a checkpoint below ", el("code", {}, document.getElementById("root").textContent || "the state directory"), "."])));
 }
 
 async function loadRuns() {
@@ -528,8 +659,8 @@ async function loadDetail() {
   catch (error) {
     if (id !== state.selected) return;
     dropFigure();
-    document.getElementById("content").replaceChildren(el("div", {class: "page empty"}, "This run is no longer available. ",
-      el("a", {href: "#", onclick: event => { event.preventDefault(); select(null); }}, "Back to run history")));
+    document.getElementById("content").replaceChildren(el("div", {class: "page"}, emptyState("missing", "This run is no longer available",
+      "Its folder was moved or deleted from the state directory.", el("button", {class: "btn", type: "button", onclick: () => select(null)}, "Back to run history"))));
     return;
   }
   // Another run was opened while this one loaded.
@@ -585,6 +716,12 @@ const failedOf = steps => steps.filter(step => stepTone(step) === "bad").length;
  * taken are dim, and edges far from its path are left out. ×N counts visits; a node with a failed
  * visit is outlined in red, and the node the run ended on is drawn heavier.
  */
+/** A node's icon placed inside the graph, 14 units square at (x, y). */
+function nodeGlyph(name, x, y) {
+  const g = svg("svg", {x, y, width: 14, height: 14, viewBox: "0 0 24 24", class: "lu glyph"});
+  g.innerHTML = ICONS[stepInfo(name).icon];
+  return g;
+}
 const WORKFLOW_HINT = "Hover or focus a node to see its steps; click to open them in the build log.";
 function mountFlat(detail, stage, read, {onPick, onHover}) {
   const g = detail.graph, {cell, back} = layout(g), by = visitsByNode(detail);
@@ -637,7 +774,8 @@ function mountFlat(detail, stage, read, {onPick, onHover}) {
     const cls = "fn " + (visits ? "ran" : "idle") + (failedOf(steps) ? " bad" : "") + (name === last ? " end" : "");
     const node = svg("g", {class: cls},
       svg("rect", {x: p.x, y: p.y, width: p.w, height: p.h, rx: terminal ? 15 : 7}),
-      svg("text", {x: p.x + 12, y: p.y + p.h / 2 + 4}, name === "__start__" ? "start" : name === "__end__" ? "end" : name),
+      nodeGlyph(name, p.x + 10, p.y + p.h / 2 - 7),
+      svg("text", {x: p.x + 31, y: p.y + p.h / 2 + 4}, name === "__start__" ? "start" : name === "__end__" ? "end" : name),
       visits > 1 && !terminal ? svg("text", {x: p.x + p.w - 10, y: p.y + p.h / 2 + 4, "text-anchor": "end", class: "count"}, "×" + visits) : null);
     if (!terminal) {
       node.setAttribute("tabindex", "0");
@@ -703,6 +841,8 @@ function phases(detail) {
   for (const row of rows) row.label = row.kind === "attempt" ? "Attempt " + ++n : row.kind[0].toUpperCase() + row.kind.slice(1);
   return rows;
 }
+/** The node whose icon stands for each phase of the attempt table; finish takes its last node's. */
+const PHASE_NODE = {setup: "collect_context", baseline: "baseline", attempt: "repair"};
 const ended = step => step.ended ? Date.parse(step.ended) : Date.now();
 const callsIn = (detail, steps) => detail.model_calls.filter(c => steps.some(s => c.started >= s.started && (!s.ended || c.started <= s.ended)));
 const lineCount = text => (text || "").split("\n").length;
@@ -772,7 +912,7 @@ function mountTable(detail, host, read, {onPick}) {
       else what = !steps.length ? el("span", {class: "muted"}, "after a passing attempt: finalize and publish")
         : [el("span", {class: "t-" + status(detail.summary.status).tone}, status(detail.summary.status).text),
           detail.summary.reason && status(detail.summary.status).tone !== "ok" ? el("span", {class: "muted"}, detail.summary.reason) : null,
-          detail.summary.pr_url ? el("a", {href: detail.summary.pr_url, target: "_blank", rel: "noreferrer"}, "pull request") : null];
+          detail.summary.pr_url ? outLink(detail.summary.pr_url, "pull request") : null];
       const total = steps.length ? (Math.max(...steps.map(ended)) - Date.parse(steps[0].started)) / 1000 : null;
       const model = calls.reduce((s, c) => s + (c.elapsed_seconds || 0), 0);
       const lastVerify = [...detail.steps].reverse().find(s => s.node === "verify" && s.ended && s !== verify);
@@ -783,7 +923,8 @@ function mountTable(detail, host, read, {onPick}) {
         : report ? el("span", {class: failed ? "t-bad" : ""}, failed ? `${failed} of ${tests.length} failing` : `all ${tests.length} pass`) : el("span", {class: "muted"}, "—");
       const line = el("div", {class: "arow" + (running ? " live" : "") + (i === open ? " open" : "") + (!steps.length ? " idle" : ""),
         ...(steps.length ? {"aria-expanded": String(i === open), "data-key": "phase:" + i, onclick: () => { open = open === i ? -1 : i; keepFocus(draw); }} : {})},
-        el("div", {class: "alabel"}, el("span", {class: "chev", "aria-hidden": "true"}, steps.length ? (i === open ? "▾" : "▸") : ""), row.label),
+        el("div", {class: "alabel"}, (steps.length ? chevron(i === open) : el("span", {class: "chev"})),
+          lucide(stepInfo(PHASE_NODE[row.kind] || (steps.some(s => s.node === "blocked") ? "blocked" : "finalize")).icon, 14, "kind"), row.label),
         el("div", {class: "atime"}, bar),
         el("div", {class: "atests"}, row.kind === "baseline" || row.kind === "attempt" ? [testDots(tests, report, running && (verify === running || base === running) || (!verify && !base)), verdict] : null),
         el("div", {class: "awhat"}, what),
@@ -855,7 +996,7 @@ function renderStepTable(detail) {
       return el("tr", {class: "click", "data-step": step.index, "data-key": "step:" + step.index, title: "Open in the build log", onclick: () => { state.tab = "log"; state.openSteps.add(step.index); renderDetail(); },
         onmouseenter: () => state.figure?.pick(step), onmouseleave: () => state.figure?.pick(null)},
         el("td", {class: "muted", style: "width:30px"}, step.index + 1),
-        el("td", {class: "mono"}, step.node),
+        el("td", {class: "mono"}, nodeTag(step.node)),
         el("td", {class: "hide-sm", style: "width:40%"}, el("div", {class: "bar", title: `${when(step.started)} → ${when(step.ended)}`},
           el("i", {style: `left:${(start / span * 100).toFixed(2)}%;width:${Math.max((end - start) / span * 100, 0.4).toFixed(2)}%`}))),
         el("td", {class: "num"}, duration(step.duration_seconds)),
@@ -864,7 +1005,7 @@ function renderStepTable(detail) {
 }
 function renderLog(detail) {
   const steps = detail.steps;
-  if (!steps.length) return el("div", {class: "empty"}, "No checkpoints or node events recorded yet.");
+  if (!steps.length) return emptyState("log", "No steps recorded yet", "Steps appear here as the workflow writes checkpoints.");
   const calls = detail.model_calls;
   const lines = [];
   for (const step of steps) {
@@ -872,8 +1013,8 @@ function renderLog(detail) {
     const related = calls.filter(call => step.started && call.started && call.started >= step.started && (!step.ended || call.started <= step.ended));
     lines.push(el("div", {class: "line " + tone, "aria-expanded": String(open), "data-key": "line:" + step.index, onclick: () => { open ? state.openSteps.delete(step.index) : state.openSteps.add(step.index); renderDetail(); }},
       el("span", {class: "ts"}, "[" + when(step.started, false) + "]"),
-      el("span", {class: "tw", "aria-hidden": "true"}, open ? "▾" : "▸"),
-      el("span", {class: "nm"}, step.node, el("span", {class: "muted"}, step.status ? `  → ${status(step.status).text}` : "")),
+      el("span", {class: "tw"}, chevron(open)),
+      el("span", {class: "nm"}, nodeTag(step.node), el("span", {class: "muted"}, step.status ? `  → ${status(step.status).text}` : "")),
       el("span", {class: "ms"}, duration(step.duration_seconds))));
     if (!open) continue;
     const keys = Object.keys(step.changes || {});
@@ -917,7 +1058,9 @@ function renderResponse(response) {
 }
 function renderCalls(detail) {
   const calls = detail.model_calls;
-  if (!calls.length) return el("div", {class: "empty"}, "No model calls recorded. Runs from before the dashboard keep proposal-N.json and investigation-N.json under Artifacts.");
+  if (!calls.length) return emptyState("calls", "No model calls recorded",
+    "Runs from before the dashboard keep proposal-N.json and investigation-N.json under Artifacts.",
+    detail.files.length ? el("button", {class: "btn", type: "button", onclick: () => { state.tab = "files"; renderDetail(); }}, "Open Artifacts") : null);
   const selected = calls.find(c => c.file === state.call) || calls[0];
   state.call = selected.file;
   return el("div", {style: "display:grid;gap:16px"},
@@ -925,7 +1068,7 @@ function renderCalls(detail) {
       el("thead", {}, el("tr", {}, el("th", {}, el("span", {class: "sr"}, "Status")), el("th", {}, "#"), el("th", {}, "Kind"), el("th", {class: "num"}, "Attempt"), el("th", {class: "hide-sm"}, "Started"),
         el("th", {class: "num"}, "Latency"), el("th", {class: "num hide-sm"}, "Tokens in"), el("th", {class: "num hide-sm"}, "Tokens out"))),
       el("tbody", {}, calls.map(call => el("tr", {class: "click" + (call.file === selected.file ? " sel" : ""), "aria-selected": String(call.file === selected.file), "data-key": "call:" + call.file, onclick: () => { state.call = call.file; renderDetail(); }},
-        el("td", {style: "width:28px"}, icon(call.error ? "bad" : "ok")), el("td", {}, call.index), el("td", {class: "mono"}, call.kind),
+        el("td", {style: "width:28px"}, icon(call.error ? "bad" : "ok")), el("td", {}, call.index), el("td", {class: "mono"}, nodeTag(call.kind)),
         el("td", {class: "num"}, call.attempt ?? "—"), el("td", {class: "hide-sm muted"}, when(call.started)),
         el("td", {class: "num"}, duration(call.elapsed_seconds)),
         el("td", {class: "num hide-sm"}, (tokens(call.usage, "in") ?? "—").toLocaleString()),
@@ -954,13 +1097,13 @@ function highlight(text, path) {
 }
 const size = bytes => bytes < 1024 ? bytes + " B" : bytes < 1048576 ? (bytes / 1024).toFixed(1) + " KB" : (bytes / 1048576).toFixed(1) + " MB";
 function renderFiles(detail) {
-  const viewer = el("div", {class: "box"}, el("div", {class: "bd muted"}, "Select an artifact on the left to view it."));
+  const viewer = el("div", {class: "box"}, emptyState("file", "No artifact open", "Pick a file on the left to view it."));
   const list = el("div", {class: "box", style: "padding:6px 0;max-height:74vh;overflow:auto"}, detail.files.map(file =>
     el("div", {class: "file" + (file.path === state.file ? " sel" : ""), "aria-current": file.path === state.file ? "true" : null, "data-key": "file:" + file.path, onclick: () => { state.file = file.path; renderDetail(); }},
       el("span", {}, file.path), el("span", {}, size(file.size)))));
   if (state.file) api(`/api/file?id=${encodeURIComponent(state.selected)}&path=${encodeURIComponent(state.file)}`)
     .then(text => viewer.replaceChildren(el("div", {class: "hd mono"}, state.file), highlight(typeof text === "string" ? text : JSON.stringify(text, null, 2), state.file)))
-    .catch(() => viewer.replaceChildren(el("div", {class: "bd muted"}, "This artifact is too large or no longer available.")));
+    .catch(() => viewer.replaceChildren(emptyState("missing", "Can't show this artifact", "It is too large to display or no longer available.")));
   return el("div", {class: "split"}, list, viewer);
 }
 
@@ -976,6 +1119,7 @@ function drawDetail() {
   const prov = (k, v) => v ? el("span", {}, el("span", {class: "k"}, k), v) : null;
   const tabs = [["overview", "Overview"], ["log", "Build log", detail.steps.length], ["calls", "Model calls", detail.model_calls.length],
     ["files", "Artifacts", detail.files.length], ["events", "Events", detail.events.length]];
+  const tabIcon = {overview: "overview", log: "log", calls: "bot", files: "files", events: "events"};
   dropFigure();
   const table = el("div"), stage = el("div", {class: "flatstage"}), readOut = el("span", {}, WORKFLOW_HINT);
   let content;
@@ -986,9 +1130,9 @@ function drawDetail() {
     el("thead", {}, el("tr", {}, el("th", {}, "Time"), el("th", {}, "Node"), el("th", {}, "Details"))),
     el("tbody", {}, detail.events.map(e => {
       const rest = Object.fromEntries(Object.entries(e).filter(([k]) => k !== "time" && k !== "node"));
-      return el("tr", {}, el("td", {class: "muted", style: "white-space:nowrap"}, when(e.time)), el("td", {class: "mono"}, e.node),
+      return el("tr", {}, el("td", {class: "muted", style: "white-space:nowrap"}, when(e.time)), el("td", {class: "mono"}, e.node ? nodeTag(e.node) : ""),
         el("td", {class: "mono", style: "word-break:break-all"}, Object.keys(rest).length ? JSON.stringify(rest) : ""));
-    })))) : el("div", {class: "empty"}, "No node events recorded.");
+    })))) : emptyState("log", "No node events recorded", "This run wrote no events.jsonl, or it was empty.");
   else content = el("div", {}, table, el("div", {class: "overview"},
     el("div", {class: "box"}, el("div", {class: "hd"}, "Workflow", el("span", {class: "sub"}, "the path this run took through the graph")),
       stage, el("div", {class: "foot"}, readOut)),
@@ -1002,14 +1146,14 @@ function drawDetail() {
     state.tab = next; renderDetail();
     document.querySelector(`[data-key="tab:${next}"]`)?.focus();
   }}, tabs.map(([key, label, n]) => el("button", {class: "tab", role: "tab", "aria-selected": String(state.tab === key), tabindex: state.tab === key ? "0" : "-1",
-    "data-key": "tab:" + key, onclick: () => { state.tab = key; renderDetail(); }}, label, n !== undefined ? el("span", {class: "n"}, n) : null)));
+    "data-key": "tab:" + key, onclick: () => { state.tab = key; renderDetail(); }}, lucide(tabIcon[key], 15), label, n !== undefined ? el("span", {class: "n"}, n) : null)));
   document.getElementById("content").replaceChildren(el("div", {class: "page"},
     el("nav", {class: "crumbs", "aria-label": "Breadcrumb"}, el("a", {href: "#", onclick: event => { event.preventDefault(); select(null); }}, "Run history"), " / ", groupName(s)),
     el("div", {class: "headline"}, icon(st.tone, 20), el("h1", {}, s.build_type || "Repair run"), el("span", {class: "num"}, s.name)),
     el("div", {class: "result"}, el("span", {class: "why"}, el("b", {class: "t-" + st.tone}, st.text),
       running ? el("span", {class: "muted"}, ` · step ${running.index + 1}, ${running.node}`) : null,
       s.reason && st.tone !== "ok" ? el("span", {class: "reason"}, ": " + s.reason) : null),
-      s.pr_url ? el("a", {class: "pr", href: s.pr_url, target: "_blank", rel: "noreferrer"}, "Open pull request") : null),
+      s.pr_url ? el("a", {class: "pr", href: s.pr_url, target: "_blank", rel: "noreferrer"}, lucide("pr", 14), "Open pull request", lucide("external", 12, "out")) : null),
     el("div", {class: "subline"}, `${s.tests.length} failing test${s.tests.length === 1 ? "" : "s"}: `,
       el("span", {class: "mono", title: s.tests.join("\n")}, s.tests.length ? s.tests.slice(0, 4).join(", ") + (s.tests.length > 4 ? ` +${s.tests.length - 4} more` : "") : "—")),
     el("div", {class: "facts"},
@@ -1018,10 +1162,10 @@ function drawDetail() {
       fact("Model calls", detail.model_calls.length), fact("Tokens", used ? used.toLocaleString() : "—")),
     el("div", {class: "prov"},
       prov("Started", el("span", {title: when(s.started)}, shortWhen(s.started))),
-      prov("TeamCity", s.build_url ? el("a", {href: s.build_url, target: "_blank", rel: "noreferrer"}, `build #${s.build_id}`) : s.build_id ? `#${s.build_id}` : null),
-      prov("Revision", s.revision ? el("code", {title: s.revision}, s.revision.slice(0, 12)) : null),
-      prov("Verified head", s.head ? el("code", {title: s.head}, s.head.slice(0, 12)) : null),
-      prov("Branch", s.branch ? el("code", {title: s.branch}, s.branch) : null)),
+      prov("TeamCity", s.build_url ? outLink(s.build_url, `build #${s.build_id}`) : s.build_id ? `#${s.build_id}` : null),
+      prov("Revision", s.revision ? copyable(s.revision, s.revision.slice(0, 12), "revision") : null),
+      prov("Verified head", s.head ? copyable(s.head, s.head.slice(0, 12), "verified head") : null),
+      prov("Branch", s.branch ? copyable(s.branch, s.branch, "branch") : null)),
     tabbar,
     el("div", {role: "tabpanel"}, content)));
   if (!stage.isConnected) return;
