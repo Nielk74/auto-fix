@@ -82,6 +82,13 @@ WORKFLOWS: dict[str, dict[str, Any]] = {
             ),
             _param("publish", "Publish verified fixes as pull requests", "bool", False),
             _param("retry_blocked", "Retry failures whose last run stopped", "bool", False),
+            _param(
+                "build_type",
+                "Build configuration",
+                "text",
+                "",
+                help="One TeamCity build configuration; empty repairs every configured one.",
+            ),
         ],
     },
     "retry": {
@@ -442,7 +449,8 @@ def _desc(stamp: str) -> str:
 
 def describe(kind: str, params: dict[str, Any]) -> str:
     if kind == "batch":
-        return f"Repair batch for {params['date']}" + (" · publish" if params["publish"] else "")
+        scope = params.get("build_type") or "all builds"
+        return f"Repair {scope} for {params['date']}" + (" · publish" if params["publish"] else "")
     if kind == "retry" or (kind == "repair" and params.get("mode") == "retry"):
         return f"Retry {params.get('run')}"
     if kind == "repair":
@@ -767,6 +775,8 @@ def _dispatch(settings: Any, store: JobStore, job: dict[str, Any]) -> dict[str, 
             failures = teamcity.failures(date.fromisoformat(params["date"]), settings.timezone)
         finally:
             teamcity.close()
+        if params.get("build_type"):
+            failures = [f for f in failures if f.build_type == params["build_type"]]
         # Front of the queue in reverse keeps TeamCity's order ahead of jobs queued later.
         for failure in reversed(failures):
             store.add(

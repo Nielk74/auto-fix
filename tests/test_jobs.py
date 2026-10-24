@@ -30,7 +30,10 @@ def test_store_validates_orders_moves_and_removes_jobs(tmp_path):
     store = JobStore(state(tmp_path))
     first = store.add("batch", {"publish": True}, "me")
     assert first["params"]["date"] == time.strftime("%Y-%m-%d")
-    assert first["title"].startswith("Repair batch for") and first["title"].endswith("publish")
+    assert first["title"].startswith("Repair all builds for") and first["title"].endswith("publish")
+    one = store.add("batch", {"build_type": "Cpp_Tests"}, "me")
+    assert one["title"].startswith("Repair Cpp_Tests for")
+    store.remove(one["id"])
     second = store.add("demo", {}, "me")
     urgent = store.add("evaluation", {"cases": "a, b", "max_attempts": "3"}, "me", front=True)
     assert urgent["params"]["max_attempts"] == 3
@@ -350,7 +353,12 @@ def test_read_only_dashboard_refuses_every_write(tmp_path):
     threading.Thread(target=server.serve_forever, daemon=True).start()
     base = f"http://127.0.0.1:{server.server_port}"
     with urllib.request.urlopen(base + "/api/workflows") as response:
-        assert json.loads(response.read()) == {"actions": False, "user": "", "workflows": {}}
+        assert json.loads(response.read()) == {
+            "actions": False,
+            "user": "",
+            "workflows": {},
+            "build_types": [],
+        }
     with pytest.raises(urllib.error.HTTPError) as error:
         post(base + "/api/jobs", {"kind": "demo"}, "anything")
     assert error.value.code == 403
@@ -390,3 +398,26 @@ def test_a_running_job_can_be_stopped(tmp_path):
     with pytest.raises(JobError, match="Only a running job"):
         Actions(folder).stop_job(job["id"], "me")
     runner.stop()
+
+
+def test_a_batch_for_one_build_configuration_queues_only_its_failures(tmp_path, monkeypatch):
+    config = write_config(tmp_path)
+    other = failure().model_copy(update={"build_type": "Other_Tests", "build_id": "8"})
+
+    class TeamCity:
+        def __init__(self, settings):
+            pass
+
+        def failures(self, day, timezone):
+            return [failure(), other]
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr("auto_fix.integrations.TeamCity", TeamCity)
+    store = JobStore(state(tmp_path))
+    job = store.add("batch", {"build_type": "Cpp_Tests"}, "me")
+    assert jobs.execute(config, job["id"]) == 0
+    queued = [item for item in store.all() if item["kind"] == "repair"]
+    assert [item["params"]["failure"]["build_type"] for item in queued] == ["Cpp_Tests"]
+    assert store.get(job["id"])["result"] == "Queued 1 repairs"

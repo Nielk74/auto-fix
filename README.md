@@ -156,7 +156,7 @@ Open `http://127.0.0.1:8765/`. Each run shows its result and TeamCity, Git and P
 
 ### Start and control workflows
 
-Started with `--config`, the dashboard can also run workflows, the way TeamCity runs builds. **Run** repairs today's failed tests; **…** opens a dialog to choose another workflow (retry a run, an evaluation, an operations evaluation or the demo) and its parameters. Jobs run one at a time; queued and running ones appear at the top of the run list, and a running run has a **Stop** button there. A run page has one main button for its state and an **Actions** menu for the rest:
+Started with `--config`, the dashboard can also run workflows, the way TeamCity runs builds. The tree on the left lists them by project: **Repairs** has one workflow per configured TeamCity build configuration, **Evaluations** has the model and operations evaluations, and **Tools** has the demo. **Projects** shows every workflow with its last run. A workflow's page is its run history; **Run** starts it with the default parameters (for a build configuration: repair today's failed tests of that build) and **…** sets the parameters first. Jobs run one at a time; queued and running ones appear at the top of their workflow's runs, and a running run has a **Stop** button there. A run page has one main button for its state and an **Actions** menu for the rest:
 
 | Run state | Main button | Actions menu |
 | --- | --- | --- |

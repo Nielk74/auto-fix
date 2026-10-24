@@ -306,6 +306,18 @@ pre.log-view { max-height: 60vh; border: 1px solid var(--line); border-radius: 6
   .titlebar .actions { margin-left: 0; }
 }
 
+/* the workflow tree and the projects page */
+.leaf .nm.wf { font-family: inherit; font-size: 13px; }
+.leaf.top { padding-left: 14px; margin-bottom: 4px; }
+.ico.idle { opacity: 0.45; }
+.project { margin-bottom: 26px; }
+.projhead { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; margin-bottom: 8px; }
+.projhead h2 { font-size: 15px; font-weight: 600; margin: 0; }
+.wfname { font-weight: 600; }
+.runbtn.small .btn { height: 24px; font-size: 12px; }
+.runbtn.small .btn:first-child { padding: 0 8px; }
+.runbtn.small .btn:last-child { padding: 0 7px; }
+
 @media (max-width: 900px) {
   main { grid-template-columns: minmax(0, 1fr); grid-template-rows: 38vh minmax(0, 1fr); }
   aside { border-right: none; border-bottom: 1px solid var(--line); }
@@ -332,7 +344,7 @@ pre.log-view { max-height: 60vh; border: 1px solid var(--line); border-radius: 6
 </header>
 <main>
   <aside aria-label="Runs">
-    <div class="search"><svg class="lu" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21l-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><input type="search" id="q" placeholder="Search runs, builds, tests, reasons" aria-label="Search runs"></div>
+    <div class="search"><svg class="lu" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21l-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><input type="search" id="q" placeholder="Search workflows" aria-label="Search workflows"></div>
     <div id="tree"></div>
   </aside>
   <section id="content" aria-live="polite" aria-busy="false"><div class="page loading">Loading runs…</div></section>
@@ -357,9 +369,9 @@ const STATUS = {
   invalid_proposal: {tone: "warn", text: "invalid proposal"},
 };
 const status = key => STATUS[key] || {tone: "none", text: key || "—"};
-// Deep links: #run=<id>&tab=<log|calls|files|events>&open=<step,...>&call=<file>&file=<path>
+// Deep links: #wf=<workflow> or #run=<id>&tab=<log|calls|files>&open=<step,...>&call=<file>&file=<path>
 const link = new URLSearchParams(location.hash.slice(1));
-const state = {runs: [], show: "all", openAttempts: new Set(), runKind: null, collapsed: new Set(), selected: link.get("run"), detail: null,
+const state = {runs: [], show: "all", workflow: link.get("wf"), openAttempts: new Set(), collapsed: new Set(), selected: link.get("run"), detail: null,
   tab: link.get("tab") || "overview", openSteps: new Set((link.get("open") || "").split(",").filter(Boolean).map(Number)),
   file: link.get("file"), call: link.get("call"), figure: null};
 
@@ -567,36 +579,93 @@ function tree(value, depth = 0) {
 const jsonView = value => el("div", {class: "json"}, tree(value));
 const groupName = run => run.group || "State directory";
 
-/* ---------- sidebar: search and the run tree ---------- */
-const SHOW = [["all", "All runs"], ["bad", "Blocked"], ["run", "Running"], ["warn", "Needs attention"], ["ok", "Successful"], ["none", "Cancelled"]];
-function visibleRuns() {
-  const q = document.getElementById("q").value.trim().toLowerCase();
-  return state.runs.filter(run => (state.show === "all" || status(run.status).tone === state.show) &&
-    (!q || [run.id, run.build_id, run.build_type, run.reason, run.group, ...run.tests].join(" ").toLowerCase().includes(q)));
+/* ---------- workflows: projects and their workflows, as in TeamCity's tree ---------- */
+// TeamCity ids read as words: "Absl_Strings_Tests" becomes "Absl Strings Tests".
+const pretty = id => id.replace(/[_.]+/g, " ").trim();
+/** The workflow a run belongs to: its TeamCity build configuration, or the kind of job that wrote it. */
+function workflowOf(run) {
+  if (run.id.startsWith("runs/")) return "bt:" + (run.build_type || "unknown");
+  if (run.id.startsWith("evaluations/")) return run.id.includes("-operations-") ? "operations" : "evaluation";
+  if (run.id.startsWith("demos/")) return "demo";
+  return "other:" + groupName(run);
 }
+function workflowOfJob(job) {
+  const params = job.params || {};
+  if (job.kind === "batch") return params.build_type ? "bt:" + params.build_type : "repairs";
+  if (params.failure) return "bt:" + params.failure.build_type;
+  if (params.run) {
+    const run = state.runs.find(item => item.id === "runs/" + params.run);
+    return run ? workflowOf(run) : "repairs";
+  }
+  return job.kind;
+}
+/** Projects and their workflows, from the configured build configurations and the runs on disk. */
+function projects() {
+  const types = new Set(controls.buildTypes);
+  for (const run of state.runs) if (run.id.startsWith("runs/") && run.build_type) types.add(run.build_type);
+  const describe = kind => controls.workflows[kind]?.description || "";
+  const list = [
+    {key: "repairs", title: "Repairs", description: "Failed TeamCity tests, repaired and verified. One workflow per build configuration.",
+      run: {kind: "batch", params: {}, title: "all build configurations"},
+      workflows: [...types].sort().map(type => ({key: "bt:" + type, title: pretty(type), id: type,
+        description: `Repairs the failed tests of the TeamCity build configuration ${type}.`,
+        run: {kind: "batch", params: {build_type: type}, fixed: ["build_type"], title: pretty(type)}}))},
+    {key: "evaluations", title: "Evaluations", description: "Measure the repair workflow on known C++ failures.",
+      workflows: [
+        {key: "evaluation", title: "Model evaluation", description: describe("evaluation") || "Fixture cases repaired by a model.", run: {kind: "evaluation", params: {}, title: "Model evaluation"}},
+        {key: "operations", title: "Operations evaluation", description: describe("operations") || "Git and native workflow fault scenarios.", run: {kind: "operations", params: {}, title: "Operations evaluation"}}]},
+    {key: "tools", title: "Tools", description: "", workflows: [
+      {key: "demo", title: "Demo", description: describe("demo") || "The offline sample repair.", run: {kind: "demo", params: {}, title: "Demo"}}]},
+  ];
+  const other = [...new Set(state.runs.map(workflowOf).filter(key => key.startsWith("other:")))];
+  if (other.length) list.push({key: "other", title: "Other runs", description: "", workflows: other.map(key =>
+    ({key, title: key.slice(6), description: "Runs found in this directory."}))});
+  for (const project of list) {
+    // Read-only, the tree shows only workflows that have runs, and nothing can be started.
+    if (!CAN_ACT) {
+      project.run = null;
+      project.workflows = project.workflows.filter(item => state.runs.some(run => workflowOf(run) === item.key));
+      for (const item of project.workflows) item.run = null;
+    }
+    for (const item of project.workflows) item.project = project;
+  }
+  return list.filter(project => project.workflows.length);
+}
+const allWorkflows = () => projects().flatMap(project => project.workflows);
+const findWorkflow = key => allWorkflows().find(item => item.key === key);
+const runsOf = key => state.runs.filter(run => workflowOf(run) === key);
+const jobsOf = key => (CAN_ACT ? controls.jobs : []).filter(job => workflowOfJob(job) === key);
+const activeJob = key => jobsOf(key).find(job => job.status === "running") || jobsOf(key).find(job => job.status === "queued");
+
+/* ---------- sidebar: the tree ---------- */
 function renderSidebar() { keepFocus(drawSidebar); }
 function drawSidebar() {
-  const runs = visibleRuns(), groups = new Map();
-  for (const run of runs) (groups.get(groupName(run)) || groups.set(groupName(run), []).get(groupName(run))).push(run);
-  const box = document.getElementById("tree");
-  if (!runs.length) { box.replaceChildren(el("div", {class: "empty"}, state.runs.length ? "No run matches." : "No runs yet.")); return; }
-  const nodes = [];
-  for (const [name, items] of [...groups].sort(([a], [b]) => a.localeCompare(b))) {
-    const bad = items.filter(run => status(run.status).tone === "bad").length;
-    const collapsed = state.collapsed.has(name);
-    nodes.push(el("div", {class: "group", "aria-expanded": String(!collapsed), "data-key": "group:" + name,
-      onclick: () => { collapsed ? state.collapsed.delete(name) : state.collapsed.add(name); renderSidebar(); }},
-      chevron(!collapsed), name,
-      el("span", {class: "count"}, String(items.length), bad ? el("span", {class: "bad"}, ` · ${bad} blocked`) : null)));
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  const here = state.workflow || (state.detail ? workflowOf(state.detail.summary) : null);
+  const nodes = [el("div", {class: "leaf top" + (!here && !state.selected ? " sel" : ""), "data-key": "nav:projects",
+    "aria-current": !here && !state.selected ? "page" : null, onclick: () => openWorkflow(null)}, lucide("overview", 14), el("span", {class: "nm wf"}, "All projects"))];
+  for (const project of projects()) {
+    const items = project.workflows.filter(item => !q || `${item.title} ${item.id || ""}`.toLowerCase().includes(q));
+    if (!items.length) continue;
+    const collapsed = state.collapsed.has(project.key) && !q;
+    nodes.push(el("div", {class: "group", "aria-expanded": String(!collapsed), "data-key": "group:" + project.key,
+      onclick: () => { collapsed ? state.collapsed.delete(project.key) : state.collapsed.add(project.key); renderSidebar(); }},
+      chevron(!collapsed), project.title, el("span", {class: "count"}, String(items.length))));
     if (collapsed) continue;
-    for (const run of items) nodes.push(el("div", {class: "leaf" + (run.id === state.selected ? " sel" : ""), title: `${run.id} · ${status(run.status).text}`,
-      "aria-current": run.id === state.selected ? "page" : null, "data-key": "run:" + run.id, onclick: () => select(run.id)},
-      statusIcon(run.status), el("span", {class: "nm"}, run.name), el("span", {class: "tm", title: when(run.started)}, ago(run.started))));
+    for (const item of items) {
+      const last = runsOf(item.key)[0], active = activeJob(item.key);
+      nodes.push(el("div", {class: "leaf" + (here === item.key ? " sel" : ""), title: item.id || item.title,
+        "aria-current": here === item.key ? "page" : null, "data-key": "wf:" + item.key, onclick: () => openWorkflow(item.key)},
+        active?.status === "running" || last?.live ? icon("run") : last ? statusIcon(last.status) : lucide("clock", 14, "ico t-none idle"),
+        el("span", {class: "nm wf"}, item.title),
+        el("span", {class: "tm"}, active?.status === "queued" ? "queued" : last ? ago(last.started) : "")));
+    }
   }
-  box.replaceChildren(...nodes);
+  if (nodes.length === 1) nodes.push(el("div", {class: "empty"}, q ? "No workflow matches." : "No runs yet."));
+  document.getElementById("tree").replaceChildren(...nodes);
 }
 
-/* ---------- home: the run list, with queued and running jobs on top ---------- */
+/* ---------- pages: all projects, one workflow ---------- */
 /** A start time short enough for a table cell: the time today, the day this year, the date otherwise. */
 function shortWhen(iso) {
   if (!iso) return "—";
@@ -625,18 +694,22 @@ function pageHead(title, sub, ...tools) {
   return el("div", {class: "pagehead"}, el("div", {}, el("h1", {}, title), sub ? el("div", {class: "muted"}, sub) : null),
     el("div", {class: "tools"}, tools));
 }
-/** TeamCity's Run and "…": run the daily batch with its defaults, or choose a workflow and its parameters. */
-function runButtons() {
-  if (!CAN_ACT) return el("span", {class: "badge", title: "Start the dashboard with --config to run workflows"}, "Read-only");
-  return el("div", {class: "runbtn"},
-    el("button", {class: "btn primary", type: "button", title: "Repair today's failed tests", onclick: quickRun}, lucide("play", 13), "Run"),
-    el("button", {class: "btn primary", type: "button", title: "Run with parameters", "aria-label": "Run with parameters", onclick: () => openRunDialog()}, "…"));
+/** TeamCity's Run and "…": run with the defaults, or set the parameters first. */
+function runButtons(spec, small = false) {
+  if (!spec) return null;
+  return el("div", {class: "runbtn" + (small ? " small" : "")},
+    el("button", {class: "btn primary" + (small ? " small" : ""), type: "button", title: `Run ${spec.title} with the default parameters`,
+      onclick: event => { event.stopPropagation(); quickRun(spec); }}, lucide("play", 12), "Run"),
+    el("button", {class: "btn primary" + (small ? " small" : ""), type: "button", title: "Run with parameters", "aria-label": `Run ${spec.title} with parameters`,
+      onclick: event => { event.stopPropagation(); openRunDialog(spec); }}, "…"));
 }
-async function quickRun() {
+async function quickRun(spec) {
   try {
-    const done = await post("/api/jobs", {kind: "batch", params: {}});
+    const done = await post("/api/jobs", {kind: spec.kind, params: spec.params});
     toast(`Queued: ${done.job.title}`);
     await loadJobs();
+    renderSidebar();
+    if (!state.selected) renderHome();
     wake();
   } catch (error) { toast(error.message, "bad"); }
 }
@@ -656,7 +729,7 @@ function jobRow(job) {
     el("td", {class: "num"}, job.status === "running" && job.started ? clock(job.started) : ""),
     el("td", {class: "rowtools"},
       queued ? iconButton("close", "Remove from queue", () => removeJob(job)) : null,
-      job.status === "running" ? el("button", {class: "btn small", type: "button", onclick: () => stopJob(job)}, lucide("halt", 12), "Stop") : null,
+      job.status === "running" ? el("button", {class: "btn small", type: "button", onclick: event => { event.stopPropagation(); stopJob(job); }}, lucide("halt", 12), "Stop") : null,
       !queued ? iconButton("logfile", "View log", () => openLog(job)) : null,
       failed ? iconButton("close", "Dismiss", () => removeJob(job)) : null));
 }
@@ -678,24 +751,80 @@ function runRow(run) {
       onclick: async event => { event.stopPropagation(); stopDialog(await api("/api/run?id=" + encodeURIComponent(run.id))); }},
       lucide("halt", 12), "Stop") : null));
 }
-function renderHome() {
-  dropFigure();
-  const runs = visibleRuns(), jobs = (CAN_ACT ? controls.jobs : []).map(jobRow).filter(Boolean);
-  const counts = SHOW.slice(1).map(([tone, label]) => [state.runs.filter(run => status(run.status).tone === tone).length, label.toLowerCase()]).filter(([n]) => n);
-  const show = el("label", {class: "show"}, "Show ", el("select", {"data-key": "show", onchange: event => { state.show = event.target.value; renderSidebar(); renderHome(); }},
-    SHOW.map(([value, label]) => el("option", {value, selected: value === state.show ? "" : null}, label))));
-  const table = runs.length || jobs.length ? el("div", {class: "box"}, el("table", {class: "runs"},
+function runsTable(jobs, runs) {
+  const rows = jobs.map(jobRow).filter(Boolean);
+  if (!rows.length && !runs.length) return null;
+  return el("div", {class: "box"}, el("table", {class: "runs"},
     el("thead", {}, el("tr", {}, el("th", {}, el("span", {class: "sr"}, "Status")), el("th", {}, "Run"), el("th", {}, "Result"),
       el("th", {class: "hide-sm"}, "Tests"), el("th", {class: "hide-sm"}, "Started"), el("th", {class: "num"}, "Duration"), el("th", {}, el("span", {class: "sr"}, "Actions")))),
-    el("tbody", {}, jobs, runs.map(runRow)))) : null;
-  document.getElementById("content").replaceChildren(el("div", {class: "page"},
-    pageHead("Run history", [`${state.runs.length} run${state.runs.length === 1 ? "" : "s"}`, ...counts.map(([n, label]) => `${n} ${label}`)].join(" · "), show, runButtons()),
-    CAN_ACT && !controls.runner.alive ? el("div", {class: "notice"}, lucide("warn", 16), el("span", {}, "No runner is active, so queued jobs wait. Restart the dashboard with --config, or run ", el("code", {}, "auto-fix worker"), "."))
-      : CAN_ACT && controls.runner.waiting ? el("div", {class: "notice"}, lucide("clock", 16), el("span", {}, controls.runner.waiting)) : null,
-    table || (state.runs.length ? emptyState("search", "No run matches", "Nothing in this directory fits the search and the filter.",
-        el("button", {class: "btn", type: "button", onclick: () => { document.getElementById("q").value = ""; state.show = "all"; renderSidebar(); renderHome(); }}, "Show all runs"))
-      : emptyState("runs", "No runs yet", CAN_ACT ? "Run repairs today's failed tests; the run appears here as soon as it starts."
-        : ["Runs appear here as soon as Auto Fix writes a checkpoint below ", el("code", {}, document.getElementById("root").textContent || "the state directory"), "."], CAN_ACT ? runButtons() : null))));
+    el("tbody", {}, rows, runs.map(runRow))));
+}
+function runnerNotice() {
+  if (!CAN_ACT) return null;
+  if (!controls.runner.alive) return el("div", {class: "notice"}, lucide("warn", 16), el("span", {}, "No runner is active, so queued jobs wait. Restart the dashboard with --config, or run ", el("code", {}, "auto-fix worker"), "."));
+  return controls.runner.waiting ? el("div", {class: "notice"}, lucide("clock", 16), el("span", {}, controls.runner.waiting)) : null;
+}
+function renderHome() {
+  dropFigure();
+  const workflow = state.workflow && findWorkflow(state.workflow);
+  if (state.workflow && !workflow) state.workflow = null;
+  document.getElementById("content").replaceChildren(workflow ? workflowPage(workflow) : projectsPage());
+}
+/** TeamCity's projects overview: each workflow with its last run and a Run button. */
+function projectsPage() {
+  const queue = CAN_ACT ? controls.jobs : [];
+  const sections = projects().map(project => el("section", {class: "project"},
+    el("div", {class: "projhead"}, el("div", {}, el("h2", {}, project.title), project.description ? el("div", {class: "muted"}, project.description) : null),
+      project.run ? runButtons(project.run) : null),
+    el("div", {class: "box"}, el("table", {class: "workflows"},
+      el("thead", {}, el("tr", {}, el("th", {}, el("span", {class: "sr"}, "Status")), el("th", {}, "Workflow"), el("th", {}, "Last run"),
+        el("th", {class: "hide-sm"}, "Started"), el("th", {class: "num hide-sm"}, "Runs"), el("th", {}, el("span", {class: "sr"}, "Run")))),
+      el("tbody", {}, project.workflows.map(item => {
+        const runs = runsOf(item.key), last = runs[0], active = activeJob(item.key), st = last && status(last.status);
+        const lastText = active ? el("span", {class: active.status === "running" ? "t-run" : "muted"}, active.status === "running" ? "Running" : "Queued")
+          : last ? [el("span", {class: "t-" + st.tone, style: "font-weight:500"}, last.status === "in_progress" && last.live ? "Running" : st.text),
+                    last.reason && st.tone !== "ok" ? el("span", {class: "muted"}, " · " + last.reason) : null]
+          : el("span", {class: "muted"}, "Never run");
+        return el("tr", {class: "click", "data-key": "wfrow:" + item.key, onclick: () => openWorkflow(item.key)},
+          el("td", {style: "width:28px"}, active?.status === "running" || last?.live ? icon("run") : last ? statusIcon(last.status) : lucide("clock", 14, "ico t-none idle")),
+          el("td", {style: "white-space:nowrap"}, el("b", {class: "wfname"}, item.title), item.id && item.id !== item.title ? el("span", {class: "muted mono small"}, "  " + item.id) : null),
+          el("td", {class: "grow"}, el("span", {class: "ellipsis"}, lastText)),
+          el("td", {class: "hide-sm muted", style: "white-space:nowrap"}, last ? shortWhen(last.started) : "—"),
+          el("td", {class: "num hide-sm"}, runs.length || "—"),
+          el("td", {class: "rowtools"}, runButtons(item.run, true)));
+      }))))));
+  const waiting = queue.filter(job => !job.run_id || !state.runs.some(run => run.id === "runs/" + job.run_id));
+  return el("div", {class: "page"},
+    pageHead("Projects", `${allWorkflows().length} workflows · ${state.runs.length} runs` + (queue.length ? ` · ${queue.filter(j => j.status !== "failed").length} in the queue` : "")),
+    runnerNotice(),
+    waiting.length ? el("section", {class: "project"}, el("div", {class: "projhead"}, el("h2", {}, "Queue")), runsTable(waiting, [])) : null,
+    sections.length ? sections : emptyState("runs", "No workflows yet", "Start the dashboard with --config to see and run the configured TeamCity build configurations."));
+}
+/** One workflow, like a TeamCity build configuration: its runs, newest first, and Run. */
+function workflowPage(item) {
+  const runs = runsOf(item.key).filter(run => state.show === "all" || status(run.status).tone === state.show);
+  const show = el("label", {class: "show"}, "Show ", el("select", {"data-key": "show", onchange: event => { state.show = event.target.value; renderHome(); }},
+    SHOW.map(([value, label]) => el("option", {value, selected: value === state.show ? "" : null}, label))));
+  const table = runsTable(jobsOf(item.key), runs);
+  return el("div", {class: "page"},
+    el("nav", {class: "crumbs", "aria-label": "Breadcrumb"}, el("a", {href: "#", onclick: event => { event.preventDefault(); openWorkflow(null); }}, "Projects"), " / ", item.project.title),
+    pageHead(item.title, item.description, runsOf(item.key).length ? show : null, runButtons(item.run)),
+    runnerNotice(),
+    table || (runsOf(item.key).length ? emptyState("search", "No run matches", "No run of this workflow has that result.",
+        el("button", {class: "btn", type: "button", onclick: () => { state.show = "all"; renderHome(); }}, "Show all runs"))
+      : emptyState("runs", "Never run", item.run ? "Run starts it with the default parameters; … lets you set them first." : "Runs of this workflow appear here.", runButtons(item.run))));
+}
+const SHOW = [["all", "All runs"], ["bad", "Blocked"], ["run", "Running"], ["warn", "Needs attention"], ["ok", "Successful"], ["none", "Cancelled"]];
+/** Opens a workflow's page, or all projects for null. Back returns to where you were. */
+function openWorkflow(key, push = true) {
+  const changed = key !== state.workflow || state.selected;
+  if (push && changed) history.pushState(null, "", key ? "#wf=" + encodeURIComponent(key) : location.pathname + location.search);
+  state.workflow = key;
+  state.selected = null;
+  state.detail = null;
+  if (changed) { state.show = "all"; document.getElementById("content").scrollTop = 0; }
+  renderSidebar();
+  renderHome();
 }
 
 async function loadRuns() {
@@ -710,14 +839,14 @@ async function loadRuns() {
 }
 /** Opens a run (or the history, for null). A new entry in the browser history lets Back return to where you were. */
 async function select(id, push = true) {
+  if (!id) { openWorkflow(null, push); return; }
+  state.workflow = null;
   const changed = id !== state.selected;
   if (changed) { state.openSteps.clear(); state.openAttempts.clear(); state.file = null; state.call = null; state.tab = "overview"; }
   state.selected = id;
   if (push && changed) history.pushState(null, "", id ? "#run=" + encodeURIComponent(id) : location.pathname + location.search);
-  renderSidebar();
   const content = document.getElementById("content");
   if (changed) content.scrollTop = 0;
-  if (!id) { state.detail = null; renderHome(); return; }
   if (changed) {
     dropFigure();
     state.detail = null;
@@ -725,6 +854,7 @@ async function select(id, push = true) {
     content.replaceChildren(el("div", {class: "page loading"}, icon("run"), "Loading run…"));
   }
   await loadDetail();
+  renderSidebar();
   content.setAttribute("aria-busy", "false");
 }
 async function loadDetail() {
@@ -975,7 +1105,7 @@ function attemptDetail(row, report, calls) {
 const TOKEN = document.querySelector('meta[name="auto-fix-token"]').content;
 const CAN_ACT = Boolean(TOKEN);
 const REPLAYABLE = new Set(["baseline", "investigate", "repair", "verify"]);
-const controls = {workflows: {}, jobs: [], runner: {alive: true, waiting: ""}};
+const controls = {workflows: {}, buildTypes: [], jobs: [], runner: {alive: true, waiting: ""}};
 const currentNode = detail => detail.summary.current || "the current step";
 
 async function post(path, body) {
@@ -1169,24 +1299,24 @@ function field(param, value) {
       : param.type === "run" ? input.value || null : input.value,
     error: message => { error.textContent = message || ""; input.setAttribute("aria-invalid", message ? "true" : "false"); }};
 }
-function openRunDialog(kind = state.runKind || "batch") {
-  state.runKind = kind;
-  const workflow = controls.workflows[kind], previous = saved(kind);
-  const fields = workflow.params.map(param => field(param, previous[param.name]));
+/** The "…" dialog for one workflow: its parameters, with the workflow's fixed ones (its build configuration) set. */
+function openRunDialog(spec) {
+  const schema = controls.workflows[spec.kind], memory = spec.kind + ":" + (spec.params.build_type || "");
+  const previous = saved(memory), fixed = new Set(spec.fixed || []);
+  const fields = schema.params.filter(param => !fixed.has(param.name)).map(param => field(param, previous[param.name] ?? spec.params[param.name]));
   const basic = fields.filter(item => !item.param.advanced), advanced = fields.filter(item => item.param.advanced);
-  const pick = el("select", {id: "f-kind", onchange: event => openRunDialog(event.target.value)},
-    Object.entries(controls.workflows).map(([key, item]) => el("option", {value: key, selected: key === kind ? "" : null}, item.title)));
-  openDialog("Run workflow", el("div", {},
-    el("div", {class: "field"}, el("label", {for: "f-kind"}, "Workflow"), pick, el("div", {class: "fhelp"}, workflow.description)),
-    basic.map(item => item.node),
+  openDialog("Run " + spec.title, el("div", {},
+    el("p", {class: "muted"}, schema.description),
+    basic.length ? basic.map(item => item.node) : el("p", {}, "This workflow has no parameters."),
     advanced.length ? el("details", {class: "adv"}, el("summary", {}, "More options"), advanced.map(item => item.node)) : null),
   "Run", async () => {
-    const params = Object.fromEntries(fields.map(item => [item.param.name, item.read()]));
+    const params = {...spec.params, ...Object.fromEntries(fields.map(item => [item.param.name, item.read()]))};
     try {
-      const done = await post("/api/jobs", {kind, params});
-      remember(kind, params);
+      const done = await post("/api/jobs", {kind: spec.kind, params});
+      remember(memory, params);
       toast(`Queued: ${done.job.title}`);
       await loadJobs();
+      renderSidebar();
       if (!state.selected) renderHome();
       wake();
     } catch (error) {
@@ -1199,8 +1329,11 @@ function openRunDialog(kind = state.runKind || "batch") {
 }
 async function setupControls() {
   if (!CAN_ACT) return;
-  controls.workflows = (await api("/api/workflows")).workflows;
+  const data = await api("/api/workflows");
+  controls.workflows = data.workflows;
+  controls.buildTypes = data.build_types;
   await loadJobs();
+  renderSidebar();
   if (!state.selected) renderHome();
 }
 
@@ -1212,7 +1345,7 @@ function drawDetail() {
   if (state.tab !== "overview") hash.set("tab", state.tab);
   history.replaceState(null, "", "#" + hash);
   const detail = state.detail, s = detail.summary, st = status(s.status);
-  const running = s.status === "in_progress" && s.live;
+  const running = s.status === "in_progress" && s.live, workflow = findWorkflow(workflowOf(s));
   const used = detail.model_calls.reduce((sum, c) => sum + (tokens(c.usage, "in") || 0) + (tokens(c.usage, "out") || 0), 0);
   const tabs = [["overview", "Overview"], ["log", "Build log", detail.steps.length], ["calls", "Model calls", detail.model_calls.length],
     ["files", "Artifacts", detail.files.length]];
@@ -1250,8 +1383,9 @@ function drawDetail() {
     ? [el("b", {class: "t-run"}, "Running"), el("span", {}, ` · step ${detail.steps.length}, ${s.current || "starting"}`)]
     : [el("b", {class: "t-" + st.tone}, st.text), s.reason && st.tone !== "ok" ? el("span", {}, ": " + s.reason) : null];
   document.getElementById("content").replaceChildren(el("div", {class: "page"},
-    el("nav", {class: "crumbs", "aria-label": "Breadcrumb"}, el("a", {href: "#", onclick: event => { event.preventDefault(); select(null); }}, "Run history"), " / ", groupName(s)),
-    el("div", {class: "titlebar"}, statusIcon(s.status, 20), el("h1", {}, s.build_type || "Repair run"), el("span", {class: "num"}, s.name), runActions(detail)),
+    el("nav", {class: "crumbs", "aria-label": "Breadcrumb"}, el("a", {href: "#", onclick: event => { event.preventDefault(); openWorkflow(null); }}, "Projects"),
+      workflow ? [" / ", workflow.project.title, " / ", el("a", {href: "#wf=" + encodeURIComponent(workflow.key), onclick: event => { event.preventDefault(); openWorkflow(workflow.key); }}, workflow.title)] : null),
+    el("div", {class: "titlebar"}, statusIcon(s.status, 20), el("h1", {}, workflow?.title || s.build_type || "Run"), el("span", {class: "num"}, s.name), runActions(detail)),
     el("div", {class: "statusline"}, line),
     s.request ? el("div", {class: "notice"}, lucide("clock", 16), el("span", {},
       `${s.request.request === "pause" ? "Pausing" : "Stopping"} after ${currentNode(detail)} finishes (asked by ${s.request.by} at ${when(s.request.at, false)}).`)) : null,
@@ -1265,13 +1399,14 @@ function dropFigure() {
   state.figure = null;
 }
 
-document.getElementById("q").addEventListener("input", () => { renderSidebar(); if (!state.selected) renderHome(); });
-document.getElementById("home").addEventListener("click", event => { event.preventDefault(); select(null); });
-document.getElementById("queue-link").addEventListener("click", () => select(null));
+document.getElementById("q").addEventListener("input", () => renderSidebar());
+document.getElementById("home").addEventListener("click", event => { event.preventDefault(); openWorkflow(null); });
+document.getElementById("queue-link").addEventListener("click", () => openWorkflow(null));
 // Back and Forward between runs, and links pasted into the address bar.
 window.addEventListener("hashchange", () => {
-  const id = new URLSearchParams(location.hash.slice(1)).get("run");
-  if (id !== state.selected) select(id, false);
+  const hash = new URLSearchParams(location.hash.slice(1)), id = hash.get("run");
+  if (id) { if (id !== state.selected) select(id, false); }
+  else if (state.selected || hash.get("wf") !== state.workflow) openWorkflow(hash.get("wf"), false);
 });
 async function refresh() {
   try {

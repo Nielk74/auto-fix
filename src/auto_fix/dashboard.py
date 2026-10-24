@@ -14,6 +14,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from auto_fix import history, jobs
 from auto_fix.actions import Actions
+from auto_fix.config import load_settings
 from auto_fix.jobs import JobError
 from auto_fix.workflow import redact
 
@@ -40,6 +41,8 @@ class Handler(BaseHTTPRequestHandler):
     actions: Actions | None
     config: Path | None
     token: str
+    # TeamCity build configurations from the config: the Repairs project's workflows.
+    build_types: list[str]
 
     def log_message(self, format: str, *args: Any) -> None:  # noqa: A002 - stdlib signature
         pass
@@ -117,6 +120,7 @@ class Handler(BaseHTTPRequestHandler):
                     "actions": self.actions is not None,
                     "user": self.authorize() if self.actions else "",
                     "workflows": jobs.WORKFLOWS if self.actions else {},
+                    "build_types": self.build_types,
                 }
             )
         elif url.path == "/api/jobs":
@@ -230,6 +234,7 @@ def serve(
         "actions": Actions(root.resolve()) if config else None,
         "config": config.resolve() if config else None,
         "token": secrets.token_urlsafe(32),
+        "build_types": list(load_settings(config).teamcity.build_types) if config else [],
     }
     handler = type("DashboardHandler", (Handler,), attributes)
     return ThreadingHTTPServer((host, port), handler)
