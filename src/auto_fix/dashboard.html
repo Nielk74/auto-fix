@@ -594,6 +594,13 @@ label.viewed:has(input:checked) { color: var(--ink); border-color: var(--accent)
 .tour-count { color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }
 .tour-foot { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
 @media (prefers-reduced-motion: reduce) { .tour-spot { transition: none; } }
+.tour-card:has(.tour-menu) { width: min(520px, calc(100vw - 32px)); }
+.tour-menu { display: grid; gap: 6px; margin: 4px 0 2px; }
+.tour-choice { display: grid; gap: 1px; text-align: left; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--ground); color: var(--ink); font: inherit; cursor: pointer; }
+.tour-choice:hover:not(:disabled), .tour-choice:focus-visible { border-color: var(--accent); background: var(--sel); }
+.tour-choice span { color: var(--muted); font-size: 12.5px; }
+.tour-choice:disabled { opacity: 0.55; cursor: default; }
 </style>
 </head>
 <body>
@@ -3878,51 +3885,113 @@ function showSidebar(show, remember = false) {
 }
 setInterval(() => { tickClocks(); showFreshness(); }, 1000);
 
-/* ---------- guided tour: a spotlight on one part of the page and a card that explains it ---------- */
+/* ---------- guided tour: real situations, told with real runs ---------- */
 const DEMO = document.querySelector('meta[name="auto-fix-demo"]').content === "1";
 const TOUR_KEY = "auto-fix:tour-done";
-/** The run the tour opens: a verified candidate when there is one. */
-const tourRun = () => state.attention.find(run => run.status === "ready") || state.runs.find(run => run.status === "ready") || state.runs[0];
-const runRoute = () => tourRun() ? "#" + new URLSearchParams({run: tourRun().id}) : null;
-const TOUR = [
-  {title: "Welcome to Auto Fix", text: [
-    "Auto Fix repairs failing C++ tests from TeamCity. For each failure it checks out the failing revision in its own worktree, reproduces the failure, asks your model for an edit, rebuilds and reruns the whole suite, and can open a Bitbucket pull request.",
-    DEMO ? "This tour uses demo data: real workflow runs against stand-in services. Nothing you click here reaches a real system." : "This tour walks through the dashboard on your own runs."]},
-  {route: "#", target: ".attention-list", title: "Needs attention",
-    text: "Start here. Each row waits for a person: a verified fix to publish, a paused run, a run that stopped, or one whose worker died. Act in place, open the run, or dismiss it."},
-  {route: "#", target: ".topnav", title: "Find your way",
-    text: "History searches every run. Tests, Metrics, Schedules, Batches and Settings are one click away. The number beside Home counts runs that need you; the browser tab shows it too."},
-  {route: "#", target: ".workflows tbody tr:first-child .rowtools", title: "Start a workflow",
-    text: "Run… opens the workflow's parameters, and its command line, before anything starts. The clock button schedules it."},
-  {route: runRoute, target: '[data-tour="lead"]', title: "Review the fix",
-    text: "A verified candidate opens on its patch: the exact diff, what the model changed and why, and the commands to try it on your machine."},
-  {route: runRoute, target: '[data-tour="validation"]', title: "Is it safe to ship?",
-    text: "The whole test suite before the edit and after it: what the fix repaired, what still fails, and any test the edit newly broke."},
-  {route: runRoute, target: '[data-tour="failure"]', title: "Why it failed",
-    text: "The TeamCity failure message, the commits in the failing build, their pull requests and Jira issues, gathered before the repair started."},
-  {route: runRoute, target: ".titlebar .actions", title: "Decide",
-    text: "Publish the pull request, or record a decision under Actions: reject the fix, mark it handled elsewhere, snooze or dismiss it. A decision takes the run out of Needs attention and stays with its evidence."},
-  {route: runRoute, target: '[data-tour="review"]', title: "Rate and leave notes",
-    text: "Rate the fix good or bad and leave a note for whoever looks at it next."},
-  {route: runRoute, target: ".tabs", title: "All the evidence",
-    text: "Build log has each compiler and test run. Model calls show every request and what came back, also when it failed. Checkpoints hold the workflow state after each step; Artifacts has every file."},
-  {route: "#view=tests", target: "#content table", title: "Tests",
-    text: "Every failing test the runs have seen: how often it failed, how often it was fixed, and failures that did not reproduce locally, which points to a flaky test."},
-  {route: "#view=metrics", target: ".kpis", title: "Metrics",
-    text: "Fix rate, time to a verified fix, failed model calls and token use, per workflow and per day."},
-  {route: "#view=settings", target: '[data-tour="connections"]', title: "Settings",
-    text: "The configuration in use, with token variables named but never shown, and a check that every service answers. The theme and browser notifications are set here too."},
-  {title: DEMO ? "Connect your own systems" : "That's the tour", text: DEMO ? [
-    "Copy examples/config.windows.yaml to config.local.yaml, fill in your TeamCity, Bitbucket, Jira and model addresses, and put the tokens in .env.",
-    "Then start the dashboard with auto-fix dashboard --config config.local.yaml. The ? button in the header replays this tour."]
-    : "The ? button in the header replays it any time."},
+/** One run, or test, per situation the tour tells. Pure, so the choice can be tested on its own. */
+function tourExamples(runs, attention, tests) {
+  const pick = test => runs.find(test) || null;
+  return {
+    attention,
+    ready: attention.find(run => run.status === "ready") || pick(run => run.status === "ready"),
+    regression: pick(run => run.regressions > 0),
+    abandoned: pick(run => run.status === "in_progress" && !run.live),
+    unknown: pick(run => run.status === "publication_unknown"),
+    flaky: tests.find(test => test.not_reproduced > 0) || null,
+  };
+}
+const runHash = run => "#" + new URLSearchParams({run: run.id});
+/** The facts a story quotes, read from the run page that is open. */
+function storyFacts() {
+  const detail = state.detail, result = detail?.result || {}, failure = result.failure || {};
+  const change = (failure.changes || [])[0] || {}, issue = (result.context?.issues || [])[0];
+  const proposal = result.proposal || result.last_repair?.proposal;
+  return {
+    test: (detail?.summary.tests || [])[0] || "a test",
+    build: failure.build_id ? `#${failure.build_id}` : "",
+    author: change.username || "someone",
+    commit: (change.comment || "").split("\n")[0],
+    issue: issue ? `${issue.key} (${issue.fields?.summary || ""})` : "",
+    summary: proposal?.summary || "",
+    failedCalls: (detail?.model_calls || []).filter(call => call.error).length,
+    comparison: detail?.comparison,
+    attempts: detail?.summary.attempts || 0,
+    notes: (detail?.summary.triage?.notes || []).length,
+  };
+}
+const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+/* Each scenario is a job someone opens the dashboard to do. `example` names the run or test it needs;
+   steps can read the open page through storyFacts once their route has loaded. */
+const SCENARIOS = [
+  {id: "triage", title: "Start the day", question: "What needs me this morning?", example: () => true, steps: [
+    {route: () => "#", target: ".attention-list", title: "Only what needs a person",
+      text: x => [`While you were away, Auto Fix took each failing TeamCity test, reproduced it in its own worktree, asked the model for a fix and verified it.`,
+        `What it could not finish alone lands here: ${plural(x.attention.length, "run")} today. Each line says what happened and offers the next move, so you can work down the list.`]},
+    {route: () => "#", target: ".attention-list tbody tr:first-child .rowtools", title: "Act from the list",
+      text: "Routine decisions take one click here: publish a verified fix, resume a paused run, retry one that stopped. Anything you dismiss leaves the list but keeps its evidence."},
+  ]},
+  {id: "ship", title: "Ship a verified fix", question: "Is this fix good enough to open a pull request?", example: x => x.ready, steps: [
+    {route: x => runHash(x.ready), target: '[data-tour="failure"]', title: "What broke, and who touched it",
+      text: () => { const f = storyFacts(); return [`${f.test} started failing in TeamCity build ${f.build}.`,
+        f.commit ? `The build's change is ${f.author}'s commit “${f.commit}”${f.issue ? `, for ${f.issue}` : ""}. That is where to look first.` : "The build's changes, their pull requests and Jira issues are listed here."]; }},
+    {route: x => runHash(x.ready), target: '[data-tour="lead"]', title: "What the fix changes",
+      text: () => { const f = storyFacts(); return [
+        f.failedCalls ? `The model's first answer was cut off, so Auto Fix asked again. The second proposal — “${f.summary}” — is the patch below.` : `The model proposed “${f.summary}”. This is the exact patch that was built and tested.`,
+        "Read it like any code review: the changed words are highlighted, and Split shows the two versions side by side."]; }},
+    {route: x => runHash(x.ready), target: '[data-tour="validation"]', title: "Did anything else break?",
+      text: () => { const c = storyFacts().comparison; return c
+        ? [`Auto Fix ran the whole suite before the edit and after it: ${plural(c.fixed.length, "test")} fixed, ${c.regressions.length} newly failing, ${c.final.passed} passing in total.`, "A fix that breaks another test never reaches this state."]
+        : "The whole suite runs before the edit and after it; a fix that breaks another test never reaches this state."; }},
+    {route: x => runHash(x.ready), target: ".titlebar .actions", title: "Decide",
+      text: ["Convinced? Publish pushes the verified branch and opens the pull request on Bitbucket, with this evidence in its description.",
+        "Not convinced? Actions → Reject this fix, with a reason. The run leaves the list and your reason stays with it for the next person."]},
+  ]},
+  {id: "regression", title: "Catch a fix that breaks something else", question: "Why didn't Auto Fix ship this one?", example: x => x.regression, steps: [
+    {route: x => runHash(x.regression), target: '[data-tour="validation"]', title: "A fix that would have shipped a new failure",
+      text: () => { const c = storyFacts().comparison; return [
+        c ? `The last edit made ${c.fixed.join(", ") || "the failing test"} pass, but ${c.regressions.join(", ")} failed afterwards — and it passed before.` : "The last edit broke a test that passed before it.",
+        "Auto Fix compares the whole suite, not just the test it was asked to fix, so it stopped instead of handing you a regression."]; }},
+    {route: x => runHash(x.regression), target: "table.attempts", title: "Every attempt, on the record",
+      text: () => `${plural(storyFacts().attempts, "attempt")}, each with the edit the model proposed and what the tests said after it. Open one to see the exact change and the model's reasoning.`},
+    {route: x => runHash(x.regression), target: '[data-tour="review"]', title: "Pick up where a teammate left off",
+      text: () => [storyFacts().notes ? "A teammate already noted where to look." : "Leave a note on where to look.",
+        "Fix it by hand, then mark the run handled so nobody repeats the work. Or re-run from a step once the cause is clearer."]},
+  ]},
+  {id: "recover", title: "Recover from an interruption", question: "Something stopped halfway. What now?", example: x => x.abandoned || x.unknown, steps: [
+    {route: x => runHash(x.abandoned), only: x => x.abandoned, target: '[data-tour="lead"]', title: "The worker died mid-run",
+      text: ["The process running this repair ended without a result: a reboot, a killed job, a full disk.",
+        "Nothing is lost. Every step saved a checkpoint, so you can re-run it from its last good step, or cancel it to clear it from the list."]},
+    {route: x => runHash(x.unknown), only: x => x.unknown, target: '[data-tour="lead"]', title: "A pull request that may or may not exist",
+      text: ["Bitbucket stopped answering while this fix's pull request was being created.",
+        "Publishing again could open a duplicate, so Auto Fix will not. Reconcile asks Bitbucket what happened and records the answer."]},
+  ]},
+  {id: "flaky", title: "Spot a flaky test", question: "Is this failure real, or is the test unreliable?", example: x => x.flaky, steps: [
+    {route: () => "#view=tests", target: "#content tbody tr:has(.badge)", title: "Failed in CI, passed here",
+      text: x => [`${x.flaky.name} failed in TeamCity but passed locally on the unchanged code.`,
+        "That is the signature of a flaky or environment-dependent test. Auto Fix stops before asking the model, instead of inventing a fix for a bug that is not there."]},
+    {route: x => "#" + new URLSearchParams({view: "test", name: x.flaky.name}), target: "#content table", title: "The test's whole history",
+      text: "Every run that tried this test, with its outcome and any decision taken. When it shows up again, you can see at once whether it is a known case."},
+  ]},
+  {id: "automate", title: "Let it run on its own", question: "How do I get this every morning without starting it?", example: () => true, steps: [
+    {route: () => "#view=schedules", target: "#content .box, #content .empty", title: "Schedules",
+      text: () => state.schedules.length
+        ? `${plural(state.schedules.length, "schedule")} run the repair batch at fixed times, in their own timezone. A weekday-evening run means each morning starts with results, not a queue.`
+        : "A schedule runs the repair batch at fixed times, in its own timezone. A weekday-evening run means each morning starts with results, not a queue."},
+    {route: () => "#view=batches", target: "#content .box, #content .empty", title: "What each night found",
+      text: "Every scheduled or manual batch keeps what it found and how each repair ended, including nights with no failures at all."},
+  ]},
+  {id: "value", title: "Show whether it pays off", question: "Is Auto Fix worth it for my team?", example: () => true, steps: [
+    {route: () => "#view=metrics", target: ".kpis", title: "The numbers to share",
+      text: "How often a run ends in a verified fix, how long that takes, how often the model fails and how many tokens it uses, per workflow and per day."},
+  ]},
 ];
 let tour = null;
 /** Whether the page already shows what a step's route asks for. */
 function atRoute(route) {
   const hash = new URLSearchParams(route.slice(1));
   if (hash.get("run")) return state.selected === hash.get("run") && Boolean(state.detail);
-  if (hash.get("view")) return !state.selected && state.view === hash.get("view");
+  if (hash.get("view")) return !state.selected && state.view === hash.get("view")
+    && (hash.get("view") !== "test" || state.testName === hash.get("name"));
   return !state.selected && !state.view && !state.workflow;
 }
 /** The first visible element for a selector, or null after a few seconds. */
@@ -3934,15 +4003,21 @@ async function waitFor(selector, index) {
   }
   return null;
 }
-function startTour(index = 0) {
+async function startTour() {
   endTour(false);
   closePopover();
   const spot = el("div", {class: "tour-spot", hidden: ""});
   const card = el("div", {class: "tour-card", role: "dialog", "aria-modal": "false", "aria-labelledby": "tour-title"});
   const shade = el("div", {class: "tour-shade"});
   document.body.append(shade, spot, card);
-  tour = {index, spot, card, shade, target: null, timer: setInterval(placeTour, 250)};
-  showStep();
+  tour = {index: -1, steps: [], spot, card, shade, selector: null, timer: setInterval(placeTour, 250)};
+  card.replaceChildren(el("div", {class: "loading"}, icon("run"), "Preparing the tour…"));
+  placeTour();
+  try {
+    const [runs, tests] = await Promise.all([api("/api/runs?page_size=100"), api("/api/tests")]);
+    if (tour) tour.examples = tourExamples(runs.runs, runs.attention, tests.tests);
+  } catch (error) { if (tour) tour.examples = tourExamples([], [], []); }
+  if (tour) showMenu();
 }
 function endTour(done = true) {
   if (!tour) return;
@@ -3951,28 +4026,63 @@ function endTour(done = true) {
   tour = null;
   if (done) try { localStorage.setItem(TOUR_KEY, "1"); } catch (error) { /* private mode */ }
 }
-async function showStep() {
-  const index = tour.index, step = TOUR[index], last = index === TOUR.length - 1;
-  const route = typeof step.route === "function" ? step.route() : step.route;
-  const go = to => { if (tour) { tour.index = to; showStep(); } };
+/** The first card: the situations the data can show, to take one or all of them. */
+function showMenu() {
+  const x = tour.examples, available = SCENARIOS.filter(scenario => scenario.example(x));
+  tour.index = -1; tour.selector = null;
+  const begin = list => {
+    tour.steps = list.flatMap(scenario => scenario.steps.filter(step => !step.only || step.only(x))
+      .map((step, i, steps) => ({...step, scenario, number: i + 1, of: steps.length})));
+    tour.steps.push({scenario: null, title: DEMO ? "Use it on your own code" : "That's the tour", text: DEMO ? [
+      "Copy examples/config.windows.yaml to config.local.yaml, fill in your TeamCity, Bitbucket, Jira and model addresses, and put the tokens in .env.",
+      "Then start auto-fix dashboard --config config.local.yaml. The ? button in the header brings you back to these scenarios."]
+      : "The ? button in the header brings you back to these scenarios."});
+    tour.index = 0;
+    showStep();
+  };
   tour.card.replaceChildren(
-    el("div", {class: "tour-count"}, `${index + 1} of ${TOUR.length}`),
-    el("h2", {id: "tour-title"}, step.title),
-    ...[step.text].flat().map(text => el("p", {}, text)),
-    el("div", {class: "tour-foot"},
-      last ? null : el("button", {class: "link", type: "button", onclick: () => endTour()}, "Skip the tour"),
-      el("span", {class: "spacer"}),
-      index ? el("button", {class: "btn", type: "button", onclick: () => go(index - 1)}, "Back") : null,
-      el("button", {class: "btn primary", type: "button", "data-tour-next": "", onclick: () => last ? endTour() : go(index + 1)},
-        last ? "Finish" : index ? "Next" : "Start the tour")));
+    el("h2", {id: "tour-title"}, "What do you want to do?"),
+    el("p", {}, DEMO ? "Auto Fix repairs failing C++ tests from TeamCity on its own and hands you the decisions. Pick a situation to see how it plays out, on demo runs that touch no real system."
+      : "Auto Fix repairs failing C++ tests from TeamCity on its own and hands you the decisions. Pick a situation to see how it plays out on your runs."),
+    el("div", {class: "tour-menu"}, SCENARIOS.map(scenario => {
+      const ok = available.includes(scenario);
+      return el("button", {class: "tour-choice", type: "button", disabled: ok ? null : "", title: ok ? "" : "None of your runs shows this yet",
+        onclick: () => begin([scenario])}, el("b", {}, scenario.title), el("span", {}, ok ? scenario.question : "No example in your runs yet"));
+    })),
+    el("div", {class: "tour-foot"}, el("button", {class: "link", type: "button", onclick: () => endTour()}, "Not now"), el("span", {class: "spacer"}),
+      el("button", {class: "btn primary", type: "button", "data-tour-next": "", onclick: () => begin(available)}, "Walk through all of them")));
   tour.card.querySelector("[data-tour-next]").focus({preventScroll: true});
-  tour.target = null;
+  placeTour();
+}
+async function showStep() {
+  const index = tour.index, step = tour.steps[index], last = index === tour.steps.length - 1, x = tour.examples;
+  const go = to => { if (tour) { tour.index = to; to < 0 ? showMenu() : showStep(); } };
+  const route = step.route?.(x);
+  const draw = text => tour.card.replaceChildren(
+    el("div", {class: "tour-count"}, step.scenario ? `${step.scenario.title} · ${step.number} of ${step.of}` : "Done"),
+    el("h2", {id: "tour-title"}, step.title),
+    ...[text].flat().map(paragraph => el("p", {}, paragraph)),
+    el("div", {class: "tour-foot"},
+      el("button", {class: "link", type: "button", onclick: () => last ? showMenu() : endTour()}, last ? "Other scenarios" : "End the tour"),
+      el("span", {class: "spacer"}),
+      el("button", {class: "btn", type: "button", onclick: () => go(index - 1)}, index ? "Back" : "Scenarios"),
+      el("button", {class: "btn primary", type: "button", "data-tour-next": "", onclick: () => last ? endTour() : go(index + 1)}, last ? "Finish" : "Next")));
+  // Texts quote the page, so they are written once it has loaded; until then the card says what comes.
+  draw(typeof step.text === "function" ? "…" : step.text);
+  tour.card.querySelector("[data-tour-next]").focus({preventScroll: true});
   if (route && !atRoute(route)) location.hash = route === "#" ? "" : route;
+  // The page being left still shows a matching section: wait for the new page before looking.
+  for (let i = 0; route && i < 50 && tour?.index === index && !atRoute(route); i++) await new Promise(resolve => setTimeout(resolve, 100));
+  if (tour?.index !== index) return;
   tour.selector = step.target || null;
   if (step.target) {
     const node = await waitFor(step.target, index);
     if (tour?.index !== index) return;
     node?.scrollIntoView({block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+  }
+  if (typeof step.text === "function") {
+    draw(step.text(x));
+    tour.card.querySelector("[data-tour-next]").focus({preventScroll: true});
   }
   placeTour();
 }
@@ -3984,7 +4094,7 @@ function placeTour() {
   shade.hidden = Boolean(node);
   spot.hidden = !node;
   card.classList.toggle("centered", !node);
-  if (!node) { card.style.left = card.style.top = ""; return; }
+  if (!node) { card.style.left = card.style.top = ""; card.classList.remove("docked"); return; }
   const r = node.getBoundingClientRect();
   Object.assign(spot.style, {left: r.left - 6 + "px", top: r.top - 6 + "px", width: r.width + 12 + "px", height: Math.min(r.height, innerHeight - 24) + 12 + "px"});
   if (narrow) { card.style.left = card.style.top = ""; card.classList.add("docked"); return; }
@@ -3998,12 +4108,13 @@ function placeTour() {
 document.addEventListener("keydown", event => {
   if (!tour || dialog.open) return;
   if (event.key === "Escape") endTour();
-  else if (event.key === "ArrowRight" && tour.index < TOUR.length - 1) { tour.index++; showStep(); }
-  else if (event.key === "ArrowLeft" && tour.index > 0) { tour.index--; showStep(); }
+  else if (tour.index < 0) return;
+  else if (event.key === "ArrowRight" && tour.index < tour.steps.length - 1) { tour.index++; showStep(); }
+  else if (event.key === "ArrowLeft") { tour.index--; tour.index < 0 ? showMenu() : showStep(); }
 });
 addEventListener("resize", placeTour);
 document.getElementById("content").addEventListener("scroll", placeTour, {passive: true});
-document.getElementById("tour-button").addEventListener("click", () => startTour(0));
+document.getElementById("tour-button").addEventListener("click", () => startTour());
 document.getElementById("demo-badge").hidden = !DEMO;
 
 document.getElementById("q").addEventListener("input", () => renderSidebar());
@@ -4052,7 +4163,7 @@ Promise.all([loadRuns(), loadSchedules(), loadBatches()]).then(route).then(() =>
   showFreshness();
   let seen = true;
   try { seen = localStorage.getItem(TOUR_KEY) === "1"; } catch (error) { /* private mode: no automatic tour */ }
-  if (DEMO && !seen) startTour(0);
+  if (DEMO && !seen) startTour();
 })
   .catch(error => toast(error.message, "bad"));
 setupControls().catch(() => { /* the run history still works without controls */ });

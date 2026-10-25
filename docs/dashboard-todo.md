@@ -71,8 +71,11 @@ this layout. Nothing was committed or released.
 
 - [x] `auto-fix dashboard --demo` builds a sample state from real workflow runs (every run status,
   schedules, batches, review decisions) and serves it with run controls but no runner.
-- [x] A guided tour (14 steps across Home, a run, Tests, Metrics and Settings) opens on a demo's
-  first visit; the header's ? button replays it on any dashboard.
+- [x] A guided tour opens on a demo's first visit; the header's ? button replays it on any
+  dashboard. It is told as seven situations (start the day, ship a verified fix, catch a fix that
+  breaks another test, recover from an interruption, spot a flaky test, let it run on its own,
+  show whether it pays off), each on a real run and quoting its test, commit and numbers;
+  situations with no example in the data are offered greyed out.
 
 ### Diff viewer
 

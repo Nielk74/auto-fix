@@ -132,3 +132,36 @@ assert.deepEqual([bare.path,bare.add,bare.del,bare.hunks[0].lines[0].old],['patc
         timeout=15,
     )
     assert result.returncode == 0, result.stderr
+
+
+def test_tour_picks_an_example_for_each_situation_and_none_when_missing():
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("Node is required to execute the browser's tour functions")
+    page = Path(__file__).parents[1] / "src/auto_fix/dashboard.html"
+    script = r"""
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert');
+const html=fs.readFileSync(process.argv[1],'utf8');
+const start=html.indexOf('function tourExamples(');
+const end=html.indexOf('\nconst runHash',start);
+const context={};vm.createContext(context);
+vm.runInContext(html.slice(start,end)+';globalThis.tourExamples=tourExamples;',context);
+const runs=[
+  {id:'a',status:'blocked',regressions:1,live:false},{id:'b',status:'ready',regressions:0},
+  {id:'c',status:'in_progress',live:true},{id:'d',status:'in_progress',live:false},
+  {id:'e',status:'publication_unknown'},{id:'f',status:'ready'}];
+const tests=[{name:'t',not_reproduced:0},{name:'u',not_reproduced:2}];
+const x=context.tourExamples(runs,[runs[5]],tests);
+// A ready run that needs attention comes first; a live run is never "abandoned".
+assert.deepEqual([x.ready.id,x.regression.id,x.abandoned.id,x.unknown.id,x.flaky.name],['f','a','d','e','u']);
+const none=context.tourExamples([{id:'g',status:'published',regressions:0}],[],[]);
+assert.deepEqual([none.ready,none.regression,none.abandoned,none.unknown,none.flaky],[null,null,null,null,null]);
+"""
+    result = subprocess.run(
+        [node, "-e", script, str(page)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=15,
+    )
+    assert result.returncode == 0, result.stderr
