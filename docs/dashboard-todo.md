@@ -75,7 +75,8 @@ this layout. Nothing was committed or released.
   dashboard. It is told as seven situations (start the day, ship a verified fix, catch a fix that
   breaks another test, recover from an interruption, spot a flaky test, let it run on its own,
   show whether it pays off), each on a real run and quoting its test, commit and numbers;
-  situations with no example in the data are offered greyed out.
+  situations with no example in the data are offered greyed out. Most steps wait for the reader
+  to click what a user would click, hold back other clicks, and never publish, reconcile or retry.
 
 ### Diff viewer
 

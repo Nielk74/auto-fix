@@ -601,6 +601,13 @@ label.viewed:has(input:checked) { color: var(--ink); border-color: var(--accent)
 .tour-choice:hover:not(:disabled), .tour-choice:focus-visible { border-color: var(--accent); background: var(--sel); }
 .tour-choice span { color: var(--muted); font-size: 12.5px; }
 .tour-choice:disabled { opacity: 0.55; cursor: default; }
+.tour-do { display: flex; gap: 8px; align-items: flex-start; color: var(--ink) !important; font-weight: 500;
+  padding: 8px 10px; border-radius: 6px; background: var(--sel); }
+.tour-do .lu { color: var(--accent); flex: none; margin-top: 2px; }
+.tour-spot.waiting { outline-width: 3px; }
+.tour-spot.nudge { animation: tour-nudge 0.5s ease-out; }
+@keyframes tour-nudge { 0% { outline-offset: 0; } 40% { outline-offset: 6px; } 100% { outline-offset: 0; } }
+@media (prefers-reduced-motion: reduce) { .tour-spot.nudge { animation: none; } }
 </style>
 </head>
 <body>
@@ -1465,6 +1472,7 @@ const ICONS = {
   sun: "<circle cx='12' cy='12' r='4'/><path d='M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41'/>",
   moon: "<path d='M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401'/>",
   monitor: "<rect width='20' height='14' x='2' y='3' rx='2'/><path d='M8 21h8m-4-4v4'/>",
+  pointer: "<path d='M14 4.1L12 6M5.1 8l-2.9-.8M6 12l-1.9 2M7.2 2.2L8 5.1'/><path d='M9.04 9.94a.5.5 0 0 1 .66-.66l11.77 4.71a.5.5 0 0 1-.06.94l-4.5 1.38a1 1 0 0 0-.66.66l-1.38 4.5a.5.5 0 0 1-.94.06z'/>",
   play: "<path d='M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z'/>",
 };
 function lucide(name, size = 16, cls = "") {
@@ -3137,7 +3145,8 @@ function attentionSection(failed) {
       el("td", {class: "rowtools"},
         CAN_ACT && primary ? el("button", {class: "btn small" + (key === "ready" ? " primary" : ""), type: "button",
           onclick: event => { event.stopPropagation(); quickAct(run, primary[0]); }}, primary[1]) : null,
-        el("button", {class: "btn small", type: "button", onclick: event => { event.stopPropagation(); select(run.id); }}, key === "ready" ? "Review" : "Open"),
+        el("button", {class: "btn small", type: "button", "data-tour": "open", onclick: event => { event.stopPropagation(); select(run.id); }},
+          key === "ready" ? "Review" : "Open"),
         CAN_ACT ? iconButton("close", "Dismiss from Needs attention", () => triageDialog(run, "dismiss")) : null));
   });
   const jobs = failed.map(job => el("tr", {"data-key": "attjob:" + job.id},
@@ -3920,72 +3929,109 @@ function storyFacts() {
   };
 }
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
-/* Each scenario is a job someone opens the dashboard to do. `example` names the run or test it needs;
-   steps can read the open page through storyFacts once their route has loaded. */
+/* Each scenario is a job someone opens the dashboard to do; `example` names the run or test it needs.
+   A step happens on its `route` page. A step with `click` waits for the reader to click that element and moves
+   on once `until` holds; any other step has a Next button. Texts can quote the page through storyFacts. */
+const attentionOpen = run => `.attention-list [data-key="att:${run.id}"] [data-tour="open"]`;
+const onRun = run => () => state.selected === run.id && Boolean(state.detail);
+const onView = view => () => !state.selected && state.view === view;
 const SCENARIOS = [
   {id: "triage", title: "Start the day", question: "What needs me this morning?", example: () => true, steps: [
     {route: () => "#", target: ".attention-list", title: "Only what needs a person",
       text: x => [`While you were away, Auto Fix took each failing TeamCity test, reproduced it in its own worktree, asked the model for a fix and verified it.`,
-        `What it could not finish alone lands here: ${plural(x.attention.length, "run")} today. Each line says what happened and offers the next move, so you can work down the list.`]},
+        `What it could not finish alone lands here: ${plural(x.attention.length, "run")} today. Each line says what happened and offers the next move.`]},
     {route: () => "#", target: ".attention-list tbody tr:first-child .rowtools", title: "Act from the list",
-      text: "Routine decisions take one click here: publish a verified fix, resume a paused run, retry one that stopped. Anything you dismiss leaves the list but keeps its evidence."},
+      text: "Routine decisions take one click: publish a verified fix, resume a paused run, retry one that stopped. Dismissing a run takes it off the list and keeps its evidence."},
   ]},
   {id: "ship", title: "Ship a verified fix", question: "Is this fix good enough to open a pull request?", example: x => x.ready, steps: [
+    {route: () => "#", target: x => `.attention-list [data-key="att:${x.ready.id}"]`, click: x => attentionOpen(x.ready), until: x => onRun(x.ready)(),
+      title: "A fix is waiting for you", text: x => `${x.ready.tests[0] || "A test"} failed in TeamCity, and Auto Fix has a verified fix for it.`,
+      action: "Click Review to open it."},
     {route: x => runHash(x.ready), target: '[data-tour="failure"]', title: "What broke, and who touched it",
       text: () => { const f = storyFacts(); return [`${f.test} started failing in TeamCity build ${f.build}.`,
         f.commit ? `The build's change is ${f.author}'s commit “${f.commit}”${f.issue ? `, for ${f.issue}` : ""}. That is where to look first.` : "The build's changes, their pull requests and Jira issues are listed here."]; }},
-    {route: x => runHash(x.ready), target: '[data-tour="lead"]', title: "What the fix changes",
-      text: () => { const f = storyFacts(); return [
-        f.failedCalls ? `The model's first answer was cut off, so Auto Fix asked again. The second proposal — “${f.summary}” — is the patch below.` : `The model proposed “${f.summary}”. This is the exact patch that was built and tested.`,
-        "Read it like any code review: the changed words are highlighted, and Split shows the two versions side by side."]; }},
+    {route: x => runHash(x.ready), target: '[data-tour="lead"]', click: () => '[data-tour="lead"] .dtools [role="radio"][aria-checked="false"]',
+      watch: () => Boolean(document.querySelector('[data-tour="lead"] .diff.sbs')), title: "What the fix changes",
+      text: () => { const f = storyFacts(); return f.failedCalls
+        ? `The model's first answer was cut off, so Auto Fix asked again. Its second proposal, “${f.summary}”, is the exact patch that was built and tested.`
+        : `The model proposed “${f.summary}”. This is the exact patch that was built and tested.`; },
+      action: () => document.querySelector('[data-tour="lead"] .diff.sbs')
+        ? "Click Unified to read the change as one column, the way it applies; the changed words stay highlighted."
+        : "Click Split to put the old and new code side by side; the changed words are highlighted."},
     {route: x => runHash(x.ready), target: '[data-tour="validation"]', title: "Did anything else break?",
       text: () => { const c = storyFacts().comparison; return c
         ? [`Auto Fix ran the whole suite before the edit and after it: ${plural(c.fixed.length, "test")} fixed, ${c.regressions.length} newly failing, ${c.final.passed} passing in total.`, "A fix that breaks another test never reaches this state."]
         : "The whole suite runs before the edit and after it; a fix that breaks another test never reaches this state."; }},
-    {route: x => runHash(x.ready), target: ".titlebar .actions", title: "Decide",
-      text: ["Convinced? Publish pushes the verified branch and opens the pull request on Bitbucket, with this evidence in its description.",
-        "Not convinced? Actions → Reject this fix, with a reason. The run leaves the list and your reason stays with it for the next person."]},
+    {route: x => runHash(x.ready), target: ".titlebar .actions", click: () => '.titlebar .actions [aria-haspopup="menu"]',
+      until: () => Boolean(document.querySelector(".popover.menu")), title: "Decide",
+      text: "Convinced? Publish pushes the verified branch and opens the pull request on Bitbucket, with this evidence in its description.",
+      action: "Not convinced? Click Actions to see the other choices."},
+    {target: ".popover.menu", title: "Every decision is recorded",
+      text: ["Reject this fix, with a reason, if it must not ship. Mark it handled if someone fixed it by hand. Snooze it to come back later.",
+        "Each choice takes the run off your list and stays with its evidence for the next person."]},
   ]},
   {id: "regression", title: "Catch a fix that breaks something else", question: "Why didn't Auto Fix ship this one?", example: x => x.regression, steps: [
+    {route: () => "#", target: x => `.attention-list [data-key="att:${x.regression.id}"]`, click: x => attentionOpen(x.regression),
+      until: x => onRun(x.regression)(), title: "A run that stopped",
+      text: x => `${x.regression.tests[0] || "This test"} still needs you: Auto Fix tried, and stopped.`, action: "Click Open to find out why."},
     {route: x => runHash(x.regression), target: '[data-tour="validation"]', title: "A fix that would have shipped a new failure",
       text: () => { const c = storyFacts().comparison; return [
-        c ? `The last edit made ${c.fixed.join(", ") || "the failing test"} pass, but ${c.regressions.join(", ")} failed afterwards — and it passed before.` : "The last edit broke a test that passed before it.",
-        "Auto Fix compares the whole suite, not just the test it was asked to fix, so it stopped instead of handing you a regression."]; }},
-    {route: x => runHash(x.regression), target: "table.attempts", title: "Every attempt, on the record",
-      text: () => `${plural(storyFacts().attempts, "attempt")}, each with the edit the model proposed and what the tests said after it. Open one to see the exact change and the model's reasoning.`},
+        c ? `The last edit made ${c.fixed.join(", ") || "the failing test"} pass, but ${c.regressions.join(", ")} failed afterwards, and it passed before.` : "The last edit broke a test that passed before it.",
+        "Auto Fix checks the whole suite, not only the test it was asked to fix, so it stopped instead of handing you a regression."]; }},
+    {route: x => runHash(x.regression), target: "table.attempts", click: () => 'table.attempts tr[data-key^="attempt:"]',
+      until: () => Boolean(document.querySelector('table.attempts tr[aria-expanded="true"]')), title: "Every attempt, on the record",
+      text: () => `${plural(storyFacts().attempts, "attempt")}, each with the edit the model proposed and what the tests said after it.`,
+      action: "Click an attempt to see its exact change and the model's reasoning."},
     {route: x => runHash(x.regression), target: '[data-tour="review"]', title: "Pick up where a teammate left off",
       text: () => [storyFacts().notes ? "A teammate already noted where to look." : "Leave a note on where to look.",
-        "Fix it by hand, then mark the run handled so nobody repeats the work. Or re-run from a step once the cause is clearer."]},
+        "Fix it by hand, then mark the run handled so nobody repeats the work, or re-run it from a step once the cause is clear."]},
   ]},
   {id: "recover", title: "Recover from an interruption", question: "Something stopped halfway. What now?", example: x => x.abandoned || x.unknown, steps: [
-    {route: x => runHash(x.abandoned), only: x => x.abandoned, target: '[data-tour="lead"]', title: "The worker died mid-run",
+    {only: x => x.abandoned, route: () => "#", target: x => `.attention-list [data-key="att:${x.abandoned.id}"]`, click: x => attentionOpen(x.abandoned),
+      until: x => onRun(x.abandoned)(), title: "A run that never finished", text: "This run says its worker stopped unexpectedly.",
+      action: "Click Open to see what is left of it."},
+    {only: x => x.abandoned, route: x => runHash(x.abandoned), target: '[data-tour="lead"]', title: "The worker died mid-run",
       text: ["The process running this repair ended without a result: a reboot, a killed job, a full disk.",
         "Nothing is lost. Every step saved a checkpoint, so you can re-run it from its last good step, or cancel it to clear it from the list."]},
-    {route: x => runHash(x.unknown), only: x => x.unknown, target: '[data-tour="lead"]', title: "A pull request that may or may not exist",
+    {only: x => x.unknown, route: () => "#", target: x => `.attention-list [data-key="att:${x.unknown.id}"]`, click: x => attentionOpen(x.unknown),
+      until: x => onRun(x.unknown)(), title: "A publication nobody can confirm", text: "This fix was verified, but its pull request is marked uncertain.",
+      action: "Click Open to see what happened."},
+    {only: x => x.unknown, route: x => runHash(x.unknown), target: '[data-tour="lead"]', title: "A pull request that may or may not exist",
       text: ["Bitbucket stopped answering while this fix's pull request was being created.",
         "Publishing again could open a duplicate, so Auto Fix will not. Reconcile asks Bitbucket what happened and records the answer."]},
   ]},
   {id: "flaky", title: "Spot a flaky test", question: "Is this failure real, or is the test unreliable?", example: x => x.flaky, steps: [
-    {route: () => "#view=tests", target: "#content tbody tr:has(.badge)", title: "Failed in CI, passed here",
-      text: x => [`${x.flaky.name} failed in TeamCity but passed locally on the unchanged code.`,
-        "That is the signature of a flaky or environment-dependent test. Auto Fix stops before asking the model, instead of inventing a fix for a bug that is not there."]},
+    {target: ".topnav", click: () => '.topnav a[data-view="tests"]', until: onView("tests"), title: "Every failing test in one place",
+      text: "Some failures are not bugs in the code at all.", action: "Click Tests in the top bar."},
+    {route: () => "#view=tests", target: "#content tbody tr:has(.badge)", click: () => "#content tbody tr:has(.badge)", until: onView("test"),
+      title: "Failed in CI, passed here",
+      text: x => [`${x.flaky.name} failed in TeamCity but passed locally on the unchanged code: the signature of a flaky or environment-dependent test.`,
+        "Auto Fix stopped before asking the model, instead of inventing a fix for a bug that is not there."],
+      action: "Click it to see its history."},
     {route: x => "#" + new URLSearchParams({view: "test", name: x.flaky.name}), target: "#content table", title: "The test's whole history",
       text: "Every run that tried this test, with its outcome and any decision taken. When it shows up again, you can see at once whether it is a known case."},
   ]},
   {id: "automate", title: "Let it run on its own", question: "How do I get this every morning without starting it?", example: () => true, steps: [
-    {route: () => "#view=schedules", target: "#content .box, #content .empty", title: "Schedules",
-      text: () => state.schedules.length
-        ? `${plural(state.schedules.length, "schedule")} run the repair batch at fixed times, in their own timezone. A weekday-evening run means each morning starts with results, not a queue.`
-        : "A schedule runs the repair batch at fixed times, in its own timezone. A weekday-evening run means each morning starts with results, not a queue."},
-    {route: () => "#view=batches", target: "#content .box, #content .empty", title: "What each night found",
-      text: "Every scheduled or manual batch keeps what it found and how each repair ended, including nights with no failures at all."},
+    {target: ".topnav", click: () => '.topnav a[data-view="schedules"]', until: onView("schedules"), title: "Repairs on a timetable",
+      text: "Mornings should start with results, not with starting jobs.", action: "Click Schedules in the top bar."},
+    {route: () => "#view=schedules", target: ".topnav", click: () => '.topnav a[data-view="batches"]', until: onView("batches"), title: "Schedules",
+      text: () => (state.schedules.length ? `${plural(state.schedules.length, "schedule")} run` : "A schedule runs")
+        + " the repair batch at fixed times, in its own timezone. A weekday-evening run means each morning starts with results.",
+      action: "Click Batches to see what the last runs found."},
+    {route: () => "#view=batches", target: "#content .box, #content .empty", click: () => "#content table details > summary",
+      until: () => Boolean(document.querySelector("#content table details[open]")), title: "What each night found",
+      text: "Every scheduled or manual batch keeps what it found and how each repair ended, including nights with no failures at all.",
+      action: "Click a batch to list its repairs."},
   ]},
   {id: "value", title: "Show whether it pays off", question: "Is Auto Fix worth it for my team?", example: () => true, steps: [
+    {target: ".topnav", click: () => '.topnav a[data-view="metrics"]', until: onView("metrics"), title: "Numbers for your team",
+      text: "Whether to keep Auto Fix is a question of results.", action: "Click Metrics in the top bar."},
     {route: () => "#view=metrics", target: ".kpis", title: "The numbers to share",
       text: "How often a run ends in a verified fix, how long that takes, how often the model fails and how many tokens it uses, per workflow and per day."},
   ]},
 ];
 let tour = null;
+const tourValue = (value, x) => typeof value === "function" ? value(x) : value;
 /** Whether the page already shows what a step's route asks for. */
 function atRoute(route) {
   const hash = new URLSearchParams(route.slice(1));
@@ -3994,12 +4040,13 @@ function atRoute(route) {
     && (hash.get("view") !== "test" || state.testName === hash.get("name"));
   return !state.selected && !state.view && !state.workflow;
 }
+const visible = selector => selector && [...document.querySelectorAll(selector)].find(item => item.getClientRects().length) || null;
 /** The first visible element for a selector, or null after a few seconds. */
-async function waitFor(selector, index) {
-  for (let i = 0; i < 40; i++) {
-    const node = [...document.querySelectorAll(selector)].find(item => item.getClientRects().length);
-    if (node || tour?.index !== index) return node || null;
-    await new Promise(resolve => setTimeout(resolve, 100));
+async function waitFor(selector, index, tries = 40) {
+  for (let i = 0; i < tries; i++) {
+    const node = visible(selector);
+    if (node || tour?.index !== index) return node;
+    await new Promise(done => setTimeout(done, 100));
   }
   return null;
 }
@@ -4010,7 +4057,7 @@ async function startTour() {
   const card = el("div", {class: "tour-card", role: "dialog", "aria-modal": "false", "aria-labelledby": "tour-title"});
   const shade = el("div", {class: "tour-shade"});
   document.body.append(shade, spot, card);
-  tour = {index: -1, steps: [], spot, card, shade, selector: null, timer: setInterval(placeTour, 250)};
+  tour = {index: -1, steps: [], spot, card, shade, selector: null, timer: setInterval(tickTour, 200)};
   card.replaceChildren(el("div", {class: "loading"}, icon("run"), "Preparing the tour…"));
   placeTour();
   try {
@@ -4029,7 +4076,7 @@ function endTour(done = true) {
 /** The first card: the situations the data can show, to take one or all of them. */
 function showMenu() {
   const x = tour.examples, available = SCENARIOS.filter(scenario => scenario.example(x));
-  tour.index = -1; tour.selector = null;
+  tour.index = -1; tour.selector = null; tour.click = null;
   const begin = list => {
     tour.steps = list.flatMap(scenario => scenario.steps.filter(step => !step.only || step.only(x))
       .map((step, i, steps) => ({...step, scenario, number: i + 1, of: steps.length})));
@@ -4042,8 +4089,7 @@ function showMenu() {
   };
   tour.card.replaceChildren(
     el("h2", {id: "tour-title"}, "What do you want to do?"),
-    el("p", {}, DEMO ? "Auto Fix repairs failing C++ tests from TeamCity on its own and hands you the decisions. Pick a situation to see how it plays out, on demo runs that touch no real system."
-      : "Auto Fix repairs failing C++ tests from TeamCity on its own and hands you the decisions. Pick a situation to see how it plays out on your runs."),
+    el("p", {}, `Auto Fix repairs failing C++ tests from TeamCity on its own and hands you the decisions. Pick a situation and play it through yourself${DEMO ? ", on demo runs that touch no real system" : ", on your own runs"}.`),
     el("div", {class: "tour-menu"}, SCENARIOS.map(scenario => {
       const ok = available.includes(scenario);
       return el("button", {class: "tour-choice", type: "button", disabled: ok ? null : "", title: ok ? "" : "None of your runs shows this yet",
@@ -4054,45 +4100,72 @@ function showMenu() {
   tour.card.querySelector("[data-tour-next]").focus({preventScroll: true});
   placeTour();
 }
+/** Moves to a step. The card's own buttons close a menu the reader opened; an action that opened one keeps it. */
+function goTo(index, {keepMenu = false} = {}) {
+  if (!tour) return;
+  if (!keepMenu) closePopover();
+  tour.index = index;
+  index < 0 ? showMenu() : showStep();
+}
 async function showStep() {
   const index = tour.index, step = tour.steps[index], last = index === tour.steps.length - 1, x = tour.examples;
-  const go = to => { if (tour) { tour.index = to; to < 0 ? showMenu() : showStep(); } };
   const route = step.route?.(x);
-  const draw = text => tour.card.replaceChildren(
-    el("div", {class: "tour-count"}, step.scenario ? `${step.scenario.title} · ${step.number} of ${step.of}` : "Done"),
-    el("h2", {id: "tour-title"}, step.title),
-    ...[text].flat().map(paragraph => el("p", {}, paragraph)),
-    el("div", {class: "tour-foot"},
-      el("button", {class: "link", type: "button", onclick: () => last ? showMenu() : endTour()}, last ? "Other scenarios" : "End the tour"),
-      el("span", {class: "spacer"}),
-      el("button", {class: "btn", type: "button", onclick: () => go(index - 1)}, index ? "Back" : "Scenarios"),
-      el("button", {class: "btn primary", type: "button", "data-tour-next": "", onclick: () => last ? endTour() : go(index + 1)}, last ? "Finish" : "Next")));
-  // Texts quote the page, so they are written once it has loaded; until then the card says what comes.
+  tour.click = null; tour.armed = false; tour.selector = null;
+  // A click step's own button moves it on; its card offers a way past it instead of Next.
+  const draw = (text, action) => {
+    // replaceChildren, unlike el, would print a null as text.
+    tour.card.replaceChildren(...[
+      el("div", {class: "tour-count"}, step.scenario ? `${step.scenario.title} · ${step.number} of ${step.of}` : "Done"),
+      el("h2", {id: "tour-title"}, step.title),
+      ...[text].flat().filter(Boolean).map(paragraph => el("p", {}, paragraph)),
+      action ? el("p", {class: "tour-do"}, lucide("pointer", 15), action) : null,
+      el("div", {class: "tour-foot"},
+        el("button", {class: "link", type: "button", onclick: () => last ? goTo(-1) : endTour()}, last ? "Other scenarios" : "End the tour"),
+        el("span", {class: "spacer"}),
+        el("button", {class: "btn", type: "button", onclick: () => goTo(index - 1)}, index ? "Back" : "Scenarios"),
+        action ? el("button", {class: "btn", type: "button", onclick: () => goTo(index + 1)}, "Skip this step")
+          : el("button", {class: "btn primary", type: "button", "data-tour-next": "", onclick: () => last ? endTour() : goTo(index + 1)}, last ? "Finish" : "Next"))].filter(Boolean));
+    tour.card.querySelector("[data-tour-next], .tour-foot .btn:last-child").focus({preventScroll: true});
+  };
   draw(typeof step.text === "function" ? "…" : step.text);
-  tour.card.querySelector("[data-tour-next]").focus({preventScroll: true});
   if (route && !atRoute(route)) location.hash = route === "#" ? "" : route;
   // The page being left still shows a matching section: wait for the new page before looking.
-  for (let i = 0; route && i < 50 && tour?.index === index && !atRoute(route); i++) await new Promise(resolve => setTimeout(resolve, 100));
+  for (let i = 0; route && i < 50 && tour?.index === index && !atRoute(route); i++) await new Promise(done => setTimeout(done, 100));
   if (tour?.index !== index) return;
-  tour.selector = step.target || null;
-  if (step.target) {
-    const node = await waitFor(step.target, index);
-    if (tour?.index !== index) return;
-    node?.scrollIntoView({block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
-  }
-  if (typeof step.text === "function") {
-    draw(step.text(x));
-    tour.card.querySelector("[data-tour-next]").focus({preventScroll: true});
+  tour.selector = tourValue(step.target, x) || null;
+  const node = tour.selector ? await waitFor(tour.selector, index) : null;
+  if (tour?.index !== index) return;
+  node?.scrollIntoView({block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+  // Parts of a page load after it, like the patch. A click step whose element never shows, or is disabled,
+  // reads like any other step.
+  const clickable = step.click ? await waitFor(step.click(x), index, 25) : null;
+  if (tour?.index !== index) return;
+  tour.click = clickable && !clickable.disabled ? step.click(x) : null;
+  tour.watched = step.watch?.();
+  draw(tourValue(step.text, x), tour.click ? tourValue(step.action, x) : null);
+  placeTour();
+}
+/** Moves a click step on once its action has happened, and keeps the spotlight on its element. */
+function tickTour() {
+  if (!tour) return;
+  const step = tour.steps[tour.index];
+  if (tour.click && step?.watch) {
+    if (step.watch() !== tour.watched) { tour.click = null; goTo(tour.index + 1, {keepMenu: true}); return; }
+  } else if (tour.click && step?.until) {
+    // Only a change counts: a condition that already held when the step began does not skip it.
+    const met = step.until(tour.examples);
+    if (!met) tour.armed = true;
+    else if (tour.armed) { tour.click = null; goTo(tour.index + 1, {keepMenu: true}); return; }
   }
   placeTour();
 }
-/** Keeps the spotlight on its element as the page scrolls, resizes or redraws itself. */
 function placeTour() {
   if (!tour) return;
-  const node = tour.selector && [...document.querySelectorAll(tour.selector)].find(item => item.getClientRects().length);
+  const node = visible(tour.selector);
   const {spot, card, shade} = tour, gap = 8, narrow = innerWidth < 640;
   shade.hidden = Boolean(node);
   spot.hidden = !node;
+  spot.classList.toggle("waiting", Boolean(tour.click));
   card.classList.toggle("centered", !node);
   if (!node) { card.style.left = card.style.top = ""; card.classList.remove("docked"); return; }
   const r = node.getBoundingClientRect();
@@ -4105,12 +4178,22 @@ function placeTour() {
   card.style.top = top + "px";
   card.style.left = Math.max(8, Math.min(innerWidth - width - 8, r.left)) + "px";
 }
+/* While a step waits for a click, clicks elsewhere on the page are held back and the spotlight pulses. */
+document.addEventListener("click", event => {
+  if (!tour?.click || tour.card.contains(event.target)) return;
+  if (event.target.closest(tour.click) || event.target.closest(".popover, dialog")) return;
+  event.preventDefault();
+  event.stopPropagation();
+  tour.spot.classList.remove("nudge");
+  void tour.spot.offsetWidth;
+  tour.spot.classList.add("nudge");
+}, true);
 document.addEventListener("keydown", event => {
   if (!tour || dialog.open) return;
   if (event.key === "Escape") endTour();
   else if (tour.index < 0) return;
-  else if (event.key === "ArrowRight" && tour.index < tour.steps.length - 1) { tour.index++; showStep(); }
-  else if (event.key === "ArrowLeft") { tour.index--; tour.index < 0 ? showMenu() : showStep(); }
+  else if (event.key === "ArrowRight" && tour.index < tour.steps.length - 1) goTo(tour.index + 1);
+  else if (event.key === "ArrowLeft") goTo(tour.index - 1);
 });
 addEventListener("resize", placeTour);
 document.getElementById("content").addEventListener("scroll", placeTour, {passive: true});
