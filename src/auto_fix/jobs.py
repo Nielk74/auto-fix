@@ -82,7 +82,13 @@ WORKFLOWS: dict[str, dict[str, Any]] = {
                 help="TeamCity builds that finished on this day, in the configured timezone.",
             ),
             _param("publish", "Publish verified fixes as pull requests", "bool", False),
-            _param("retry_blocked", "Retry failures whose last run stopped", "bool", False),
+            _param(
+                "retry_blocked",
+                "Also repair failures whose last run was blocked or cancelled",
+                "bool",
+                False,
+                help="Off by default, so a failure that already stopped is not repaired again.",
+            ),
             _param(
                 "build_type",
                 "Build configuration",

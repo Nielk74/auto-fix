@@ -23,7 +23,7 @@ let reads=0;
 const state={selected:'runs/off-page',runs:[],tab:'overview',detail:{summary:{updated:'old'}}};
 const context={state,loadRuns:async()=>false,loadJobs:async()=>false,
   loadSchedules:async()=>false,loadBatches:async()=>false,
-  loadDetail:async()=>{reads++;},busy:()=>false,tickClocks:()=>{}};
+  loadDetail:async()=>{reads++;},busy:()=>false,tickClocks:()=>{},showFreshness:()=>{}};
 vm.createContext(context);vm.runInContext(html.slice(start,end),context);
 (async()=>{
   await context.refresh();

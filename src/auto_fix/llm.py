@@ -24,6 +24,8 @@ class RepairModel:
         verify = ssl.create_default_context(cafile=config.ca_bundle) if config.ca_bundle else True
         self.client = client or httpx.Client(timeout=180, verify=verify, follow_redirects=False)
         self.last_usage: dict[str, Any] = {}
+        # The latest answer as text, kept so a rejected one (cut off, invalid JSON) can be read.
+        self.last_raw = ""
 
     def propose(self, context: dict[str, Any]) -> Proposal:
         return self._request(context, repair_prompt(self.config.prompt_version), Proposal)
@@ -36,6 +38,7 @@ class RepairModel:
     ) -> Response:
         cfg = self.config
         self.last_usage = {}
+        self.last_raw = ""
         body = dict(cfg.extra_body)
         # Extra vendor options cannot replace the destination, model, messages or auth.
         body.update(
@@ -63,9 +66,13 @@ class RepairModel:
         usage = data.get("usage")
         self.last_usage = usage if isinstance(usage, dict) else {}
         choice = data["choices"][0]
-        if choice.get("finish_reason") not in (None, "stop"):
-            raise ValueError("Model output was truncated or did not complete normally")
         content = choice["message"].get("content")
+        self.last_raw = content if isinstance(content, str) else ""
+        if choice.get("finish_reason") not in (None, "stop"):
+            raise ValueError(
+                "Model output was truncated or did not complete normally"
+                f" (finish_reason: {choice.get('finish_reason')})"
+            )
         if not isinstance(content, str):
             raise ValueError("Model did not return text content")
         # Some compatible servers add a fenced JSON envelope or visible thinking prefix.

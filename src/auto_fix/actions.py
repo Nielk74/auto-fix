@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from auto_fix import control, history
+from auto_fix import control, history, triage
 from auto_fix.jobs import REPLAYABLE, JobError, JobStore, run_dir
 from auto_fix.jobs import now as jobs_now
 
@@ -73,7 +73,11 @@ class Actions:
         elif status in {"blocked", "cancelled"}:
             actions += ["retry", "replay"]
         elif status == "ready":
-            actions += ["publish", "replay"]
+            # A reviewer rejected this candidate: it is not published until someone reopens it.
+            rejected = triage.load(self.state_dir).get(run_id, {}).get("state") == "rejected"
+            actions += ["replay"] if rejected else ["publish", "replay"]
+            if rejected:
+                return {"actions": actions, "note": "Fix rejected: reopen it to publish"}
         elif status == "publication_unknown":
             actions.append("reconcile")
         return {"actions": actions, "note": ""}

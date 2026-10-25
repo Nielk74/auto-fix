@@ -13,11 +13,12 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, quote, urlsplit
 
-from auto_fix import artifacts, history, jobs
+from auto_fix import artifacts, health, history, jobs
 from auto_fix.actions import Actions
 from auto_fix.config import load_settings
 from auto_fix.jobs import JobError
 from auto_fix.schedules import ScheduleStore
+from auto_fix.triage import TriageStore
 from auto_fix.workflow import redact
 
 LOOPBACK = {"127.0.0.1", "localhost", "::1"}
@@ -105,11 +106,31 @@ class Handler(BaseHTTPRequestHandler):
                         key: query.get(key, "")
                         for key in ("workflow", "status", "q", "since", "until")
                     },
+                    sort=query.get("sort") or "-started",
                 )
             except ValueError as exc:
                 self._error(HTTPStatus.BAD_REQUEST, str(exc))
                 return
             self._json({"root": self.shown_root, **found})
+        elif url.path == "/api/tests":
+            if query.get("name"):
+                self._json(history.runs_for_test(self.root, query["name"]))
+            else:
+                self._json(history.failing_tests(self.root, query.get("q", "")))
+        elif url.path == "/api/metrics":
+            try:
+                self._json(history.metrics(self.root, int(query.get("days", "30"))))
+            except ValueError as exc:
+                self._error(HTTPStatus.BAD_REQUEST, str(exc))
+        elif url.path == "/api/settings":
+            self._json(
+                {
+                    "root": self.shown_root,
+                    "config_path": str(self.config) if self.config else "",
+                    "config": health.describe(load_settings(self.config)) if self.config else None,
+                    "runner": jobs.runner_state(self.actions.state_dir) if self.actions else None,
+                }
+            )
         elif url.path == "/api/run":
             detail = history.run_detail(self.root, run_id)
             if detail is not None and self.actions:
@@ -274,6 +295,23 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/jobs/move":
                 store.move(str(body.get("id", "")), int(body.get("delta", 0)))
                 self._json({"ok": True})
+            elif path == "/api/runs/triage":
+                run_id = str(body.get("run", ""))
+                if run_id not in history.discover_runs(self.root):
+                    raise JobError("Unknown run")
+                record = TriageStore(self.root).update(
+                    run_id,
+                    str(body.get("action", "")),
+                    by,
+                    note=str(body.get("note") or ""),
+                    until=str(body.get("until") or ""),
+                    rating=str(body.get("rating") or ""),
+                )
+                self._json({"triage": record})
+            elif path == "/api/health":
+                self._json({"checks": health.check(load_settings(self.config))})
+            elif path == "/api/schedules/preview":
+                self._json({"upcoming": self.schedules.preview(body)})
             elif path == "/api/runs/action":
                 done = self.actions.perform(
                     str(body.get("run", "")), str(body.get("action", "")), by, body.get("step")

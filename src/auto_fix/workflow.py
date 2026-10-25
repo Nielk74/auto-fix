@@ -216,6 +216,10 @@ class Workflow:
                         "error": error,
                         "context": context,
                         "response": output,
+                        # A rejected answer's text, e.g. output cut off at max_tokens.
+                        "raw": redact(str(getattr(self.model, "last_raw", "") or ""))[-20000:]
+                        if error
+                        else None,
                     },
                 )
                 self.event(

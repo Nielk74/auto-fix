@@ -75,15 +75,8 @@ class ScheduleStore:
                     spec["last_outcome"] = None
         return result
 
-    def save(
-        self,
-        data: dict[str, Any],
-        by: str,
-        schedule_id: str = "",
-        *,
-        at: datetime | None = None,
-    ) -> dict[str, Any]:
-        at = at or datetime.now(UTC)
+    def _validated(self, data: dict[str, Any], at: datetime) -> dict[str, Any]:
+        """A checked schedule with its next run, or a JobError naming each wrong field."""
         errors: dict[str, str] = {}
         kind = data.get("kind", "")
         if kind not in {"batch", "evaluation", "operations", "demo"}:
@@ -142,6 +135,27 @@ class ScheduleStore:
                     errors["at"] = "Choose a future time that exists in this timezone"
         if errors:
             raise JobError("Check the schedule fields", errors)
+        return spec
+
+    def preview(self, data: dict[str, Any], *, at: datetime | None = None) -> list[str]:
+        """The next five occurrences of an unsaved schedule."""
+        spec = self._validated(data, at or datetime.now(UTC))
+        upcoming, occurrence = [], spec.get("next_run")
+        while occurrence and len(upcoming) < 5:
+            upcoming.append(occurrence)
+            occurrence = next_occurrence(spec, datetime.fromisoformat(occurrence))
+        return upcoming
+
+    def save(
+        self,
+        data: dict[str, Any],
+        by: str,
+        schedule_id: str = "",
+        *,
+        at: datetime | None = None,
+    ) -> dict[str, Any]:
+        at = at or datetime.now(UTC)
+        spec = self._validated(data, at)
         self.state_dir.mkdir(parents=True, exist_ok=True)
         with self.lock:
             records = self._read()

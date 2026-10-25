@@ -9,11 +9,13 @@ from __future__ import annotations
 import json
 import os
 import sqlite3
-from datetime import date, datetime
+import statistics
+from collections import Counter
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-from auto_fix import control
+from auto_fix import control, triage
 
 TERMINAL = {"ready", "published", "blocked", "publication_unknown"}
 # Runs stopped on a step boundary by a request; a paused run resumes from its checkpoint.
@@ -22,6 +24,11 @@ RUN_MARKERS = ("events.jsonl", "checkpoints.sqlite", "result.json")
 # Large evidence directories are listed, never inlined into API responses.
 TEXT_LIMIT = 4000
 FILE_LIMIT = 2_000_000
+# Tail of a failed model call's raw output kept for the dashboard.
+RAW_LIMIT = 20_000
+SORTS = {"-started", "started", "-duration", "duration", "status"}
+# Blocked reasons that mean the TeamCity failure did not reproduce locally.
+NOT_REPRODUCED = ("not reproduced", "varied across repetitions")
 
 
 def _json(path: Path, default: Any = None) -> Any:
@@ -121,6 +128,27 @@ def _pr_url(pr: Any) -> str:
     return links[0].get("href", "") if links and isinstance(links[0], dict) else ""
 
 
+def _counts(report: dict[str, Any]) -> dict[str, int]:
+    return {key: len(report.get(key, [])) for key in ("passed", "failed", "skipped")}
+
+
+def compare(result: dict[str, Any]) -> dict[str, Any] | None:
+    """The full suite before and after the edit: what the fix repaired, left and newly broke."""
+    base = (result.get("baseline") or {}).get("report") or {}
+    final = (result.get("verification") or {}).get("report") or {}
+    if not isinstance(base, dict) or not isinstance(final, dict) or not final:
+        return None
+    before, after = set(base.get("failed", [])), set(final.get("failed", []))
+    return {
+        "fixed": sorted(before & set(final.get("passed", []))),
+        "still_failing": sorted(before & after),
+        # A test failing after the edit that did not fail before it is a regression.
+        "regressions": sorted(after - before),
+        "baseline": _counts(base),
+        "final": _counts(final),
+    }
+
+
 def summarize(run_id: str, run: Path) -> dict[str, Any]:
     result = _json(run / "result.json", {}) or {}
     receipt = _receipt(run)
@@ -137,6 +165,7 @@ def summarize(run_id: str, run: Path) -> dict[str, Any]:
     group = PurePosixPath(run_id).parent.parent
     group = (group.parent if group.name == "state" else group).as_posix()
     report = (result.get("verification") or result.get("baseline") or {}).get("report")
+    comparison = compare(result)
     return {
         "id": run_id,
         "name": run.name,
@@ -155,6 +184,7 @@ def summarize(run_id: str, run: Path) -> dict[str, Any]:
         "validation": {key: len(report.get(key, [])) for key in ("passed", "failed", "skipped")}
         if isinstance(report, dict)
         else None,
+        "regressions": len(comparison["regressions"]) if comparison else 0,
         "attempts": result.get("attempt", 0),
         "inspections": result.get("inspections", 0),
         "branch": result.get("branch", ""),
@@ -188,7 +218,11 @@ def summarize(run_id: str, run: Path) -> dict[str, Any]:
 
 
 def list_runs(root: Path) -> list[dict[str, Any]]:
-    runs = [summarize(run_id, run) for run_id, run in discover_runs(root).items()]
+    decisions = triage.load(root)
+    runs = [
+        {**summarize(run_id, run), "triage": decisions.get(run_id) or None}
+        for run_id, run in discover_runs(root).items()
+    ]
     return sorted(runs, key=lambda run: (run["started"] or "", run["id"]), reverse=True)
 
 
@@ -212,12 +246,15 @@ def run_page(
     q: str = "",
     since: str = "",
     until: str = "",
+    sort: str = "-started",
 ) -> dict[str, Any]:
     """Filter lightweight evidence summaries before slicing a bounded history page."""
     if page < 1 or not 1 <= page_size <= 100:
         raise ValueError("Page must be positive and page size between 1 and 100")
-    if status and status not in TERMINAL | STOPPED | {"in_progress", "attention"}:
+    if status and status not in TERMINAL | STOPPED | {"in_progress", "attention", "triaged"}:
         raise ValueError("Unknown run status")
+    if sort not in SORTS:
+        raise ValueError("Unknown sort order")
     for value in (since, until):
         if value:
             date.fromisoformat(value)
@@ -237,7 +274,13 @@ def run_page(
             (not workflow or workflow_key(run) == workflow)
             and (
                 not status
-                or (needs_attention(run) if status == "attention" else run["status"] == status)
+                or (
+                    needs_attention(run)
+                    if status == "attention"
+                    else triage.active(run["triage"])
+                    if status == "triaged"
+                    else run["status"] == status
+                )
             )
             and (not since or (run["started"] or "")[:10] >= since)
             and (not until or bool(run["started"]) and run["started"][:10] <= until)
@@ -259,6 +302,12 @@ def run_page(
             )
         )
     ]
+    if sort in {"duration", "-duration"}:
+        runs.sort(key=lambda run: run["duration_seconds"] or 0, reverse=sort == "-duration")
+    elif sort == "started":
+        runs.reverse()
+    elif sort == "status":
+        runs.sort(key=lambda run: run["status"])
     total = len(runs)
     pages = max(1, (total + page_size - 1) // page_size)
     page = min(page, pages)
@@ -278,6 +327,8 @@ def run_page(
 
 
 def needs_attention(run: dict[str, Any]) -> bool:
+    if triage.active(run.get("triage")):
+        return False
     return run["status"] in {"ready", "paused", "blocked", "publication_unknown"} or (
         run["status"] == "in_progress" and not run["live"]
     )
@@ -441,9 +492,36 @@ def model_calls(run: Path) -> list[dict[str, Any]]:
                 },
                 "context_chars": len(json.dumps(record.get("context", ""))),
                 "response": clip(record.get("response")),
+                # What a failed call returned before it was rejected, e.g. truncated output.
+                "raw": clip(record.get("raw"), RAW_LIMIT),
             }
         )
     return calls
+
+
+def builds(run: Path) -> list[dict[str, Any]]:
+    """Each native build and test check, oldest first, with the log files it wrote."""
+    evidence = run / "evidence"
+    found = []
+    for folder in evidence.iterdir() if evidence.is_dir() else []:
+        if not folder.is_dir() or folder.is_symlink():
+            continue
+        logs = [
+            {"path": path.relative_to(run).as_posix(), "size": path.stat().st_size}
+            for path in sorted(folder.rglob("*"))
+            if path.is_file() and not path.is_symlink()
+        ]
+        # Folders are named <label>-<12 hex digits>; the label says which check it was.
+        label, _, suffix = folder.name.rpartition("-")
+        found.append(
+            {
+                "label": label if len(suffix) == 12 else folder.name,
+                "folder": folder.relative_to(run).as_posix(),
+                "time": datetime.fromtimestamp(folder.stat().st_mtime, UTC).isoformat(),
+                "files": logs,
+            }
+        )
+    return sorted(found, key=lambda item: item["time"])
 
 
 def run_detail(root: Path, run_id: str) -> dict[str, Any] | None:
@@ -467,8 +545,10 @@ def run_detail(root: Path, run_id: str) -> dict[str, Any] | None:
     for source, target in zip(path, path[1:], strict=False):
         transitions[f"{source}>{target}"] = transitions.get(f"{source}>{target}", 0) + 1
     return {
-        "summary": summarize(run_id, run),
+        "summary": {**summarize(run_id, run), "triage": triage.load(root).get(run_id) or None},
         "result": clip(_json(run / "result.json", {})),
+        "comparison": compare(result),
+        "builds": builds(run),
         "steps": executed,
         "checkpoint_count": len(saved),
         # Where a paused run resumes, and which step a re-run may start from.
@@ -506,3 +586,118 @@ def read_file(root: Path, run_id: str, relative: str) -> tuple[bytes, str] | Non
         return None
     kind = "application/json" if target.suffix == ".json" else "text/plain"
     return target.read_bytes(), kind
+
+
+def failing_tests(root: Path, q: str = "", limit: int = 200) -> dict[str, Any]:
+    """Every failing test seen by a run: how often it failed, was fixed or did not reproduce."""
+    tests: dict[str, dict[str, Any]] = {}
+    for run in list_runs(root):
+        for name in dict.fromkeys(run["tests"]):
+            if not name:
+                continue
+            entry = tests.setdefault(
+                name, {"name": name, "runs": 0, "statuses": Counter(), "build_types": set()}
+            )
+            entry["runs"] += 1
+            entry["statuses"][run["status"]] += 1
+            entry["build_types"].add(run["build_type"])
+            # Runs arrive newest first: the first one seen is the latest, the last the oldest.
+            entry.setdefault("last", run)
+            entry["first_seen"] = run["started"]
+            if any(marker in run["reason"] for marker in NOT_REPRODUCED):
+                entry["statuses"]["not_reproduced"] += 1
+    needle = q.strip().casefold()
+    rows = [
+        {
+            "name": entry["name"],
+            "runs": entry["runs"],
+            "statuses": dict(entry["statuses"]),
+            "fixed": entry["statuses"]["ready"] + entry["statuses"]["published"],
+            "not_reproduced": entry["statuses"]["not_reproduced"],
+            "build_types": sorted(item for item in entry["build_types"] if item),
+            "first_seen": entry["first_seen"],
+            "last": {
+                key: entry["last"][key] for key in ("id", "name", "status", "started", "live")
+            },
+        }
+        for entry in tests.values()
+        if not needle or needle in entry["name"].casefold()
+    ]
+    rows.sort(key=lambda row: (row["last"]["started"] or "", row["name"]), reverse=True)
+    return {"tests": rows[:limit], "total": len(rows)}
+
+
+def runs_for_test(root: Path, name: str) -> dict[str, Any]:
+    """The runs that tried to repair one test, newest first."""
+    return {"name": name, "runs": [run for run in list_runs(root) if name in run["tests"]]}
+
+
+def _usage(run: Path) -> tuple[int, int]:
+    tokens_in = tokens_out = 0
+    folder = run / "model-calls"
+    for path in folder.glob("*.json") if folder.is_dir() else []:
+        usage = (_json(path, {}) or {}).get("usage") or {}
+        if isinstance(usage, dict):
+            tokens_in += int(usage.get("prompt_tokens") or usage.get("input_tokens") or 0)
+            tokens_out += int(usage.get("completion_tokens") or usage.get("output_tokens") or 0)
+    return tokens_in, tokens_out
+
+
+def metrics(root: Path, days: int = 30, now: datetime | None = None) -> dict[str, Any]:
+    """Outcome rates, durations and model use per workflow over the last ``days`` days."""
+    if not 1 <= days <= 366:
+        raise ValueError("Days must be between 1 and 366")
+    now = now or datetime.now(UTC)
+    since = (now - timedelta(days=days - 1)).date().isoformat()
+    found = discover_runs(root)
+    window = [run for run in list_runs(root) if (run["started"] or "")[:10] >= since]
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for run in window:
+        groups.setdefault(workflow_key(run), []).append(run)
+
+    def aggregate(runs: list[dict[str, Any]]) -> dict[str, Any]:
+        statuses = Counter(run["status"] for run in runs)
+        decided = sum(statuses[key] for key in TERMINAL)
+        candidates = [
+            run["duration_seconds"]
+            for run in runs
+            if run["status"] in {"ready", "published"} and run["duration_seconds"]
+        ]
+        durations = [run["duration_seconds"] for run in runs if run["duration_seconds"]]
+        calls = failed_calls = tokens_in = tokens_out = 0
+        for run in runs:
+            for event in _events(found[run["id"]]):
+                if event.get("node") == "model_call":
+                    calls += 1
+                    failed_calls += event.get("ok") is False
+            used_in, used_out = _usage(found[run["id"]])
+            tokens_in, tokens_out = tokens_in + used_in, tokens_out + used_out
+        return {
+            "runs": len(runs),
+            "statuses": dict(statuses),
+            # Of the runs that reached a decision, the share that produced a verified fix.
+            "fix_rate": round((statuses["ready"] + statuses["published"]) / decided, 3)
+            if decided
+            else None,
+            "median_duration": statistics.median(durations) if durations else None,
+            "median_time_to_candidate": statistics.median(candidates) if candidates else None,
+            "model_calls": calls,
+            "failed_model_calls": failed_calls,
+            "tokens_in": tokens_in,
+            "tokens_out": tokens_out,
+        }
+
+    first = date.fromisoformat(since)
+    daily = []
+    for offset in range(days):
+        day = (first + timedelta(days=offset)).isoformat()
+        daily.append(
+            {"date": day, **Counter(run["status"] for run in window if run["started"][:10] == day)}
+        )
+    return {
+        "days": days,
+        "since": since,
+        "total": aggregate(window),
+        "workflows": [{"key": key, **aggregate(runs)} for key, runs in sorted(groups.items())],
+        "daily": daily,
+    }

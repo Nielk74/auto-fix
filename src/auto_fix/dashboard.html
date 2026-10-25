@@ -155,7 +155,7 @@ button.copy .lu { vertical-align: 0; }
 .t-run { color: var(--run); } .t-none { color: var(--muted); }
 
 /* content */
-#content { overflow: auto; min-width: 0; }
+#content { overflow: auto; min-width: 0; position: relative; }
 .page { padding: 22px 28px 48px; max-width: 1500px; }
 .crumbs { color: var(--muted); font-size: 12.5px; margin-bottom: 8px; }
 .crumbs a { color: var(--muted); } .crumbs a:hover { color: var(--ink); }
@@ -398,18 +398,147 @@ pre.log-view { max-height: 60vh; border: 1px solid var(--line); border-radius: 6
   .box { overflow-x: auto; }
   .split { grid-template-columns:minmax(0,1fr); }
 }
+
+/* top navigation, freshness and the hideable tree */
+.topnav { display: flex; gap: 2px; align-items: center; min-width: 0; overflow-x: auto; }
+.topnav a { color: var(--muted); padding: 5px 10px; border-radius: 6px; white-space: nowrap; }
+.topnav a:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 6%, transparent); text-decoration: none; }
+.topnav a[aria-current="page"] { color: var(--ink); background: var(--sel); font-weight: 500; }
+.topnav .count { color: var(--bad); margin-left: 5px; font-variant-numeric: tabular-nums; font-weight: 600; }
+.topnav .count:empty { display: none; }
+.spacer { flex: 1; }
+.fresh { color: var(--muted); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.fresh.stale { color: var(--bad); font-weight: 500; }
+.offline { position: fixed; top: 58px; left: 50%; transform: translateX(-50%); z-index: 35; display: flex; gap: 8px; align-items: center;
+  max-width: min(640px, calc(100vw - 32px)); padding: 9px 14px; border-radius: 6px; color: var(--ink);
+  background: color-mix(in srgb, var(--bad) 12%, var(--ground)); border: 1px solid color-mix(in srgb, var(--bad) 40%, var(--line)); box-shadow: 0 8px 24px -10px rgb(0 0 0 / 0.35); }
+.offline .lu { color: var(--bad); }
+body.nosidebar main { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+body.nosidebar aside { display: none; }
+#sidebar-toggle[aria-pressed="true"] { color: var(--ink); }
+
+/* small shared pieces */
+.strong { font-weight: 500; }
+.nowrap { white-space: nowrap; }
+td.mark-cell { width: 28px; }
+.tools.tight { gap: 4px; flex-wrap: nowrap; }
+a.ib { width: 24px; height: 24px; display: inline-grid; place-items: center; color: var(--muted); border-radius: 4px; }
+a.ib:hover { background: var(--soft); color: var(--ink); text-decoration: none; }
+.lu.up { transform: rotate(-90deg); }
+button.btn.icon.small { width: 24px; padding: 0; }
+button.btn.on { border-color: var(--accent); color: var(--accent); background: var(--sel); }
+.presets { display: flex; gap: 4px; align-items: center; align-self: end; height: 32px; }
+.sortbtn { background: none; border: none; padding: 0; font: inherit; color: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
+.sortbtn:hover { color: var(--ink); }
+th[aria-sort="ascending"], th[aria-sort="descending"] { color: var(--ink); }
+td.runcell { max-width: 34ch; white-space: nowrap; }
+.badge { margin-left: 6px; }
+tr.off td { color: var(--muted); }
+ul.plain { list-style: none; margin: 4px 0; padding: 0; display: grid; gap: 4px; }
+a.back { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; margin-bottom: 6px; }
+.notice.quiet { background: var(--soft); border-color: var(--line); }
+.notice.quiet > .lu { color: var(--muted); }
+.callout { border: 1px solid var(--line); border-left: 3px solid var(--faint); border-radius: 6px; padding: 10px 14px; margin: 0 0 10px; display: grid; gap: 4px; }
+.callout.bad { border-left-color: var(--bad); background: color-mix(in srgb, var(--bad) 6%, var(--ground)); }
+.callout.warn { border-left-color: var(--warn); background: color-mix(in srgb, var(--warn) 7%, var(--ground)); }
+.callout .detail { white-space: pre-wrap; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 0 0 10px; }
+.chip { border: 1px solid currentColor; border-radius: 12px; padding: 1px 10px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+.chip.t-none { color: var(--muted); border-color: var(--line); }
+.cmds { display: grid; gap: 6px; margin-top: 10px; }
+.cmds > div { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+p.lead { margin: 0 0 10px; display: grid; gap: 4px; }
+.explain-text { white-space: pre-wrap; color: var(--muted); max-width: 90ch; }
+.subsection { margin-top: 14px; }
+.subsection h3, dialog h3 { font-size: 13px; font-weight: 600; margin: 0 0 8px; }
+dialog h3 { margin: 18px 0 10px; padding-top: 12px; border-top: 1px solid var(--line); }
+dialog h3:first-of-type { border-top: 0; padding-top: 0; }
+.subsection h3 .sub { color: var(--muted); font-weight: 400; margin-left: 6px; }
+details.testfail { border-bottom: 1px solid var(--line); }
+details.testfail:last-child { border-bottom: 0; }
+details.testfail > summary, details.output > summary, details.folder > summary { cursor: pointer; padding: 8px 14px; }
+details.output { margin-top: 10px; }
+details.output > summary { padding: 4px 0; color: var(--muted); }
+pre.view.clip { max-height: 40vh; }
+.upcoming { margin: -4px 0 6px; }
+pre.view.cmd { white-space: pre-wrap; word-break: break-all; max-height: none; border: 1px solid var(--line); border-radius: 6px; }
+.testlinks { display: inline-flex; gap: 10px; flex-wrap: wrap; }
+.field textarea, .notebox textarea { width: 100%; font: inherit; color: var(--ink); background: var(--ground); border: 1px solid var(--line); border-radius: 6px;
+  padding: 7px 10px; resize: vertical; }
+.notebox { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: start; max-width: 900px; margin-top: 8px; }
+ul.notes { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; max-width: 900px; }
+ul.notes .text { white-space: pre-wrap; }
+.tools.rating { margin-bottom: 12px; gap: 8px; }
+label.checkrow { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+
+/* artifact and build-log lists */
+.filelist { padding: 6px 0; max-height: 74vh; overflow: auto; }
+.file { align-items: center; }
+.file .fname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file .fsize { color: var(--muted); white-space: nowrap; font-size: 11.5px; }
+.folder > .file { padding-left: 28px; }
+.folder > summary { display: flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 12px; }
+.build + .build { border-top: 1px solid var(--line); margin-top: 4px; padding-top: 4px; }
+.build .bh { display: flex; justify-content: space-between; gap: 8px; padding: 6px 14px 2px; }
+pre.view.logtext .del { color: var(--bad); }
+
+/* diffs */
+.diff { font-family: var(--mono); font-size: 12px; }
+.dfile + .dfile { border-top: 1px solid var(--line); }
+.diff .fh { display: flex; justify-content: space-between; gap: 12px; padding: 7px 12px; background: var(--soft); border-bottom: 1px solid var(--line); }
+.diff .rows { display: grid; grid-template-columns: minmax(100%, max-content); overflow-x: auto; max-height: 70vh; }
+.diff .ln { display: grid; grid-template-columns: 44px 44px minmax(0, 1fr); line-height: 1.55; }
+.diff .ln .o, .diff .ln .n { color: var(--faint); text-align: right; padding-right: 8px; user-select: none; }
+.diff .ln code { white-space: pre; padding: 0 12px 0 6px; font-size: 12px; }
+.diff .ln.add { background: color-mix(in srgb, var(--ok) 11%, transparent); }
+.diff .ln.del { background: color-mix(in srgb, var(--bad) 11%, transparent); }
+.diff .ln.hunk { color: var(--muted); background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.diff .ln.note { color: var(--muted); }
+.diff.snippet { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; max-width: 900px; background: var(--ground); }
+.diff.snippet .ln { grid-template-columns: minmax(0, 1fr); }
+
+/* metrics */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 26px; }
+.kpi { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 2px; }
+.kpi .l { color: var(--muted); font-size: 12px; }
+.kpi .v { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.chartbox { padding: 14px 16px 10px; }
+.plot { position: relative; }
+.chart { width: 100%; height: auto; display: block; }
+.chart .tick { fill: var(--muted); font-size: 11px; font-family: inherit; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .base { stroke: var(--faint); stroke-width: 1; }
+.chart .bar { fill: var(--accent); }
+.chart .bar.on { fill: color-mix(in srgb, var(--accent) 78%, var(--ink)); }
+.chart .hit { fill: transparent; cursor: default; outline: none; }
+.chart .hit:focus-visible { stroke: var(--accent); stroke-width: 1.5; }
+.charttip { position: absolute; top: -6px; z-index: 2; pointer-events: none; max-width: 320px; padding: 6px 10px; font-size: 12px; border-radius: 6px;
+  background: var(--ground); border: 1px solid var(--line); box-shadow: 0 8px 20px -8px rgb(0 0 0 / 0.3); }
+@media (max-width: 900px) {
+  .topnav { order: 5; flex-basis: 100%; }
+  .fresh { display: none; }
+}
 </style>
 </head>
 <body>
 <header>
-  <a class="brand" id="home" href="#" title="All runs">
+  <button id="sidebar-toggle" class="ib" type="button" aria-label="Show the workflow list" title="Show or hide the workflow list" aria-pressed="true"><svg class="lu" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h16"/></svg></button>
+  <a class="brand" id="home" href="#" title="Home">
     <svg width="20" height="18" viewBox="0 0 22 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2 12.5l9-4.5 9 4.5-9 4.5z" opacity=".45"/><path d="M2 9l9-4.5 9 4.5-9 4.5z"/></svg>
     Auto Fix
   </a>
-  <div class="root" id="root"></div>
+  <nav class="topnav" aria-label="Main">
+    <a href="#" data-view="home">Home<span class="count" id="nav-attention"></span></a>
+    <a href="#view=history" data-view="history">History</a>
+    <a href="#view=tests" data-view="tests">Tests</a>
+    <a href="#view=metrics" data-view="metrics">Metrics</a>
+    <a href="#view=schedules" data-view="schedules">Schedules</a>
+    <a href="#view=batches" data-view="batches">Batches</a>
+    <a href="#view=settings" data-view="settings">Settings</a>
+  </nav>
+  <span class="spacer"></span>
   <button id="queue-link" class="qlink" type="button" hidden></button>
-  <button id="schedules-link" class="btn small" type="button">Schedules</button>
-  <button id="batches-link" class="btn small" type="button">Batches</button>
+  <span class="fresh" id="fresh" aria-live="off"></span>
   <label class="live" title="Re-read the state directory every 4 seconds"><input type="checkbox" id="live" checked> Live refresh</label>
 </header>
 <main>
@@ -421,6 +550,7 @@ pre.log-view { max-height: 60vh; border: 1px solid var(--line); border-radius: 6
 </main>
 <dialog id="dialog" aria-label="Dialog"></dialog>
 <div id="toast" role="status" aria-live="polite"></div>
+<div id="offline" class="offline" role="alert" hidden></div>
 <!-- Hairline kernel, MIT License, (c) 2026 Lucas Marques: https://github.com/lucasmarkes/hairline -->
 <script id="hl-kernel">
 /* hairline kernel sha256:346b48bdef2cdfafd5343eba01494255cf75f9c078e6fcd1aafc62bab62980a1 */
@@ -1149,20 +1279,23 @@ const STATUS = {
   paused: {tone: "warn", text: "Paused", icon: "paused"},
   cancelled: {tone: "none", text: "Cancelled", icon: "cancelled"},
   running: {tone: "run", text: "running"},
-  working: {tone: "none", text: "continued"},
-  interrupted: {tone: "bad", text: "Interrupted"},
-  validated: {tone: "ok", text: "validated"},
-  verification_failed: {tone: "bad", text: "verification failed"},
-  invalid_proposal: {tone: "warn", text: "invalid proposal"},
+  working: {tone: "none", text: "done"},
+  interrupted: {tone: "bad", text: "interrupted"},
+  abandoned: {tone: "bad", text: "Worker stopped unexpectedly"},
+  validated: {tone: "ok", text: "tests pass"},
+  verification_failed: {tone: "bad", text: "tests still failing"},
+  invalid_proposal: {tone: "warn", text: "no usable edit"},
 };
 const status = key => STATUS[key] || {tone: "none", text: key || "—"};
+/** A run's status as shown: an in-progress run with no live worker was abandoned, not running. */
+const runStatus = run => run.status === "in_progress" && !run.live ? "abandoned" : run.status;
 // Deep links: #wf=<workflow> or #run=<id>&tab=<log|calls|files>&open=<step,...>&call=<file>&file=<path>
 const link = new URLSearchParams(location.hash.slice(1));
 const state = {runs: [], show: "all", workflow: link.get("wf"), openAttempts: new Set(), collapsed: new Set(), selected: link.get("run"), detail: null,
   tab: link.get("tab") || "overview", openSteps: new Set((link.get("open") || "").split(",").filter(Boolean).map(Number)),
   file: link.get("file"), call: link.get("call"), figure: null, catalog: [], total:0, allTotal:0, pages:1,
   history: {page:Math.max(1, Number(link.get("page")) || 1), page_size:[25,50,100].includes(Number(link.get("size"))) ? Number(link.get("size")) : 25,
-    status:link.get("status") || "", q:link.get("search") || "", since:link.get("since") || "", until:link.get("until") || ""},
+    status:link.get("status") || "", q:link.get("search") || "", since:link.get("since") || "", until:link.get("until") || "", sort:link.get("sort") || "-started"}, buildFile:link.get("log"),
   returnHash:link.get("back") || "", request:0, view:link.get("view"), schedules:[],timezone:"Europe/Paris",attention:[],active:[],attentionTotal:0,
   batches:[],batchPage:Number(link.get("batch_page"))||1,batchPages:1,batchTotal:0};
 
@@ -1240,6 +1373,9 @@ const ICONS = {
   reconcile: "<path d='M3 12a9 9 0 0 1 9-9a9.75 9.75 0 0 1 6.74 2.74L21 8'/><path d='M21 3v5h-5m5 4a9 9 0 0 1-9 9a9.75 9.75 0 0 1-6.74-2.74L3 16'/><path d='M8 16H3v5'/>",
   cancelled: "<circle cx='12' cy='12' r='10'/><path d='m9 15l6-6'/>",
   clock: "<circle cx='12' cy='12' r='10'/><path d='M12 6v6l4 2'/>",
+  download: "<path d='M12 15V3m9 12v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/><path d='m7 10l5 5l5-5'/>",
+  diff: "<path d='M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z'/><path d='M14 2v4a2 2 0 0 0 2 2h4M9 10h6m-3-3v6m-3 5h6'/>",
+  arrowLeft: "<path d='m12 19l-7-7l7-7m7 7H5'/>",
   play: "<path d='M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z'/>",
 };
 function lucide(name, size = 16, cls = "") {
@@ -1448,7 +1584,7 @@ function drawSidebar() {
       const last = catalogOf(item.key)?.last, active = activeJob(item.key);
       nodes.push(el("div", {class: "leaf" + (here === item.key ? " sel" : ""), title: item.id || item.title,
         "aria-current": here === item.key ? "page" : null, "data-key": "wf:" + item.key, onclick: () => openWorkflow(item.key)},
-        active?.status === "running" || last?.live ? icon("run") : last ? statusIcon(last.status) : lucide("clock", 14, "ico t-none idle"),
+        active?.status === "running" || last?.live ? icon("run") : last ? statusIcon(runStatus(last)) : lucide("clock", 14, "ico t-none idle"),
         el("span", {class: "nm wf"}, item.title),
         el("span", {class: "tm"}, active?.status === "queued" ? "queued" : last ? ago(last.started) : "")));
     }
@@ -1469,83 +1605,112 @@ const elapsed = iso => duration((Date.now() - Date.parse(iso)) / 1000);
 /** A clock that the refresh loop moves on in place, without redrawing its row. */
 const clock = iso => el("span", {"data-since": iso}, elapsed(iso));
 function tickClocks() { for (const node of document.querySelectorAll("[data-since]")) node.textContent = elapsed(node.dataset.since); }
-/** "1 of 2 failing" from the run's latest test report, filled in once its details arrive. */
+/** The latest check's counts: green only for a verified fix, red when the edit broke other tests. */
 function testsCell(run) {
   const report = run.validation;
-  return el("span", {class:!report ? "muted" : report.failed ? "t-bad" : "t-ok"},
-    !report ? "—" : `${report.passed} passed` + (report.failed ? ` · ${report.failed} failed` : "") + (report.skipped ? ` · ${report.skipped} skipped` : ""));
+  if (!report) return el("span", {class: "muted"}, "—");
+  const tone = run.regressions ? "t-bad" : ["ready", "published"].includes(run.status) ? "t-ok" : "muted";
+  return el("span", {class: tone}, `${report.passed} passed` + (report.failed ? ` · ${report.failed} failed` : "")
+    + (run.regressions ? ` · ${run.regressions} newly failing` : ""));
 }
 function pageHead(title, sub, ...tools) {
   return el("div", {class: "pagehead"}, el("div", {}, el("h1", {}, title), sub ? el("div", {class: "muted"}, sub) : null),
     el("div", {class: "tools"}, tools));
 }
-/** TeamCity's Run and "…": run with the defaults, or set the parameters first. */
-function runButtons(spec, small = false) {
+/** Run and Schedule for one workflow. Both open the parameters dialog: nothing starts on one click. */
+function runButtons(spec, {small = false, primary = false, label = "Run…"} = {}) {
   if (!spec) return null;
-  return el("div", {class: "runbtn" + (small ? " small" : "")},
-    el("button", {class: "btn primary" + (small ? " small" : ""), type: "button", title: `Run ${spec.title} with the default parameters`,
-      onclick: event => { event.stopPropagation(); quickRun(spec); }}, lucide("play", 12), "Run"),
-    el("button", {class: "btn primary" + (small ? " small" : ""), type: "button", title: "Run with parameters", "aria-label": `Run ${spec.title} with parameters`,
-      onclick: event => { event.stopPropagation(); openRunDialog(spec); }}, "…"),
-    el("button",{class:"btn"+(small?" small":""),type:"button",title:"Schedule "+spec.title,"aria-label":"Schedule "+spec.title,
-      onclick:event=>{event.stopPropagation();openRunDialog(spec,true);}},lucide("clock",12),small?null:"Schedule"));
+  const size = small ? " small" : "";
+  return el("div", {class: "tools tight"},
+    el("button", {class: "btn" + size + (primary ? " primary" : ""), type: "button", title: `Choose the parameters and run ${spec.title}`,
+      onclick: event => { event.stopPropagation(); openRunDialog(spec); }}, lucide("play", 12), label),
+    el("button", {class: "btn icon" + size, type: "button", title: "Schedule " + spec.title, "aria-label": "Schedule " + spec.title,
+      onclick: event => { event.stopPropagation(); openRunDialog(spec, true); }}, lucide("clock", 13)));
 }
-async function quickRun(spec) {
+/** The main action of an attention row, done in place; the server checks it is still allowed. */
+async function quickAct(run, action) {
+  if (action === "publish" && !await confirmDialog("Publish pull request",
+    `Push ${run.branch || "the verified branch"} and open a pull request on Bitbucket for ${testsLabel(run)}?`, "Publish")) return;
   try {
-    const done = await post("/api/jobs", {kind: spec.kind, params: spec.params});
-    toast(`Queued: ${done.job.title}`);
-    await loadJobs();
-    renderSidebar();
-    if (!state.selected) renderHome();
+    const done = await post("/api/runs/action", {run: run.id, action});
+    toast(done.job ? `Queued: ${done.job.title}` : "Done");
+    await refresh();
     wake();
   } catch (error) { toast(error.message, "bad"); }
 }
+async function moveJob(job, delta) {
+  try { await post("/api/jobs/move", {id: job.id, delta}); await loadJobs(); renderHome(); } catch (error) { toast(error.message, "bad"); }
+}
 /** A queued, running or failed job that has no run of its own in the list yet. */
-function jobRow(job) {
+function jobRow(job, {workflow = false, move = null} = {}) {
   if (job.run_id) return null;
   const queued = job.status === "queued", failed = job.status === "failed";
-  const result = queued ? [el("span", {class: "muted", style: "font-weight:500"}, "Queued"), el("span", {class: "muted"}, ` · ${job.note || "by " + job.created_by}`)]
-    : failed ? [el("span", {class: "t-bad", style: "font-weight:500"}, "Failed"), el("span", {class: "muted"}, " · " + (job.error || "see the log"))]
-    : [el("span", {class: "t-run", style: "font-weight:500"}, "Running")];
+  const result = queued ? [el("span", {class: "muted strong"}, "Queued"), el("span", {class: "muted"}, ` · ${job.note || "by " + job.created_by}`)]
+    : failed ? [el("span", {class: "t-bad strong"}, "Failed"), el("span", {class: "muted"}, " · " + (job.error || "see the log"))]
+    : [el("span", {class: "t-run strong"}, "Running")];
   return el("tr", {class: "jobrow", "data-key": "job:" + job.id},
-    el("td", {style: "width:28px"}, queued ? lucide("clock", 14, "ico t-none") : failed ? icon("bad") : icon("run")),
-    el("td", {style: "white-space:nowrap"}, job.title),
+    el("td", {class: "mark-cell"}, queued ? lucide("clock", 14, "ico t-none") : failed ? icon("bad") : icon("run")),
+    el("td", {class: "nowrap"}, job.title),
+    workflow ? el("td", {class: "hide-sm muted nowrap"}, workflowLabel(workflowOfJob(job), "")) : null,
     el("td", {class: "grow"}, el("span", {class: "ellipsis", title: job.error || ""}, result)),
     el("td", {class: "hide-sm"}),
-    el("td", {class: "hide-sm muted", style: "white-space:nowrap"}, shortWhen(job.started || job.created)),
+    el("td", {class: "hide-sm muted nowrap"}, shortWhen(job.started || job.created)),
     el("td", {class: "num"}, job.status === "running" && job.started ? clock(job.started) : ""),
     el("td", {class: "rowtools"},
+      move ? [iconButton("chevron", "Move up in the queue", () => moveJob(job, -1), "up", !move.up),
+              iconButton("chevron", "Move down in the queue", () => moveJob(job, 1), "down", !move.down)] : null,
       queued ? iconButton("close", "Remove from queue", () => removeJob(job)) : null,
       job.status === "running" ? el("button", {class: "btn small", type: "button", onclick: event => { event.stopPropagation(); stopJob(job); }}, lucide("halt", 12), "Stop") : null,
       !queued ? iconButton("logfile", "View log", () => openLog(job)) : null,
       failed ? iconButton("close", "Dismiss", () => removeJob(job)) : null));
 }
-function runRow(run) {
-  const st = status(run.status), why = run.reason && st.tone !== "ok" ? run.reason : "";
+function runRow(run, {workflow = false} = {}) {
+  const key = runStatus(run), st = status(key), why = run.reason && st.tone !== "ok" ? explain(run.reason).title : "";
   const running = run.status === "in_progress" && run.live;
   const result = running
-    ? [el("span", {class: "t-run", style: "font-weight:500"}, "Running"), el("span", {class: "muted"}, ` · ${run.current || "starting"}`),
+    ? [el("span", {class: "t-run strong"}, "Running"), el("span", {class: "muted"}, ` · ${run.current || "starting"}`),
        run.request ? el("span", {class: "muted"}, ` · ${run.request.request === "pause" ? "pausing" : "stopping"} after this step`) : null]
-    : [el("span", {class: "t-" + st.tone, style: "font-weight:500"}, st.text), why ? el("span", {class: "muted"}, " · " + why) : null];
+    : [el("span", {class: "t-" + st.tone + " strong"}, st.text), why ? el("span", {class: "muted"}, " · " + why) : null];
   return el("tr", {class: "click", "data-key": "row:" + run.id, "aria-label": `${run.name}: ${st.text}`, onclick: () => select(run.id)},
-    el("td", {style: "width:28px"}, statusIcon(run.status)),
-    el("td", {class: "mono", style: "white-space:nowrap"}, run.name),
-    el("td", {class: "grow"}, el("span", {class: "ellipsis", title: why ? `${st.text}: ${why}` : st.text}, result)),
-    el("td", {class: "hide-sm", style: "white-space:nowrap"}, testsCell(run)),
-    el("td", {class: "hide-sm muted", style: "white-space:nowrap", title: when(run.started)}, shortWhen(run.started)),
+    el("td", {class: "mark-cell"}, statusIcon(key)),
+    el("td", {class: "runcell"}, el("span", {class: "ellipsis mono", title: run.tests.join(", ")}, testsLabel(run)), el("span", {class: "ellipsis muted small mono"}, run.name)),
+    workflow ? el("td", {class: "hide-sm muted nowrap"}, workflowLabel(workflowOf(run), run.build_type || groupName(run))) : null,
+    el("td", {class: "grow"}, el("span", {class: "ellipsis", title: run.reason || st.text}, result,
+      triageActive(run.triage) ? el("span", {class: "badge"}, TRIAGE_STATE[run.triage.state]) : null)),
+    el("td", {class: "hide-sm nowrap"}, testsCell(run)),
+    el("td", {class: "hide-sm muted nowrap", title: when(run.started)}, shortWhen(run.started)),
     el("td", {class: "num"}, running && run.started ? clock(run.started) : duration(run.duration_seconds)),
-    el("td", {class: "rowtools"},run.output_files?.includes("fix.diff")?el("a",{class:"btn small",href:"/api/download?"+new URLSearchParams({id:run.id,path:"fix.diff"}),download:"",onclick:event=>event.stopPropagation()},"Patch ↓"):null,
-      el("a",{class:"btn small",href:"/api/download?id="+encodeURIComponent(run.id),download:"",title:"Download evidence bundle",onclick:event=>event.stopPropagation()},lucide("logfile",12),"Artifacts ↓"), running && CAN_ACT ? el("button", {class: "btn small", type: "button",
-      onclick: async event => { event.stopPropagation(); stopDialog(await api("/api/run?id=" + encodeURIComponent(run.id))); }},
-      lucide("halt", 12), "Stop") : null));
+    el("td", {class: "rowtools"},
+      run.output_files?.includes("fix.diff") ? el("a", {class: "ib", href: downloadHref(run.id, "fix.diff"), download: "", title: "Download the patch",
+        "aria-label": "Download the patch of " + run.name, onclick: event => event.stopPropagation()}, lucide("diff", 14)) : null,
+      el("a", {class: "ib", href: downloadHref(run.id), download: "", title: "Download all evidence (.zip)", "aria-label": "Download the evidence of " + run.name,
+        onclick: event => event.stopPropagation()}, lucide("download", 14)),
+      running && CAN_ACT ? el("button", {class: "btn small", type: "button",
+        onclick: async event => { event.stopPropagation(); stopDialog(await api("/api/run?id=" + encodeURIComponent(run.id))); }},
+        lucide("halt", 12), "Stop") : null));
 }
-function runsTable(jobs, runs) {
-  const rows = jobs.map(jobRow).filter(Boolean);
+/** A workflow's name for a table cell: every repair workflow starts "Repair failures · ", which a column does not need. */
+const workflowLabel = (key, fallback) => (findWorkflow(key)?.title || fallback).replace(/^Repair failures · /, "");
+const downloadHref = (id, path) => "/api/download?" + new URLSearchParams({id, ...(path ? {path} : {})});
+function runsTable(jobs, runs, {workflow = false, sortable = false} = {}) {
+  const queued = jobs.filter(job => job.status === "queued");
+  const rows = jobs.map(job => jobRow(job, {workflow,
+    move: CAN_ACT && job.status === "queued" ? {up: queued[0] !== job, down: queued.at(-1) !== job} : null})).filter(Boolean);
   if (!rows.length && !runs.length) return null;
+  const head = (label, key, cls = "") => sortable ? sortHeader(label, key, cls) : el("th", {class: cls}, label);
   return el("div", {class: "box"}, el("table", {class: "runs"},
-    el("thead", {}, el("tr", {}, el("th", {}, el("span", {class: "sr"}, "Status")), el("th", {}, "Run"), el("th", {}, "Result"),
-      el("th", {class: "hide-sm"}, "Validation"), el("th", {class: "hide-sm"}, "Started"), el("th", {class: "num"}, "Duration"), el("th", {}, el("span", {class: "sr"}, "Actions")))),
-    el("tbody", {}, rows, runs.map(runRow))));
+    el("thead", {}, el("tr", {}, el("th", {}, el("span", {class: "sr"}, "Status")), el("th", {}, "Failing test · run"),
+      workflow ? el("th", {class: "hide-sm"}, "Workflow") : null, head("Result", "status"), el("th", {class: "hide-sm"}, "Validation"),
+      head("Started", "started", "hide-sm"), head("Duration", "duration", "num"), el("th", {}, el("span", {class: "sr"}, "Actions")))),
+    el("tbody", {}, rows, runs.map(run => runRow(run, {workflow})))));
+}
+/** A column header that sorts the history: newest or longest first on the first click. */
+function sortHeader(label, key, cls) {
+  const current = state.history.sort || "-started";
+  const dir = current === key ? "ascending" : current === "-" + key ? "descending" : "none";
+  const next = key === "status" ? "status" : dir === "descending" ? key : "-" + key;
+  return el("th", {class: cls, "aria-sort": dir}, el("button", {class: "sortbtn", type: "button", onclick: () => changeHistory({sort: next})},
+    label, dir === "none" ? null : lucide("chevron", 11, dir === "ascending" ? "up" : "down")));
 }
 function runnerNotice() {
   if (!CAN_ACT) return null;
@@ -1554,89 +1719,112 @@ function runnerNotice() {
 }
 function renderHome() {
   dropFigure();
-  if(state.view==="schedules") {document.getElementById("content").replaceChildren(schedulesPage());return;}
-  if(state.view==="batches") {document.getElementById("content").replaceChildren(batchesPage());return;}
-  if(state.view==="history") {document.getElementById("content").replaceChildren(el("div",{class:"page"},pageHead("Run history",`${state.total} matching workflow runs`),historyFilters(),runsTable([],state.runs)||el("p",{class:"muted"},"No runs match these filters."),pagination()));return;}
+  markNav();
+  const content = document.getElementById("content"), page = PAGE_VIEWS[state.view];
+  if (page) { content.replaceChildren(page()); return; }
+  if (state.view === "history") {
+    content.replaceChildren(el("div", {class: "page"}, pageHead("Run history", `${state.total} matching runs`), historyFilters(),
+      runsTable([], state.runs, {workflow: true, sortable: true}) || emptyState("search", "No run matches", "Adjust the search, status or date filters."),
+      pagination()));
+    return;
+  }
   const workflow = state.workflow && findWorkflow(state.workflow);
   if (state.workflow && !workflow) state.workflow = null;
-  document.getElementById("content").replaceChildren(workflow ? workflowPage(workflow) : projectsPage());
+  content.replaceChildren(workflow ? workflowPage(workflow) : projectsPage());
 }
-/** TeamCity's projects overview: each workflow with its last run and a Run button. */
+/** Home: what needs a person first, then the work in flight, then every workflow with Run. */
 function projectsPage() {
-  const queue = CAN_ACT ? controls.jobs : [];
+  const jobs = CAN_ACT ? controls.jobs : [];
+  const waiting = jobs.filter(job => !job.run_id && (job.status === "queued" || job.status === "running"));
   const sections = projects().map(project => el("section", {class: "project"},
     el("div", {class: "projhead"}, el("div", {}, el("h2", {}, project.title), project.description ? el("div", {class: "muted"}, project.description) : null),
-      project.run ? runButtons(project.run) : null),
+      project.run ? runButtons(project.run, {label: "Run all…"}) : null),
     el("div", {class: "box"}, el("table", {class: "workflows"},
       el("thead", {}, el("tr", {}, el("th", {}, el("span", {class: "sr"}, "Status")), el("th", {}, "Workflow"), el("th", {}, "Last run"),
         el("th", {class: "hide-sm"}, "Started"), el("th", {class: "num hide-sm"}, "Runs"), el("th", {}, el("span", {class: "sr"}, "Run")))),
       el("tbody", {}, project.workflows.map(item => {
-        const entry = catalogOf(item.key), last = entry?.last, active = activeJob(item.key), st = last && status(last.status);
+        const entry = catalogOf(item.key), last = entry?.last, active = activeJob(item.key), key = last && runStatus(last), st = last && status(key);
         const lastText = active ? el("span", {class: active.status === "running" ? "t-run" : "muted"}, active.status === "running" ? "Running" : "Queued")
-          : last ? [el("span", {class: "t-" + st.tone, style: "font-weight:500"}, last.status === "in_progress" && last.live ? "Running" : st.text),
-                    last.reason && st.tone !== "ok" ? el("span", {class: "muted"}, " · " + last.reason) : null]
+          : last ? [el("span", {class: "t-" + st.tone + " strong"}, last.status === "in_progress" && last.live ? "Running" : st.text),
+                    last.reason && st.tone !== "ok" ? el("span", {class: "muted"}, " · " + explain(last.reason).title) : null]
           : el("span", {class: "muted"}, "Never run");
         return el("tr", {class: "click", "data-key": "wfrow:" + item.key, onclick: () => openWorkflow(item.key)},
-          el("td", {style: "width:28px"}, active?.status === "running" || last?.live ? icon("run") : last ? statusIcon(last.status) : lucide("clock", 14, "ico t-none idle")),
-          el("td", {style: "white-space:nowrap"}, el("b", {class: "wfname"}, item.title), item.id && item.id !== item.title ? el("span", {class: "muted mono small"}, "  " + item.id) : null),
+          el("td", {class: "mark-cell"}, active?.status === "running" || last?.live ? icon("run") : last ? statusIcon(key) : lucide("clock", 14, "ico t-none idle")),
+          el("td", {class: "nowrap", title: item.id || ""}, el("b", {class: "wfname"}, item.title)),
           el("td", {class: "grow"}, el("span", {class: "ellipsis"}, lastText)),
-          el("td", {class: "hide-sm muted", style: "white-space:nowrap"}, last ? shortWhen(last.started) : "—"),
+          el("td", {class: "hide-sm muted nowrap"}, last ? shortWhen(last.started) : "—"),
           el("td", {class: "num hide-sm"}, entry?.count || "—"),
-          el("td", {class: "rowtools"}, runButtons(item.run, true)));
+          el("td", {class: "rowtools"}, runButtons(item.run, {small: true})));
       }))))));
-  const waiting = queue.filter(job => !job.run_id);
   return el("div", {class: "page"},
-    pageHead("Workflows", `${allWorkflows().length} workflows · ${state.allTotal} runs` + (queue.length ? ` · ${queue.filter(j => j.status !== "failed").length} in the queue` : "")),
+    pageHead("Home", `${allWorkflows().length} workflows · ${state.allTotal} runs` + (waiting.length ? ` · ${waiting.length} queued or running` : "")),
     runnerNotice(),
-    el("div",{class:"tools",style:"margin-bottom:16px"},el("a",{class:"btn",href:"#view=history"},"All run history")),
-    el("section",{class:"project"},el("h2",{},"Needs attention",el("span",{class:"sub"},state.attentionTotal)),
-      state.attention.length?el("div",{class:"box attention-list"},el("table",{},el("thead",{},el("tr",{},el("th",{},"Run"),el("th",{},"Outcome"),el("th",{},"Next action"))),
-        el("tbody",{},state.attention.map(run=>el("tr",{},el("td",{},el("a",{href:"#run="+encodeURIComponent(run.id),onclick:event=>{event.preventDefault();select(run.id);}},run.name)),
-          el("td",{},statusIcon(run.status)," ",run.status==="in_progress"?"Worker stopped unexpectedly":status(run.status).text,run.reason?el("div",{class:"muted"},run.reason):null),
-          el("td",{},el("button",{class:"btn small",type:"button",onclick:()=>select(run.id)},({ready:"Review and publish",paused:"Resume workflow",publication_unknown:"Reconcile publication",blocked:"Inspect and retry"})[run.status]||"Inspect run")))))))
-        :el("p",{class:"muted"},"No runs need attention."),state.attentionTotal>25?el("a",{href:"#view=history&status=attention"},`View all ${state.attentionTotal} attention items`):null),
-    state.active.length?el("section",{class:"project"},el("h2",{},"Running workflows"),runsTable([],state.active)):null,
-    waiting.length ? el("section", {class: "project"}, el("div", {class: "projhead"}, el("h2", {}, "Queue")), runsTable(waiting, [])) : null,
-    state.schedules.some(spec=>spec.enabled&&spec.next_run)?el("section",{class:"project"},el("h2",{},"Upcoming schedules"),
-      state.schedules.filter(spec=>spec.enabled&&spec.next_run).sort((a,b)=>a.next_run.localeCompare(b.next_run)).slice(0,3).map(spec=>el("p",{},el("a",{href:"#view=schedules"},spec.name)," · ",new Date(spec.next_run).toLocaleString(undefined,{timeZone:spec.timezone})," ",spec.timezone))):null,
-    state.batches.length?el("section",{class:"project"},el("h2",{},"Recent repair batches"),batchTable(state.batches.slice(0,5)),el("a",{href:"#view=batches"},"All batch history")):null,
+    attentionSection(jobs.filter(job => job.status === "failed")),
+    state.active.length ? el("section", {class: "project"}, el("h2", {}, "Running now"), runsTable([], state.active, {workflow: true})) : null,
+    waiting.length ? el("section", {class: "project"}, el("h2", {}, "Queue"), runsTable(waiting, [], {workflow: true})) : null,
+    upcomingSection(),
+    state.batches.length ? el("section", {class: "project"}, el("div", {class: "projhead"}, el("h2", {}, "Recent repair batches"),
+      el("a", {href: "#view=batches"}, "All batches")), batchTable(state.batches.slice(0, 5))) : null,
     sections.length ? sections : emptyState("runs", "No workflows yet", "Start the dashboard with --config to see and run the configured TeamCity build configurations."));
 }
 /** One workflow, like a TeamCity build configuration: its runs, newest first, and Run. */
 function workflowPage(item) {
-  const runs = runsOf(item.key);
-  const table = runsTable(jobsOf(item.key), runs);
+  const table = runsTable(jobsOf(item.key), runsOf(item.key), {sortable: true});
   return el("div", {class: "page"},
-    el("nav", {class: "crumbs", "aria-label": "Breadcrumb"}, el("a", {href: "#", onclick: event => { event.preventDefault(); openWorkflow(null); }}, "Workflows"), " / ", item.project.title),
-    pageHead(item.title, item.description, runButtons(item.run)),
+    el("nav", {class: "crumbs", "aria-label": "Breadcrumb"}, el("a", {href: "#"}, "Home"), " / ", item.project.title),
+    pageHead(item.title, item.description, runButtons(item.run, {primary: true})),
     runnerNotice(),
     historyFilters(),
     table || emptyState("search", "No run matches", "Adjust the search, status or date filters to find a run."), pagination());
 }
 function historyHash() {
   const hash = new URLSearchParams();
-  if(state.view) hash.set("view",state.view);
-  if(state.view==="batches") hash.set("batch_page",state.batchPage);
+  if (state.view) hash.set("view", state.view);
+  if (state.view === "batches") hash.set("batch_page", state.batchPage);
+  if (state.view === "test") hash.set("name", state.testName || "");
+  if (state.view === "tests" && state.testQuery) hash.set("q", state.testQuery);
+  if (state.view === "metrics" && state.metricsDays !== 30) hash.set("days", state.metricsDays);
   if (state.workflow) hash.set("wf", state.workflow);
-  for (const [key, value] of Object.entries(state.history)) if (value && !(key === "page" && value === 1) && !(key === "page_size" && value === 25))
-    hash.set(key === "page_size" ? "size" : key === "q" ? "search" : key, value);
+  const defaults = {page: 1, page_size: 25, sort: "-started"};
+  for (const [key, value] of Object.entries(state.history)) if (value && value !== defaults[key])
+    hash.set({page_size: "size", q: "search"}[key] || key, value);
   return hash.toString();
 }
-async function changeHistory(patch) {
-  state.history = {...state.history, page:1, ...patch};
-  history.pushState(null, "", "#" + historyHash());
-  try { await loadRuns(); renderHome(); } catch(error) { toast(error.message,"bad"); }
+async function changeHistory(patch, {replace = false} = {}) {
+  state.history = {...state.history, page: 1, ...patch};
+  history[replace ? "replaceState" : "pushState"](null, "", "#" + historyHash());
+  try {
+    await loadRuns();
+    keepFocus(renderHome);
+    // The redraw replaced the search box; keep the caret where the typing was.
+    const input = document.activeElement;
+    if (input?.dataset?.key === "history-search") input.setSelectionRange(input.value.length, input.value.length);
+  } catch (error) { toast(error.message, "bad"); }
 }
+/** Search as you type, status, a date range and quick ranges; every change lands in the URL. */
 function historyFilters() {
-  const h=state.history;
-  return el("form", {class:"history-filters", onsubmit:event=>{event.preventDefault(); changeHistory({q:event.currentTarget.elements.search.value});}},
-    el("label", {}, "Search runs", el("input", {name:"search", type:"search", value:h.q, placeholder:"Run, test, revision, branch…", "data-key":"history-search"})),
-    el("button", {class:"btn",type:"submit"},"Search"),
-    el("label", {}, "Status", el("select", {"data-key":"history-status", onchange:event=>changeHistory({status:event.target.value})},
-      [["","All statuses"],["attention","Needs attention"],...["in_progress","ready","published","blocked","paused","cancelled","publication_unknown"].map(key=>[key,status(key).text])].map(([value,label])=>el("option",{value,selected:value===h.status?"":null},label)))),
-    ...[["since","Started from"],["until","Through"]].map(([key,label])=>el("label",{},label,el("input",{type:"date",value:h[key],"data-key":"history-"+key,onchange:event=>changeHistory({[key]:event.target.value})}))),
-    h.q||h.status||h.since||h.until ? el("button",{class:"btn",type:"button",onclick:()=>changeHistory({q:"",status:"",since:"",until:""})},"Clear filters") : null);
+  const h = state.history, day = offset => localDate(new Date(Date.now() - offset * 86400000));
+  return el("form", {class: "history-filters", role: "search", onsubmit: event => { event.preventDefault(); clearTimeout(historyFilters.timer); changeHistory({}); }},
+    el("label", {}, "Search runs", el("input", {name: "search", type: "search", value: h.q, placeholder: "Test, run, revision, branch…", "data-key": "history-search",
+      oninput: event => {
+        h.q = event.target.value;
+        clearTimeout(historyFilters.timer);
+        historyFilters.timer = setTimeout(() => changeHistory({}, {replace: true}), 350);
+      }})),
+    el("label", {}, "Status", el("select", {"data-key": "history-status", onchange: event => changeHistory({status: event.target.value})},
+      [["", "All statuses"], ["attention", "Needs attention"], ["triaged", "Dismissed, rejected or snoozed"],
+       ...["in_progress", "ready", "published", "blocked", "paused", "cancelled", "publication_unknown"].map(key => [key, status(key).text])]
+        .map(([value, label]) => el("option", {value, selected: value === h.status ? "" : null}, label)))),
+    ...[["since", "Started from"], ["until", "Through"]].map(([key, label]) => el("label", {}, label,
+      el("input", {type: "date", value: h[key], "data-key": "history-" + key, onchange: event => changeHistory({[key]: event.target.value})}))),
+    el("div", {class: "presets", role: "group", "aria-label": "Quick date ranges"}, [["Today", 0], ["7 days", 6], ["30 days", 29]].map(([label, offset]) => {
+      const on = h.since === day(offset) && !h.until;
+      return el("button", {class: "btn small" + (on ? " on" : ""), type: "button", "aria-pressed": String(on),
+        onclick: () => changeHistory({since: on ? "" : day(offset), until: ""})}, label);
+    })),
+    h.q || h.status || h.since || h.until ? el("button", {class: "btn small", type: "button", onclick: () => changeHistory({q: "", status: "", since: "", until: ""})}, "Clear filters") : null);
 }
+const localDate = date => new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 function pagination() {
   const h=state.history, start=state.total ? (h.page-1)*h.page_size+1 : 0;
   return el("nav",{class:"pagination","aria-label":"History pages"},
@@ -1662,17 +1850,17 @@ async function openWorkflow(key, push = true) {
 }
 
 async function loadRuns() {
-  const request=++state.request, params=new URLSearchParams({...state.history,workflow:state.workflow||""});
-  const data = await api("/api/runs?"+params);
-  if(request!==state.request) return false;
-  document.getElementById("root").textContent = data.root;
-  document.getElementById("root").title = data.root;
+  const request = ++state.request, params = new URLSearchParams({...state.history, workflow: state.workflow || ""});
+  const data = await api("/api/runs?" + params);
+  if (request !== state.request) return false;
   // Redraw only on change: a list rebuilt under the pointer can swallow a click.
   const changed = JSON.stringify(data) !== state.pageData;
-  state.pageData=JSON.stringify(data);
+  state.pageData = JSON.stringify(data);
   state.runs = data.runs;
-  state.catalog=data.catalog; state.total=data.total; state.allTotal=data.all_total; state.pages=data.pages; state.history.page=data.page;
-  state.attention=data.attention;state.attentionTotal=data.attention_total;state.active=data.active;
+  state.catalog = data.catalog; state.total = data.total; state.allTotal = data.all_total; state.pages = data.pages; state.history.page = data.page;
+  state.attention = data.attention; state.attentionTotal = data.attention_total; state.active = data.active;
+  showAttentionCount();
+  notifyAttention();
   if (changed || !document.querySelector("#tree > *")) renderSidebar();
   return changed;
 }
@@ -1681,7 +1869,7 @@ async function select(id, push = true) {
   if (!id) { openWorkflow(null, push); return; }
   if (!state.selected) state.returnHash=historyHash();
   const changed = id !== state.selected;
-  if (changed) { state.openSteps.clear(); state.openAttempts.clear(); state.file = null; state.call = null; state.tab = "overview"; }
+  if (changed) { state.openSteps.clear(); state.openAttempts.clear(); state.file = null; state.call = null; state.buildFile = null; state.tab = "overview"; }
   state.selected = id;
   if (push && changed) history.pushState(null, "", "#"+new URLSearchParams({run:id,back:state.returnHash}));
   const content = document.getElementById("content");
@@ -1711,8 +1899,9 @@ async function loadDetail() {
   // Another run was opened while this one loaded.
   if (id !== state.selected) return;
   // While a run is live, its last step has no checkpoint after it yet: it is running, not interrupted.
+  // Without a live worker the step stays interrupted.
   const last = detail.steps[detail.steps.length - 1];
-  if (detail.summary.status === "in_progress" && last && !last.ended) last.status = "running";
+  if (detail.summary.status === "in_progress" && detail.summary.live && last && !last.ended) last.status = "running";
   // Live refresh re-reads a running run every few seconds; redraw only when something changed.
   const same = state.detail && JSON.stringify(detail) === JSON.stringify(state.detail);
   state.detail = detail;
@@ -1785,7 +1974,7 @@ function renderLog(detail) {
     lines.push(el("div", {class: "line " + tone, "aria-expanded": String(open), "data-key": "line:" + step.index, onclick: () => { open ? state.openSteps.delete(step.index) : state.openSteps.add(step.index); renderDetail(); }},
       el("span", {class: "ts"}, "[" + when(step.started, false) + "]"),
       el("span", {class: "tw"}, chevron(open)),
-      el("span", {class: "nm"}, nodeTag(step.node), el("span", {class: "muted"}, step.status ? `  → ${status(step.status).text}` : "")),
+      el("span", {class: "nm"}, nodeTag(step.node), el("span", {class: "muted"}, `  → ${stepStatus(step).text}`)),
       el("span", {class: "ms"}, duration(step.duration_seconds))));
     if (!open) continue;
     const keys = Object.keys(step.changes || {});
@@ -1823,8 +2012,7 @@ function renderResponse(response) {
   list("Searches", response.queries, q => el("code", {}, q));
   list("Source reads", response.reads, r => [el("code", {}, `${r.path}:${r.line}`), r.symbol ? ` ${r.symbol}` : ""]);
   if ("ready" in response) parts.push(el("div", {class: "muted"}, `Ready to repair: ${response.ready}`));
-  for (const edit of response.edits || []) parts.push(el("div", {class: "edit"},
-    el("div", {class: "path"}, edit.path), el("pre", {class: "old"}, edit.old), el("pre", {class: "new"}, edit.new)));
+  for (const edit of response.edits || []) parts.push(snippetDiff(edit));
   return el("div", {}, parts);
 }
 function renderCalls(detail) {
@@ -1848,9 +2036,9 @@ function renderCalls(detail) {
       el("div", {class: "hd"}, icon(selected.error ? "bad" : "ok"), `Call #${selected.index} · ${selected.kind}`, el("span", {class: "sub"}, selected.model || "")),
       el("div", {class: "bd"},
         selected.error ? el("div", {class: "result t-bad"}, selected.error) : null,
-        renderResponse(selected.response),
+        selected.error ? rawOutput(selected) : renderResponse(selected.response),
         el("div", {style: "margin-top:12px"}, el("button", {class: "btn", onclick: () => { state.tab = "files"; state.file = selected.file; renderDetail(); }},
-          `View full request · ${selected.context_chars.toLocaleString()} characters of context`)))));
+          `View full request · ${selected.context_chars.toLocaleString()} characters of JSON context`)))));
 }
 
 /* ---------- artifacts ---------- */
@@ -1868,17 +2056,26 @@ function highlight(text, path) {
 }
 const size = bytes => bytes < 1024 ? bytes + " B" : bytes < 1048576 ? (bytes / 1024).toFixed(1) + " KB" : (bytes / 1048576).toFixed(1) + " MB";
 function renderFiles(detail) {
-  const downloadLink=path=>el("a",{class:"btn small",download:"",href:"/api/download?"+new URLSearchParams({id:state.selected,...(path?{path}:{})}),onclick:event=>event.stopPropagation()},path?"Download":"Download all (.zip)");
+  if (!state.file) state.file = ["fix.diff", "result.json"].find(path => detail.files.some(file => file.path === path)) || null;
+  const download = path => el("a", {class: "ib", href: downloadHref(state.selected, path), download: "", title: "Download " + path,
+    "aria-label": "Download " + path, onclick: event => event.stopPropagation()}, lucide("download", 14));
+  const row = (file, shown) => el("div", {class: "file" + (file.path === state.file ? " sel" : ""), "aria-current": file.path === state.file ? "true" : null,
+    "data-key": "file:" + file.path, onclick: () => { state.file = file.path; renderDetail(); }},
+    el("span", {class: "fname", title: file.path}, shown), el("span", {class: "fsize"}, size(file.size)), download(file.path));
+  const folders = {};
+  for (const file of detail.files) if (file.path.includes("/")) (folders[file.path.split("/")[0]] ||= []).push(file);
+  const list = el("div", {class: "box filelist"}, detail.files.filter(file => !file.path.includes("/")).map(file => row(file, file.path)),
+    Object.entries(folders).map(([name, files]) => el("details", {class: "folder", open: files.length <= 6 || files.some(file => file.path === state.file) ? "" : null},
+      el("summary", {}, lucide("files", 13), " ", name, el("span", {class: "muted"}, ` · ${files.length}`)), files.map(file => row(file, file.path.slice(name.length + 1))))));
   const viewer = el("div", {class: "box"}, emptyState("file", "No artifact open", "Pick a file on the left to view it."));
-  const list = el("div", {class: "box", style: "padding:6px 0;max-height:74vh;overflow:auto"}, detail.files.map(file =>
-    el("div", {class: "file" + (file.path === state.file ? " sel" : ""), "aria-current": file.path === state.file ? "true" : null, "data-key": "file:" + file.path, onclick: () => { state.file = file.path; renderDetail(); }},
-      el("span", {}, file.path), el("span", {}, size(file.size)),downloadLink(file.path))));
   if (state.file) api(`/api/file?id=${encodeURIComponent(state.selected)}&path=${encodeURIComponent(state.file)}`)
-    .then(text => viewer.replaceChildren(el("div", {class: "hd mono"}, state.file,downloadLink(state.file)), highlight(typeof text === "string" ? text : JSON.stringify(text, null, 2), state.file)))
-    .catch(() => viewer.replaceChildren(emptyState("missing", "Preview unavailable", "Download the original file to inspect large or binary evidence.",downloadLink(state.file))));
-  return el("div",{class:"stack"},el("div",{},downloadLink("")),el("div", {class: "split"}, list, viewer));
+    .then(text => viewer.replaceChildren(el("div", {class: "hd mono"}, state.file, el("span", {class: "read"}, download(state.file))),
+      /\.(diff|patch)$/.test(state.file) ? diffView(String(text)) : highlight(typeof text === "string" ? text : JSON.stringify(text, null, 2), state.file)))
+    .catch(() => viewer.replaceChildren(emptyState("missing", "Preview unavailable", "Download the original file to inspect large or binary evidence.", download(state.file))));
+  return el("div", {class: "stack"},
+    el("div", {}, el("a", {class: "btn small", href: downloadHref(state.selected), download: ""}, lucide("download", 12), "Download all (.zip)")),
+    el("div", {class: "split"}, list, viewer));
 }
-
 /* ---------- run overview: tests and attempts ---------- */
 const PASS = () => el("span", {class: "t-ok mark"}, lucide("check", 13), "Passed");
 const FAIL = () => el("span", {class: "t-bad mark"}, lucide("close", 13), "Failed");
@@ -1912,9 +2109,9 @@ function attemptsTable(detail) {
       const change = proposal?.summary ? [el("span", {}, proposal.summary), ...(proposal.edits || []).map(edit =>
           el("span", {class: "afile"}, edit.path.split("/").pop(), el("b", {class: "del"}, " −" + lineCount(edit.old)), el("b", {class: "add"}, " +" + lineCount(edit.new))))]
         : running ? el("span", {class: "muted"}, "Waiting for the model…")
-        : el("span", {class: "t-bad"}, calls.some(call => call.error) ? "No proposal: the model call failed" : "No proposal");
+        : el("span", {class: "t-bad"}, attemptProblem(steps, calls));
       const after = running && verify === running ? el("span", {class: "muted"}, "Running…")
-        : report ? el("span", {class: report.failed.length ? "t-bad" : "t-ok"}, report.failed.length ? `${report.failed.length} of ${total} failing` : `All ${total} pass`)
+        : report ? el("span", {class: report.failed.length ? "t-bad" : "t-ok"}, report.failed.length ? `${report.failed.length} of ${total} still failing` : `All ${total} targeted tests pass`)
         : el("span", {class: "muted"}, "—");
       const spent = steps.length ? (Math.max(...steps.map(ended)) - Date.parse(steps[0].started)) / 1000 : null;
       const model = calls.reduce((sum, call) => sum + (call.elapsed_seconds || 0), 0);
@@ -1933,10 +2130,11 @@ function attemptDetail(row, report, calls) {
   const openLog = () => { state.tab = "log"; state.openSteps.add(row.steps[0].index); renderDetail(); };
   return el("div", {class: "adetail"},
     proposal?.explanation ? el("div", {class: "explain"}, proposal.explanation) : null,
-    (proposal?.edits || []).map(edit => el("div", {class: "edit"}, el("div", {class: "path"}, edit.path), el("pre", {class: "old"}, edit.old), el("pre", {class: "new"}, edit.new))),
+    (proposal?.edits || []).map(snippetDiff),
     calls.filter(call => call.error).map(call => el("div", {class: "t-bad"}, `Model call ${call.index}: ${call.error}`)),
     report?.failed.length ? el("div", {}, el("span", {class: "muted"}, "Still failing: "), el("code", {}, report.failed.join(", "))) : null,
-    el("div", {class: "alinks"}, el("button", {class: "link", type: "button", onclick: openLog}, "Open in build log"),
+    el("div", {class: "alinks"}, el("button", {class: "link", type: "button", onclick: openLog}, "Open in checkpoints"),
+      row.steps.some(step => step.node === "verify") ? el("button", {class: "link", type: "button", onclick: () => { state.tab = "build"; renderDetail(); }}, "Build log") : null,
       calls.map(call => el("button", {class: "link", type: "button", onclick: () => { state.tab = "calls"; state.call = call.file; renderDetail(); }}, `Model call ${call.index}`))));
 }
 
@@ -1962,11 +2160,10 @@ function toast(text, tone = "") {
   clearTimeout(toast.timer);
   toast.timer = setTimeout(() => box.replaceChildren(), 5000);
 }
-function iconButton(name, label, onclick) {
-  return el("button", {class: "ib", type: "button", title: label, "aria-label": label,
-    onclick: event => { event.stopPropagation(); onclick(event); }}, lucide(name, 14));
+function iconButton(name, label, onclick, cls = "", disabled = false) {
+  return el("button", {class: "ib", type: "button", title: label, "aria-label": label, disabled: disabled ? "" : null,
+    onclick: event => { event.stopPropagation(); onclick(event); }}, lucide(name, 14, cls));
 }
-
 /* A small menu under the button that opened it, like TeamCity's Actions dropdown. */
 let popover = null;
 function closePopover(refocus) {
@@ -2060,12 +2257,11 @@ function replayDialog(detail) {
     el("p", {class: "muted"}, "A new run starts at that step from the same commit, with the edits made before it. This run stays as it is.")),
   "Re-run", () => { act("replay", {step: Number(pick.value)}); });
 }
-/** The run page's main button and the Actions menu with the rest. */
+/** The run page's main button and the Actions menu: run controls first, then review decisions. */
 function runActions(detail) {
-  if (!CAN_ACT || !detail.controls) return null;
-  const {actions, note} = detail.controls, s = detail.summary;
-  if (note) return el("span", {class: "muted"}, note);
-  const live = s.status === "in_progress" && s.live, items = [];
+  if (!CAN_ACT) return null;
+  const {actions = [], note = ""} = detail.controls || {}, s = detail.summary, key = runStatus(s);
+  const live = s.status === "in_progress" && s.live, items = [], review = [];
   if (live && (actions.includes("cancel") || actions.includes("stop")))
     items.push({key: "stop", label: "Stop…", icon: "halt", run: () => stopDialog(detail)});
   if (actions.includes("resume")) items.push({key: "resume", label: "Resume", icon: "play", run: () => act("resume")});
@@ -2077,15 +2273,24 @@ function runActions(detail) {
   if (actions.includes("replay")) items.push({key: "replay", label: "Re-run from a step…", icon: "rerun", run: () => replayDialog(detail)});
   if (!live && actions.includes("cancel")) items.push({key: "cancel", label: "Cancel run…", icon: "cancelled", danger: true,
     run: async () => { if (await confirmDialog("Cancel run", "Cancel this run? It can be run again or re-run from a step afterwards.", "Cancel run", true)) act("cancel"); }});
-  if (!items.length) return null;
-  const [main, ...rest] = items;
-  return el("div", {class: "actions"},
-    el("button", {class: "btn" + (main.key === "stop" ? "" : " primary"), type: "button", "data-key": "act:" + main.key, onclick: event => main.run(event.currentTarget)},
-      lucide(main.icon, 13), main.label),
-    rest.length ? el("button", {class: "btn", type: "button", "aria-haspopup": "menu", "data-key": "act:more", onclick: event => openMenu(event.currentTarget, rest)},
-      "Actions", lucide("chevron", 12, "down")) : null);
+  // Review decisions apply to any run that is not running, also one its worker abandoned.
+  if (!live) {
+    if (triageActive(s.triage)) review.push({key: "reopen", label: "Reopen for review", icon: "rerun", run: () => safeTriage(s.id, "reopen")});
+    else {
+      if (["ready", "publication_unknown"].includes(key) || (s.output_files.includes("fix.diff") && key !== "published"))
+        review.push({key: "reject", label: "Reject this fix…", icon: "close", run: () => triageDialog(s, "reject")});
+      review.push({key: "handled", label: "Mark handled manually…", icon: "check", run: () => triageDialog(s, "handled")},
+        {key: "snooze", label: "Snooze…", icon: "clock", run: () => triageDialog(s, "snooze")},
+        {key: "dismiss", label: "Dismiss from attention…", icon: "close", run: () => triageDialog(s, "dismiss")});
+    }
+  }
+  const [main, ...rest] = items, menu = [...rest, ...review];
+  return [note ? el("span", {class: "muted"}, note) : null,
+    main ? el("button", {class: "btn" + (main.key === "stop" ? "" : " primary"), type: "button", "data-key": "act:" + main.key, onclick: event => main.run(event.currentTarget)},
+      lucide(main.icon, 13), main.label) : null,
+    menu.length ? el("button", {class: "btn", type: "button", "aria-haspopup": "menu", "data-key": "act:more", onclick: event => openMenu(event.currentTarget, menu)},
+      "Actions", lucide("chevron", 12, "down")) : null];
 }
-
 /* ---------- queue ---------- */
 async function loadJobs() {
   if (!CAN_ACT) return false;
@@ -2142,69 +2347,104 @@ function field(param, value) {
       : param.type === "run" ? input.value || null : input.value,
     error: message => { error.textContent = message || ""; input.setAttribute("aria-invalid", message ? "true" : "false"); }};
 }
-/** The "…" dialog for one workflow: its parameters, with the workflow's fixed ones (its build configuration) set. */
-function openRunDialog(spec, scheduled=false, existing=null) {
+/** The Run or Schedule dialog for one workflow: its parameters, with the workflow's fixed ones (its build configuration) set. */
+function openRunDialog(spec, scheduled = false, existing = null) {
   const schema = controls.workflows[spec.kind], memory = spec.kind + ":" + (spec.params.build_type || "");
-  if(!schema) {toast("Workflow settings are still loading");return;}
+  if (!schema) { toast("Workflow settings are still loading"); return; }
   const previous = existing?.params || saved(memory), fixed = new Set(spec.fixed || []);
-  const values={name:existing?.name||spec.title,frequency:existing?.frequency||"daily",timezone:existing?.timezone||state.timezone,
-    time:existing?.time||"17:30",at:existing?.at||"",weekdays:existing?.weekdays||[0,1,2,3,4],
-    missed:existing?.missed||"once",overlap:existing?.overlap||"skip",relative:!existing||existing.params.date==="today"};
-  const settings=scheduled ? [
-    {name:"name",label:"Schedule name",type:"text"},
-    {name:"frequency",label:"Repeat",type:"choice",choices:["once","daily","weekly"],labels:{once:"One time",daily:"Every day",weekly:"Selected weekdays"}},
-    {name:"timezone",label:"Timezone",type:"text",help:"IANA name, for example Europe/Paris. DST gaps are skipped; repeated times run once."},
-    {name:"time",label:"Time",type:"time"},
-    {name:"at",label:"Date and time",type:"datetime-local",help:"In the selected timezone."},
-    {name:"weekdays",label:"Weekdays",type:"weekdays"},
-    {name:"missed",label:"When the worker was offline",type:"choice",choices:["once","skip"],labels:{once:"Catch up once",skip:"Skip missed occurrences"},help:"Occurrences more than a minute late follow this rule."},
-    {name:"overlap",label:"If this schedule still has active work",type:"choice",choices:["skip","queue"],labels:{skip:"Skip this occurrence",queue:"Queue another run"}},
-    ...(spec.kind==="batch"?[{name:"relative",label:"Use the execution day's failures",type:"bool"}]:[])
-  ].map(param=>field(param,values[param.name])) : [];
+  const values = {name: existing?.name || spec.title, frequency: existing?.frequency || "daily", timezone: existing?.timezone || state.timezone,
+    time: existing?.time || "17:30", at: existing?.at || "", weekdays: existing?.weekdays || [0, 1, 2, 3, 4],
+    missed: existing?.missed || "once", overlap: existing?.overlap || "skip", relative: !existing || existing.params.date === "today"};
+  const settings = scheduled ? [
+    {name: "name", label: "Schedule name", type: "text"},
+    {name: "frequency", label: "Repeat", type: "choice", choices: ["once", "daily", "weekly"], labels: {once: "One time", daily: "Every day", weekly: "Selected weekdays"}},
+    {name: "time", label: "Time", type: "time"},
+    {name: "at", label: "Date and time", type: "datetime-local"},
+    {name: "weekdays", label: "Weekdays", type: "weekdays"},
+    {name: "timezone", label: "Timezone", type: "text", help: "The time above is in this timezone. DST gaps are skipped; repeated times run once."},
+    {name: "missed", label: "When the worker was offline", type: "choice", choices: ["once", "skip"], labels: {once: "Catch up once", skip: "Skip missed occurrences"},
+      help: "Occurrences more than a minute late follow this rule."},
+    {name: "overlap", label: "If this schedule still has active work", type: "choice", choices: ["skip", "queue"], labels: {skip: "Skip this occurrence", queue: "Queue another run"}},
+  ].map(param => field(param, values[param.name])) : [];
+  const relative = scheduled && spec.kind === "batch" ? field({name: "relative", label: "Repair the failures of the day it runs",
+    type: "bool", help: "Clear it to repair one fixed date every time."}, values.relative) : null;
   const fields = schema.params.filter(param => !fixed.has(param.name)).map(param => field(param, previous[param.name] ?? spec.params[param.name]));
   const basic = fields.filter(item => !item.param.advanced), advanced = fields.filter(item => item.param.advanced);
-  openDialog((scheduled?"Schedule ":"Run ") + spec.title, el("div", {},
-    el("p", {class: "muted"}, schema.description),
-    basic.length ? basic.map(item => item.node) : el("p", {}, "This workflow has no parameters."),
-    advanced.length ? el("details", {class: "adv"}, el("summary", {}, "More options"), advanced.map(item => item.node)) : null,
-    scheduled?el("h3",{},"Schedule"):null,settings.map(item=>item.node)),
-  scheduled?"Save schedule":"Run", async () => {
-    const params = {...spec.params, ...Object.fromEntries(fields.map(item => [item.param.name, item.read()]))};
+  const params = () => ({...spec.params, ...Object.fromEntries(fields.map(item => [item.param.name, item.read()]))});
+  const when = () => Object.fromEntries(settings.map(item => [item.param.name, item.read()]));
+  const upcoming = el("div", {class: "upcoming fhelp", "aria-live": "polite"});
+  const command = el("pre", {class: "view cmd"}, "…");
+  const previewCommand = async () => {
     try {
-      if(scheduled) {
-        const config=Object.fromEntries(settings.map(item=>[item.param.name,item.read()]));
-        if(config.relative) params.date="today";
-        await post("/api/schedules",{...config,kind:spec.kind,params,...(existing?{id:existing.id,enabled:existing.enabled}:{})});
-        await loadSchedules(); if(!state.selected) renderHome();toast("Schedule saved");return;
+      const done = await post("/api/jobs/preview", {kind: spec.kind, params: params()});
+      command.textContent = done.command.map(arg => /[\s"']/.test(arg) ? JSON.stringify(arg) : arg).join(" ");
+    } catch (error) { command.textContent = error.message; }
+  };
+  // The relative-date switch sits right above the date it replaces.
+  const parameters = [basic.length ? basic.flatMap(item => item.param.name === "date" && relative ? [relative.node, item.node] : [item.node])
+    : el("p", {}, "This workflow has no parameters."),
+    advanced.length ? el("details", {class: "adv"}, el("summary", {}, "More options"), advanced.map(item => item.node)) : null];
+  const body = scheduled
+    ? el("div", {}, el("p", {class: "muted"}, schema.description), el("h3", {}, "When"), settings.map(item => item.node), upcoming,
+        el("h3", {}, "Parameters"), parameters)
+    : el("div", {}, el("p", {class: "muted"}, schema.description), parameters,
+        el("details", {class: "adv", ontoggle: event => { if (event.target.open) previewCommand(); }}, el("summary", {}, "Equivalent command line"), command));
+  openDialog((scheduled ? "Schedule " : "Run ") + spec.title, body, scheduled ? "Save schedule" : "Run", async () => {
+    const chosen = params();
+    try {
+      if (scheduled) {
+        if (relative?.read()) chosen.date = "today";
+        await post("/api/schedules", {...when(), kind: spec.kind, params: chosen, ...(existing ? {id: existing.id, enabled: existing.enabled} : {})});
+        await loadSchedules();
+        if (!state.selected) renderHome();
+        toast("Schedule saved");
+        return;
       }
-      const done = await post("/api/jobs", {kind: spec.kind, params});
-      remember(memory, params);
+      const done = await post("/api/jobs", {kind: spec.kind, params: chosen});
+      remember(memory, chosen);
       toast(`Queued: ${done.job.title}`);
       await loadJobs();
       renderSidebar();
       if (!state.selected) renderHome();
       wake();
     } catch (error) {
-      for (const item of [...fields,...settings]) item.error(error.fields[item.param.name]);
-      if (!Object.keys(error.fields).length) throw error;
+      const wrong = error.fields || {};
+      for (const item of [...fields, ...settings]) item.error(wrong[item.param.name]);
+      if (!Object.keys(wrong).length) throw error;
       dialog.querySelector('[aria-invalid="true"]')?.focus();
       return false;
     }
-  });
-  if(scheduled) {
-    const update=()=>{
-      const frequency=settings.find(item=>item.param.name==="frequency").read();
-      for(const item of settings) {
-        if(item.param.name==="at") item.node.hidden=frequency!=="once";
-        if(item.param.name==="time") item.node.hidden=frequency==="once";
-        if(item.param.name==="weekdays") item.node.hidden=frequency!=="weekly";
-      }
-      const relative=settings.find(item=>item.param.name==="relative");
-      const date=fields.find(item=>item.param.name==="date");
-      if(relative&&date) date.node.hidden=relative.read();
-    };
-    settings.forEach(item=>item.input.addEventListener("change",update));update();
+  }, {wide: scheduled});
+  if (!scheduled) return;
+  const timezone = settings.find(item => item.param.name === "timezone").input;
+  const zones = Intl.supportedValuesOf?.("timeZone") || [];
+  if (zones.length) {
+    timezone.setAttribute("list", "tz-list");
+    timezone.after(el("datalist", {id: "tz-list"}, zones.map(zone => el("option", {value: zone}))));
   }
+  let timer = 0;
+  const update = () => {
+    const frequency = settings.find(item => item.param.name === "frequency").read();
+    for (const item of settings) {
+      if (item.param.name === "at") item.node.hidden = frequency !== "once";
+      if (item.param.name === "time") item.node.hidden = frequency === "once";
+      if (item.param.name === "weekdays") item.node.hidden = frequency !== "weekly";
+    }
+    const date = fields.find(item => item.param.name === "date");
+    if (relative && date) date.node.hidden = relative.read();
+    // The next runs, computed by the server from the unsaved fields.
+    clearTimeout(timer);
+    timer = setTimeout(async () => {
+      const chosen = params();
+      if (relative?.read()) chosen.date = "today";
+      try {
+        const done = await post("/api/schedules/preview", {...when(), kind: spec.kind, params: chosen});
+        upcoming.replaceChildren(el("b", {}, "Next runs: "), done.upcoming.length ? done.upcoming.map(localTime).join(" · ") : "none");
+      } catch (error) { upcoming.replaceChildren(el("span", {class: "ferr"}, error.message)); }
+    }, 250);
+  };
+  for (const item of [...settings, relative].filter(Boolean)) item.input.addEventListener("change", update);
+  update();
 }
 async function setupControls() {
   if (!CAN_ACT) return;
@@ -2221,21 +2461,40 @@ async function loadSchedules() {
   state.schedules=data.schedules;state.timezone=data.timezone;return changed;
 }
 function schedulesPage() {
-  return el("div",{class:"page"},pageHead("Schedules","Workflow schedules use their own timezone and run through the active worker."),runnerNotice(),
-    CAN_ACT?el("div",{class:"tools"},allWorkflows().filter(item=>item.run).map(item=>el("button",{class:"btn",type:"button",onclick:()=>openRunDialog(item.run,true)},"Schedule "+item.title))):null,
-    !state.schedules.length?emptyState("runs","No schedules yet","Add a schedule from a workflow's clock button."):el("div",{class:"stack",style:"margin-top:16px"},state.schedules.map(spec=>
-      el("section",{class:"box"},el("div",{class:"hd"},el("b",{},spec.name),el("span",{class:"muted"},spec.enabled?"Enabled":"Disabled")),
-        el("div",{class:"bd"},el("p",{},`${({once:"One time",daily:"Every day",weekly:"Selected weekdays"})[spec.frequency]} · ${spec.timezone} · ${controls.workflows[spec.kind]?.title||spec.name}`),
-          el("p",{},"Next: ",spec.enabled&&spec.next_run?new Date(spec.next_run).toLocaleString(undefined,{timeZone:spec.timezone})+" "+spec.timezone:"—"),
-          spec.upcoming.length?el("details",{},el("summary",{},"Upcoming occurrences"),el("ul",{},spec.upcoming.map(time=>el("li",{},new Date(time).toLocaleString(undefined,{timeZone:spec.timezone})+" "+spec.timezone)))):null,
-          el("p",{},"Last trigger: ",({skipped_overlap:"Skipped because previous work is still active",skipped_missed:"Skipped while the worker was offline",queued:"Added to queue"})[spec.last_status]||"Never triggered"),
-          spec.last_outcome?el("p",{},"Last job: ",`${spec.last_outcome.status} · ${spec.last_outcome.result||spec.last_outcome.error||""}`):null,
-          CAN_ACT?el("div",{class:"tools"},
-            el("button",{class:"btn",type:"button",onclick:()=>openRunDialog({kind:spec.kind,params:{},title:spec.name},true,spec)},"Edit"),
-            el("button",{class:"btn",type:"button",onclick:async()=>{await post("/api/schedules/toggle",{id:spec.id,enabled:!spec.enabled});await loadSchedules();renderHome();}},spec.enabled?"Disable":"Enable"),
-            el("button",{class:"btn",type:"button",onclick:async()=>{if(await confirmDialog("Delete schedule",`Delete ${spec.name}? Existing runs stay in history.`,"Delete")){await post("/api/schedules/remove",{id:spec.id});await loadSchedules();renderHome();}}},"Delete")):null)))));
+  const repeat = spec => spec.frequency === "once" ? "Once" : spec.frequency === "daily" ? `Every day at ${spec.time}`
+    : `${spec.weekdays.map(day => WEEKDAYS[day]).join(", ")} at ${spec.time}`;
+  const trigger = {skipped_overlap: "Skipped: earlier work still active", skipped_missed: "Skipped: the worker was offline", queued: "Queued a run"};
+  const change = async (path, body) => {
+    try { await post(path, body); await loadSchedules(); renderHome(); } catch (error) { toast(error.message, "bad"); }
+  };
+  const add = CAN_ACT ? el("button", {class: "btn primary", type: "button", "aria-haspopup": "menu", onclick: event => openMenu(event.currentTarget,
+    allWorkflows().filter(item => item.run).map(item => ({label: item.title, icon: "clock", run: () => openRunDialog(item.run, true)})))},
+    lucide("plus", 12), "New schedule", lucide("chevron", 12, "down")) : null;
+  return el("div", {class: "page"},
+    pageHead("Schedules", "Each schedule runs in its own timezone; times here are in your browser's time.", add), runnerNotice(),
+    !state.schedules.length ? emptyState("runs", "No schedules yet", "Add one with New schedule, or the clock button beside a workflow.")
+    : el("div", {class: "box"}, el("table", {},
+      el("thead", {}, el("tr", {}, el("th", {}, "Schedule"), el("th", {class: "hide-sm"}, "Repeats"), el("th", {}, "Next run"),
+        el("th", {class: "hide-sm"}, "Last trigger"), el("th", {}, el("span", {class: "sr"}, "Actions")))),
+      el("tbody", {}, state.schedules.map(spec => el("tr", {class: spec.enabled ? "" : "off"},
+        el("td", {}, el("div", {class: "strong"}, spec.name), el("div", {class: "muted small"}, controls.workflows[spec.kind]?.title || spec.kind)),
+        el("td", {class: "hide-sm"}, repeat(spec), el("div", {class: "muted small"}, spec.timezone)),
+        el("td", {class: "nowrap", title: spec.enabled && spec.next_run ? zoned(spec.next_run, spec.timezone) : ""},
+          !spec.enabled ? el("span", {class: "muted"}, "Disabled") : spec.next_run ? localTime(spec.next_run) : "None",
+          spec.enabled && spec.upcoming.length > 1 ? el("details", {}, el("summary", {class: "muted small"}, "Later runs"),
+            el("ul", {class: "plain small"}, spec.upcoming.slice(1).map(time => el("li", {}, localTime(time))))) : null),
+        el("td", {class: "hide-sm"}, trigger[spec.last_status] || el("span", {class: "muted"}, "Never"),
+          spec.last_outcome ? el("div", {class: "muted small"}, `Job ${spec.last_outcome.status}` + (spec.last_outcome.error ? ": " + spec.last_outcome.error : "")) : null),
+        el("td", {class: "rowtools"}, CAN_ACT ? [
+          el("button", {class: "btn small", type: "button", onclick: () => openRunDialog({kind: spec.kind, params: {}, title: spec.name}, true, spec)}, "Edit"),
+          el("button", {class: "btn small", type: "button", onclick: () => change("/api/schedules/toggle", {id: spec.id, enabled: !spec.enabled})},
+            spec.enabled ? "Disable" : "Enable"),
+          iconButton("close", "Delete schedule", async () => {
+            if (await confirmDialog("Delete schedule", `Delete ${spec.name}? Existing runs stay in history.`, "Delete schedule", true))
+              change("/api/schedules/remove", {id: spec.id});
+          })] : null)))))));
 }
-
+const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 async function loadBatches() {
   const data=await api("/api/batches?page="+state.batchPage),changed=JSON.stringify(data)!==state.batchData;
   state.batchData=JSON.stringify(data);state.batches=data.batches;state.batchPage=data.page;state.batchPages=data.pages;state.batchTotal=data.total;return changed;
@@ -2268,21 +2527,27 @@ function batchesPage() {
 /* ---------- run page ---------- */
 function renderDetail() { keepFocus(drawDetail); }
 function drawDetail() {
-  if (!["overview", "log", "calls", "files"].includes(state.tab)) state.tab = "overview";
+  const TABS = ["overview", "build", "calls", "log", "files"];
+  if (!TABS.includes(state.tab)) state.tab = "overview";
   const hash = new URLSearchParams({run: state.selected});
-  if(state.returnHash) hash.set("back",state.returnHash);
+  if (state.returnHash) hash.set("back", state.returnHash);
   if (state.tab !== "overview") hash.set("tab", state.tab);
-  if(state.file) hash.set("file",state.file);
-  if(state.call) hash.set("call",state.call);
-  if(state.openSteps.size) hash.set("open",[...state.openSteps].join(","));
+  // Only the open tab's selection goes in the link, so a copied link carries no state from another tab.
+  if (state.tab === "files" && state.file) hash.set("file", state.file);
+  if (state.tab === "calls" && state.call) hash.set("call", state.call);
+  if (state.tab === "build" && state.buildFile) hash.set("log", state.buildFile);
+  if (state.tab === "log" && state.openSteps.size) hash.set("open", [...state.openSteps].join(","));
   history.replaceState(null, "", "#" + hash);
-  const detail = state.detail, s = detail.summary, st = status(s.status);
+  markNav();
+  const detail = state.detail, s = detail.summary, key = runStatus(s), st = status(key), reason = explain(s.reason);
   const running = s.status === "in_progress" && s.live, workflow = findWorkflow(workflowOf(s));
   const used = detail.model_calls.reduce((sum, c) => sum + (tokens(c.usage, "in") || 0) + (tokens(c.usage, "out") || 0), 0);
-  const tabs = [["overview", "Overview"], ["log", "Execution log", detail.steps.length], ["calls", "Model calls", detail.model_calls.length],
-    ["files", "Artifacts", detail.files.length]];
+  const tabs = [["overview", "Overview"], ["build", "Build log", detail.builds.length], ["calls", "Model calls", detail.model_calls.length],
+    ["log", "Checkpoints", detail.steps.length], ["files", "Artifacts", detail.files.length]];
   dropFigure();
   const info = [
+    ["Failing tests", s.tests.length ? el("span", {class: "testlinks"}, s.tests.slice(0, 3).map(name =>
+      el("a", {class: "mono", href: "#" + new URLSearchParams({view: "test", name})}, name)), s.tests.length > 3 ? ` +${s.tests.length - 3}` : null) : null],
     ["Started", el("span", {title: when(s.started)}, shortWhen(s.started))],
     ["Duration", running && s.started ? clock(s.started) : duration(s.duration_seconds)],
     ["Repair attempts", String(s.attempts)],
@@ -2297,41 +2562,45 @@ function drawDetail() {
   ].filter(([, value]) => value !== null && value !== "");
   let content;
   if (state.tab === "log") content = renderLog(detail);
+  else if (state.tab === "build") content = renderBuilds(detail);
   else if (state.tab === "calls") content = renderCalls(detail);
   else if (state.tab === "files") content = renderFiles(detail);
-  else content = el("div", {class: "stack"},
-    el("section",{},el("h2",{},"Outcome"),el("p",{},s.reason || [...detail.model_calls].reverse().find(call=>call.response?.summary)?.response.summary || status(s.status).text)),
-    el("section",{},el("h2",{},"Workflow execution",el("span",{class:"sub"},"LangGraph · executed path")),executionPath(detail)),
-    el("section",{},el("h2",{},"Outputs"),el("div",{class:"tools"},
-      el("a",{class:"btn",download:"",href:"/api/download?id="+encodeURIComponent(s.id)},"Download evidence (.zip)"),
-      el("button",{class:"btn",type:"button",onclick:()=>{state.tab="files";renderDetail();}},"Browse artifacts"),
-      s.pr_url?outLink(s.pr_url,"Open pull request"):null)),
-    el("section", {}, el("h2", {}, "Validation"), testsGrid(detail)),
-    el("section", {}, el("h2", {}, "Attempts", el("span", {class: "sub"}, "open a row for the explanation and the diff")), attemptsTable(detail)));
+  else content = el("div", {class: "stack"}, leadSection(detail), validationSection(detail), failureSection(detail),
+    el("section", {}, el("h2", {}, "Attempts", el("span", {class: "sub"}, "open a row for the explanation and the edits")), attemptsTable(detail)),
+    reviewSection(detail),
+    el("section", {}, el("h2", {}, "Workflow execution", el("span", {class: "sub"}, "LangGraph · executed path")), executionPath(detail)));
   const tabbar = el("div", {class: "tabs", role: "tablist", "aria-label": "Run sections", onkeydown: event => {
     // Left and Right move between tabs, as in any tab strip.
     const step = {ArrowRight: 1, ArrowLeft: -1}[event.key];
     if (!step) return;
-    const i = tabs.findIndex(([key]) => key === state.tab), next = tabs[(i + step + tabs.length) % tabs.length][0];
+    const i = tabs.findIndex(([name]) => name === state.tab), next = tabs[(i + step + tabs.length) % tabs.length][0];
     state.tab = next; renderDetail();
     document.querySelector(`[data-key="tab:${next}"]`)?.focus();
-  }}, tabs.map(([key, label, n]) => el("button", {class: "tab", role: "tab", "aria-selected": String(state.tab === key), tabindex: state.tab === key ? "0" : "-1",
-    "data-key": "tab:" + key, onclick: () => { state.tab = key; renderDetail(); }}, label, n !== undefined ? el("span", {class: "n"}, n) : null)));
+  }}, tabs.map(([name, label, n]) => el("button", {class: "tab", role: "tab", "aria-selected": String(state.tab === name), tabindex: state.tab === name ? "0" : "-1",
+    "data-key": "tab:" + name, onclick: () => { state.tab = name; renderDetail(); }}, label, n !== undefined ? el("span", {class: "n"}, n) : null)));
   const line = running
     ? [el("b", {class: "t-run"}, "Running"), el("span", {}, ` · step ${detail.steps.length}, ${s.current || "starting"}`)]
-    : [el("b", {class: "t-" + st.tone}, st.text), s.reason && st.tone !== "ok" ? el("span", {}, ": " + s.reason) : null];
+    : [el("b", {class: "t-" + st.tone}, st.text), reason.title && st.tone !== "ok" ? el("span", {}, ": " + reason.title) : null];
   document.getElementById("content").replaceChildren(el("div", {class: "page"},
-    el("nav", {class: "crumbs", "aria-label": "Breadcrumb"}, el("a", {href: "#", onclick: event => { event.preventDefault(); openWorkflow(null); }}, "Workflows"),
-      state.returnHash ? [" / ",el("a",{href:"#"+state.returnHash},"Back to history")] : null,
-      workflow ? [" / ", workflow.project.title, " / ", el("a", {href: "#wf=" + encodeURIComponent(workflow.key), onclick: event => { event.preventDefault(); openWorkflow(workflow.key); }}, workflow.title)] : null),
-    el("div", {class: "titlebar"}, statusIcon(s.status, 20), el("h1", {}, workflow?.title || s.build_type || "Run"), el("span", {class: "num"}, s.name), runActions(detail)),
+    state.returnHash ? el("a", {class: "back", href: "#" + state.returnHash}, lucide("arrowLeft", 12), backLabel(state.returnHash)) : null,
+    el("nav", {class: "crumbs", "aria-label": "Breadcrumb"}, el("a", {href: "#"}, "Home"),
+      workflow ? [" / ", workflow.project.title, " / ", el("a", {href: "#wf=" + encodeURIComponent(workflow.key)}, workflow.title)] : null),
+    el("div", {class: "titlebar"}, statusIcon(key, 20), el("h1", {}, workflow?.title || s.build_type || "Run"), el("span", {class: "num"}, s.name),
+      el("div", {class: "actions"}, el("a", {class: "btn", href: downloadHref(s.id), download: "", title: "Download all evidence (.zip)"}, lucide("download", 13), "Evidence"),
+        runActions(detail))),
     el("div", {class: "statusline"}, line),
+    triageBanner(s),
     s.request ? el("div", {class: "notice"}, lucide("clock", 16), el("span", {},
       `${s.request.request === "pause" ? "Pausing" : "Stopping"} after ${currentNode(detail)} finishes (asked by ${s.request.by} at ${when(s.request.at, false)}).`)) : null,
-    el("dl", {class: "info"}, info.map(([key, value]) => [el("dt", {}, key), el("dd", {}, value)])),
+    el("dl", {class: "info"}, info.map(([label, value]) => [el("dt", {}, label), el("dd", {}, value)])),
     tabbar,
     el("div", {role: "tabpanel"}, content)));
 }
+const backLabel = hash => {
+  const params = new URLSearchParams(hash), view = params.get("view");
+  return view === "history" ? "Run history" : view === "test" ? "Test history" : view === "tests" ? "Tests"
+    : params.get("wf") ? findWorkflow(params.get("wf"))?.title || "Workflow" : "Home";
+};
 /* ---------- workflow execution: a Hairline figure beside the steps it ran ---------- */
 /** Rows by the longest forward path from start, a column within each row, and the back edges that make loops. */
 function layout(graph) {
@@ -2374,7 +2643,7 @@ function arrowhead(a, b, t = 0.5, s = 3.2) {
 }
 
 /** A step's outcome as one of the page's tones: ok, bad, warn, run, or "" for a step that just did its work. */
-const flowTone = step => step.status === "running" ? "run" : (STATUS[step.status]?.tone || "none").replace("none", "");
+const flowTone = step => stepStatus(step).tone;
 
 /*
  * The isometric board. Each graph node is a rounded plate, named on the ground beside it with the numbers
@@ -2391,7 +2660,7 @@ function mountFlow(detail, stage, read, {onPick, onHover, onDescribe}) {
   const SPEED = 110, SPACING = 30, DOTS = 48;
   HL.inject(document);
   const g = detail.graph, {cell, back} = layout(g), bag = disposer(), by = visitsByNode(detail);
-  const live = detail.summary.status === "in_progress";
+  const live = runStatus(detail.summary) === "in_progress";
   const running = detail.steps.find(step => step.status === "running") || null;
   const nodes = g.nodes.filter(name => cell[name] && !name.startsWith("__")).map(name => {
     const [row, col] = cell[name], steps = by[name] || [], x = (row - 1) * GX, y = col * GY;
@@ -2565,7 +2834,7 @@ function mountFlow(detail, stage, read, {onPick, onHover, onDescribe}) {
     });
     return best;
   }
-  const said = step => step === running ? "running " + elapsed() : step.status ? status(step.status).text : "recorded";
+  const said = step => step === running ? "running " + elapsed() : stepStatus(step).text;
   const caption = n => !n.steps.length ? `${n.name} · ${live ? "not reached yet" : "not run"}`
     : `${n.name} · ` + n.steps.map(s => `#${s.index + 1} ${said(s)}`).join(", ");
   function setActive(a, quiet) {
@@ -2610,14 +2879,14 @@ function attemptStory(detail) {
       : check.status === "validated" ? ["ok", "tests pass"] : ["bad", "tests still failing"];
     parts.push(el("span", {}, el("b", {}, `Attempt ${parts.length + 1}`), " ", el("span", {class: tone ? "t-" + tone : "muted"}, text)));
   });
-  const s = detail.summary, st = status(s.status);
-  if (s.status !== "in_progress") parts.push(el("b", {class: "t-" + st.tone}, st.text));
+  const s = detail.summary, st = status(runStatus(s));
+  if (runStatus(s) !== "in_progress") parts.push(el("b", {class: "t-" + st.tone}, st.text));
   return parts.length ? parts.flatMap((part, i) => i ? [el("span", {class: "muted"}, " → "), part] : [part])
     : [el("span", {class: "muted"}, "No repair attempt yet.")];
 }
 /** The colours this run uses, and nothing else. */
 function flowLegend(detail) {
-  const tones = new Set(detail.steps.map(flowTone)), g = detail.graph, live = detail.summary.status === "in_progress";
+  const tones = new Set(detail.steps.map(flowTone)), g = detail.graph, live = runStatus(detail.summary) === "in_progress";
   const idle = g.nodes.some(name => !name.startsWith("__") && !g.visits[name]);
   const retry = Object.entries(g.transitions).some(([key, n]) => { const [a, b] = key.split(">"); return n && (a === b || (a === "verify" && b === "repair")); });
   const item = (cls, text) => el("span", {}, el("i", {class: cls}), text);
@@ -2639,7 +2908,7 @@ function executionPath(detail) {
       onfocus: () => state.figure?.pick(step), onblur: () => state.figure?.pick(null)},
       el("span", {class: "n" + (tone ? " t-" + tone : "")}, step.index + 1), nodeTag(step.node),
       el("span", {class: "st " + (tone ? "t-" + tone : "muted")},
-        (visit > 1 ? `visit ${visit} · ` : "") + (live ? "running" : step.status ? status(step.status).text : "recorded")),
+        (visit > 1 ? `visit ${visit} · ` : "") + stepStatus(step).text),
       el("span", {class: "num muted"}, live ? "" : duration(step.duration_seconds))));
   }));
   const read = el("span", {class: "read"}), does = el("span", {class: "does"}), stage = el("div", {class: "stage", "data-hairline": "workflow"});
@@ -2654,10 +2923,10 @@ function executionPath(detail) {
     const figure = mountFlow(detail, stage, read, {onPick: step => step && openStep(step), onDescribe: describe,
       onHover: indexes => list.querySelectorAll("button[data-step]").forEach(b => b.classList.toggle("lit", indexes.includes(Number(b.dataset.step))))});
     state.figure = {pick: figure.pick, destroy: figure.destroy};
-    replay.hidden = detail.summary.status === "in_progress";
+    replay.hidden = runStatus(detail.summary) === "in_progress";
     replay.onclick = figure.replay;
   };
-  const replay = el("button", {class: "btn small", type: "button", title: "Walk the path again"}, lucide("play", 12), "Replay");
+  const replay = el("button", {class: "btn small", type: "button", title: "Animate the path the run took"}, lucide("play", 12), "Animate");
   queueMicrotask(mount);
   return el("div", {class: "box flow"},
     el("div", {class: "figure"}, el("div", {class: "tags"}, el("div", {class: "text"}, read, does), replay), stage,
@@ -2670,47 +2939,621 @@ function dropFigure() {
   state.figure = null;
 }
 
+/* ---------- outcomes in plain words ---------- */
+// The workflow's stop reasons, as a reader needs them; the third field keeps what follows the match as detail.
+const REASONS = [
+  [/^Repair budget exhausted: ?/, "No attempt fixed the failing tests within the attempt limit", true],
+  [/^Baseline build failed/, "The code did not build at the failing revision, before any edit"],
+  [/^Baseline test evidence is invalid or incomplete/, "The tests run before any edit produced no usable report"],
+  [/^Baseline verification changed tracked sources or commit/, "Building and testing changed tracked files, so the evidence cannot be trusted"],
+  [/varied across repetitions/, "The unchanged code gave different results on repeated runs: the suite looks flaky"],
+  [/not reproduced after rebase/, "The TeamCity failure did not reproduce locally after rebasing; check test_name_map, or whether the test is flaky"],
+  [/^Candidate is identical to the latest base/, "The base branch already contains this fix, so no pull request is needed"],
+  [/^Validation after final rebase failed/, "The fix passed, then failed again after rebasing onto the latest base branch"],
+  [/^Investigation failed: ?/, "The model's source investigation failed", true],
+  [/^Saved candidate has fewer baseline checks/, "The saved candidate has fewer baseline checks than this configuration requires"],
+];
+/** A stop reason in plain words, with the workflow's own text behind it as detail. */
+function explain(reason) {
+  if (!reason) return {title: "", detail: ""};
+  for (const [pattern, title, keep] of REASONS)
+    if (pattern.test(reason)) return {title, detail: keep ? reason.replace(pattern, "").trim() : reason};
+  return {title: reason, detail: ""};
+}
+/** A step's outcome in words and tone. A step's status is the run's status right after it, so the last steps need their own words. */
+function stepStatus(step) {
+  if (step.status === "running") return {tone: "run", text: "running"};
+  if (step.node === "finalize" && step.status === "ready") return {tone: "ok", text: "candidate verified"};
+  if (step.node === "publish_pr" && step.status === "ready") return {tone: "", text: "not published: local candidate"};
+  if (step.node === "publish_pr" && step.status === "published") return {tone: "ok", text: "pull request opened"};
+  if (step.node === "blocked") return {tone: "bad", text: "stopped"};
+  if (!step.status) return {tone: "", text: "recorded"};
+  const st = status(step.status);
+  return {tone: st.tone === "none" ? "" : st.tone, text: st.text[0].toLowerCase() + st.text.slice(1)};
+}
+/** Why an attempt produced no edit, in the same words wherever it is shown. */
+function attemptProblem(steps, calls) {
+  const cause = calls.find(call => call.error)?.error || steps.map(step => step.changes?.feedback).find(Boolean) || "";
+  return "No usable edit" + (cause ? ": " + cause.replace(/^\w+Error: /, "") : "");
+}
+/** The failing test a run is about, which tells runs apart better than their ids. */
+function testsLabel(run) {
+  const tests = run.tests || [];
+  return tests.length ? tests[0] + (tests.length > 1 ? ` +${tests.length - 1}` : "") : run.name;
+}
+const localTime = iso => new Date(iso).toLocaleString(undefined, {weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false});
+const zoned = (iso, zone) => new Date(iso).toLocaleString(undefined, {timeZone: zone, day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false}) + " " + zone;
+const chip = (tone, text) => el("span", {class: "chip t-" + tone}, text);
+/** TeamCity writes dates as 20261024T101500+0200. */
+function tcDate(value) {
+  const m = /^(\d{4})(\d\d)(\d\d)T(\d\d)(\d\d)(\d\d)([+-]\d{4})?$/.exec(value || "");
+  return m ? `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}${m[7] ? m[7].slice(0, 3) + ":" + m[7].slice(3) : "Z"}` : value;
+}
+
+/* ---------- review decisions: dismiss, reject, handled, snooze, notes and ratings ---------- */
+const TRIAGE_STATE = {dismissed: "Dismissed", rejected: "Fix rejected", handled: "Handled manually", snoozed: "Snoozed"};
+const TRIAGE_WORD = {dismiss: "dismissed it", reject: "rejected the fix", handled: "marked it handled", snooze: "snoozed it", reopen: "reopened it"};
+/** Whether a decision keeps the run out of Needs attention now; the server decides the same way. */
+const triageActive = record => Boolean(record?.state) && (record.state !== "snoozed" || Date.parse(record.until) > Date.now());
+const TRIAGE = {
+  dismiss: {title: "Dismiss from Needs attention", label: "Dismiss", text: "The run leaves Needs attention. Its evidence stays in history.", note: "Reason (optional)"},
+  reject: {title: "Reject this fix", label: "Reject fix", text: "Records that this candidate must not be published; it leaves Needs attention.",
+    note: "What is wrong with it (optional)", danger: true},
+  handled: {title: "Mark as handled manually", label: "Mark handled", text: "Someone fixed, or is fixing, this failure outside Auto Fix.", note: "Where (optional): a PR, a ticket…"},
+  snooze: {title: "Snooze", label: "Snooze", text: "The run leaves Needs attention until the day you choose.", note: "Reason (optional)", until: true},
+};
+function triageDialog(run, action) {
+  const spec = TRIAGE[action], note = el("textarea", {id: "f-note", rows: 3});
+  const until = spec.until ? el("input", {type: "date", id: "f-until", value: localDate(new Date(Date.now() + 3 * 86400000)), min: localDate(new Date(Date.now() + 86400000))}) : null;
+  openDialog(spec.title, el("div", {},
+    el("p", {class: "muted"}, `${testsLabel(run)} · ${run.name}`), el("p", {}, spec.text),
+    until ? el("div", {class: "field"}, el("label", {for: "f-until"}, "Until"), until) : null,
+    el("div", {class: "field"}, el("label", {for: "f-note"}, spec.note), note)),
+  spec.label, async () => { await triage(run.id, action, {note: note.value, until: until?.value || ""}); }, {danger: spec.danger});
+}
+async function triage(id, action, extra = {}) {
+  const done = await post("/api/runs/triage", {run: id, action, ...extra});
+  toast({dismiss: "Dismissed", reject: "Fix rejected", handled: "Marked handled", snooze: "Snoozed", reopen: "Reopened", note: "Note added", rate: "Rating saved"}[action]);
+  await loadRuns();
+  if (state.selected === id) await loadDetail();
+  else if (!state.selected) keepFocus(renderHome);
+  return done;
+}
+const safeTriage = (...args) => triage(...args).catch(error => toast(error.message, "bad"));
+/** The decision a run is under, with who took it and why, and a way back. */
+function triageBanner(s) {
+  const record = s.triage;
+  if (!triageActive(record)) return null;
+  const reason = (record.notes || []).filter(note => note.action && note.action !== "note").at(-1);
+  return el("div", {class: "notice quiet"}, lucide(record.state === "snoozed" ? "clock" : "check", 16),
+    el("span", {}, el("b", {}, record.state === "snoozed" ? `Snoozed until ${shortWhen(record.until)}` : TRIAGE_STATE[record.state]),
+      ` by ${record.by} ${ago(record.at)}`, reason?.text ? ` · ${reason.text}` : ""),
+    CAN_ACT ? el("button", {class: "btn small", type: "button", onclick: () => safeTriage(s.id, "reopen")}, "Reopen") : null);
+}
+
+/* ---------- home: what needs a person ---------- */
+function attentionSection(failed) {
+  const total = state.attentionTotal + failed.length;
+  const runs = state.attention.map(run => {
+    const key = runStatus(run), st = status(key);
+    const primary = {ready: ["publish", "Publish…"], paused: ["resume", "Resume"], publication_unknown: ["reconcile", "Reconcile"], blocked: ["retry", "Retry"]}[key];
+    return el("tr", {class: "click", "data-key": "att:" + run.id, onclick: () => select(run.id)},
+      el("td", {class: "mark-cell"}, statusIcon(key)),
+      el("td", {class: "runcell"}, el("span", {class: "ellipsis mono", title: run.tests.join(", ")}, testsLabel(run)), el("span", {class: "ellipsis muted small mono"}, run.name)),
+      el("td", {class: "hide-sm muted nowrap"}, workflowLabel(workflowOf(run), run.build_type || groupName(run))),
+      el("td", {class: "grow"}, el("span", {class: "ellipsis"}, el("span", {class: "t-" + st.tone + " strong"}, st.text),
+        run.reason && st.tone !== "ok" ? el("span", {class: "muted"}, " · " + explain(run.reason).title) : null)),
+      el("td", {class: "hide-sm muted nowrap", title: when(run.updated)}, ago(run.updated)),
+      el("td", {class: "rowtools"},
+        CAN_ACT && primary ? el("button", {class: "btn small" + (key === "ready" ? " primary" : ""), type: "button",
+          onclick: event => { event.stopPropagation(); quickAct(run, primary[0]); }}, primary[1]) : null,
+        el("button", {class: "btn small", type: "button", onclick: event => { event.stopPropagation(); select(run.id); }}, key === "ready" ? "Review" : "Open"),
+        CAN_ACT ? iconButton("close", "Dismiss from Needs attention", () => triageDialog(run, "dismiss")) : null));
+  });
+  const jobs = failed.map(job => el("tr", {"data-key": "attjob:" + job.id},
+    el("td", {class: "mark-cell"}, icon("bad")),
+    el("td", {class: "runcell"}, el("span", {class: "ellipsis"}, job.title), el("span", {class: "muted small"}, "job")),
+    el("td", {class: "hide-sm muted nowrap"}, workflowLabel(workflowOfJob(job), "")),
+    el("td", {class: "grow"}, el("span", {class: "ellipsis", title: job.error || ""}, el("span", {class: "t-bad strong"}, "Could not start"),
+      el("span", {class: "muted"}, " · " + (job.error || "see the log")))),
+    el("td", {class: "hide-sm muted nowrap"}, ago(job.finished || job.started || job.created)),
+    el("td", {class: "rowtools"}, el("button", {class: "btn small", type: "button", onclick: () => openLog(job)}, "View log"),
+      iconButton("close", "Dismiss", () => removeJob(job)))));
+  return el("section", {class: "project"}, el("h2", {}, "Needs attention", el("span", {class: "sub"}, total)),
+    total ? el("div", {class: "box attention-list"}, el("table", {},
+      el("thead", {}, el("tr", {}, el("th", {}, el("span", {class: "sr"}, "Status")), el("th", {}, "Failing test · run"), el("th", {class: "hide-sm"}, "Workflow"),
+        el("th", {}, "Outcome"), el("th", {class: "hide-sm"}, "Waiting"), el("th", {}, el("span", {class: "sr"}, "Actions")))),
+      el("tbody", {}, runs, jobs)))
+    : el("p", {class: "muted"}, "Nothing needs attention."),
+    state.attentionTotal > state.attention.length ? el("a", {href: "#view=history&status=attention"}, `All ${state.attentionTotal} runs that need attention`) : null);
+}
+function upcomingSection() {
+  const next = state.schedules.filter(spec => spec.enabled && spec.next_run).sort((a, b) => a.next_run.localeCompare(b.next_run)).slice(0, 3);
+  if (!next.length) return null;
+  return el("section", {class: "project"}, el("div", {class: "projhead"}, el("h2", {}, "Upcoming schedules"), el("a", {href: "#view=schedules"}, "All schedules")),
+    el("div", {class: "box"}, el("table", {}, el("tbody", {}, next.map(spec => el("tr", {},
+      el("td", {class: "mark-cell"}, lucide("clock", 14, "ico t-none")),
+      el("td", {class: "grow"}, spec.name, el("span", {class: "muted"}, " · " + (controls.workflows[spec.kind]?.title || spec.kind))),
+      el("td", {class: "nowrap", title: zoned(spec.next_run, spec.timezone)}, localTime(spec.next_run))))))));
+}
+
+/* ---------- run page: the fix, why it stopped, validation, the failure, review ---------- */
+function leadSection(detail) {
+  const key = runStatus(detail.summary);
+  if (key === "in_progress") return null;
+  return ["ready", "published", "publication_unknown"].includes(key) ? fixSection(detail) : whySection(detail);
+}
+/** The verified patch as a reviewer reads it, with the commands to try it locally. */
+function fixSection(detail) {
+  const s = detail.summary, result = detail.result || {}, proposal = result.proposal || result.last_repair?.proposal;
+  const hasDiff = s.output_files.includes("fix.diff");
+  const viewer = el("div", {class: "box"}, hasDiff ? el("div", {class: "loading"}, icon("run"), "Loading the patch…")
+    : el("div", {class: "bd muted"}, "This run kept no fix.diff; open an attempt below for its edits."));
+  if (hasDiff) api(`/api/file?id=${encodeURIComponent(s.id)}&path=fix.diff`)
+    .then(text => viewer.replaceChildren(diffView(String(text))))
+    .catch(() => viewer.replaceChildren(el("div", {class: "bd muted"}, "The patch could not be previewed; download it instead.")));
+  const commands = [s.branch ? ["Check out the verified branch in the configured repository", `git switch ${s.branch}`] : null,
+    hasDiff ? ["Apply the downloaded patch to another checkout", "git apply fix.diff"] : null].filter(Boolean);
+  return el("section", {}, el("div", {class: "projhead"}, el("h2", {}, "The fix"),
+      el("div", {class: "tools tight"}, hasDiff ? el("a", {class: "btn small", href: downloadHref(s.id, "fix.diff"), download: ""}, lucide("download", 12), "fix.diff") : null,
+        s.pr_url ? outLink(s.pr_url, "Open pull request") : null)),
+    proposal?.summary ? el("p", {class: "lead"}, el("b", {}, proposal.summary), proposal.explanation && proposal.explanation !== proposal.summary
+      ? el("span", {class: "explain-text"}, proposal.explanation) : null) : null,
+    viewer,
+    commands.length ? el("div", {class: "cmds"}, commands.map(([label, text]) => el("div", {}, el("span", {class: "muted"}, label), copyable(text, text, "command")))) : null);
+}
+/** What stopped the run, in plain words, with the evidence a reader checks next. */
+function whySection(detail) {
+  const s = detail.summary, key = runStatus(s), reason = explain(s.reason), result = detail.result || {};
+  const check = result.verification || result.baseline, errors = detail.model_calls.filter(call => call.error);
+  const title = key === "abandoned" ? "The worker process ended without recording an outcome"
+    : key === "paused" ? `Paused; it resumes from its last checkpoint` + (detail.next?.length ? ` (${detail.next.join(", ")})` : "")
+    : reason.title || status(key).text;
+  const next = key === "abandoned" ? "Cancel it, or re-run it from its last completed step."
+    : key === "blocked" ? "Look at the attempts and the last check's output below, then run it again or mark it handled." : "";
+  return el("section", {}, el("h2", {}, key === "paused" ? "Paused" : "Why it stopped"),
+    el("div", {class: "callout " + (key === "paused" || key === "cancelled" ? "warn" : "bad")}, el("b", {}, title),
+      reason.detail && reason.detail !== title ? el("div", {class: "detail"}, reason.detail) : null, next ? el("div", {class: "muted"}, next) : null),
+    errors.length ? el("ul", {class: "plain"}, errors.map(call => el("li", {}, el("span", {class: "t-bad"}, `Model call ${call.index} (${call.kind}) failed: `), call.error, " ",
+      el("button", {class: "link", type: "button", onclick: () => { state.tab = "calls"; state.call = call.file; renderDetail(); }}, "See what it returned")))) : null,
+    check?.output ? el("details", {class: "output"}, el("summary", {}, "Output of the last build and test check"), el("pre", {class: "view clip"}, check.output),
+      detail.builds.length ? el("button", {class: "link", type: "button", onclick: () => { state.tab = "build"; renderDetail(); }}, "Open the full build log") : null) : null);
+}
+/** The whole suite before any edit and after the last one, then each failing test per check. */
+function validationSection(detail) {
+  const c = detail.comparison, plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+  return el("section", {}, el("h2", {}, "Validation", el("span", {class: "sub"}, "the whole suite before any edit and after the last one")),
+    c ? [c.regressions.length ? el("div", {class: "callout bad"}, el("b", {}, `${plural(c.regressions.length, "test")} newly failing after the edit`),
+          el("div", {class: "mono small"}, c.regressions.join(", "))) : null,
+      el("div", {class: "chips"}, chip(c.fixed.length ? "ok" : "none", `${c.fixed.length} fixed`),
+        chip(c.still_failing.length ? "bad" : "none", `${c.still_failing.length} still failing`),
+        chip(c.regressions.length ? "bad" : "none", `${c.regressions.length} newly failing`),
+        el("span", {class: "muted small"}, `Suite: ${c.baseline.passed} passed, ${c.baseline.failed} failed before → ${c.final.passed} passed, ${c.final.failed} failed after`))]
+    : el("p", {class: "muted"}, "No check has run after an edit yet."),
+    testsGrid(detail));
+}
+/** The TeamCity failure and its context: messages, the build's changes, their pull requests and Jira issues. */
+function failureSection(detail) {
+  const s = detail.summary, failure = detail.result?.failure || {}, context = detail.result?.context || {};
+  const tests = failure.tests || [], changes = failure.changes || [], prs = context.pull_requests || [], issues = context.issues || [];
+  if (!tests.length && !changes.length && !prs.length && !issues.length && !context.ci_log) return null;
+  const sub = (title, count, body) => el("div", {class: "subsection"}, el("h3", {}, title, count !== null ? el("span", {class: "sub"}, count) : null), body);
+  return el("section", {}, el("h2", {}, "The failure", s.build_url ? el("span", {class: "sub"}, outLink(s.build_url, `TeamCity build #${s.build_id}`)) : null),
+    tests.length ? sub("Failing tests", tests.length, el("div", {class: "box"}, tests.map(test => el("details", {class: "testfail", open: tests.length === 1 ? "" : null},
+      el("summary", {}, el("code", {}, test.name), " ", el("a", {href: "#" + new URLSearchParams({view: "test", name: test.name})}, "history"),
+        test.url ? [" · ", outLink(test.url, "TeamCity")] : null),
+      test.details ? el("pre", {class: "view clip"}, test.details) : el("div", {class: "muted bd"}, "TeamCity recorded no failure message for this test."))))) : null,
+    changes.length ? sub("Changes in the failing build", changes.length, el("div", {class: "box"}, el("table", {}, el("tbody", {}, changes.map(change => el("tr", {},
+      el("td", {class: "nowrap"}, change.version ? copyable(change.version, change.version.slice(0, 10), "commit") : "—"),
+      el("td", {class: "nowrap muted"}, change.username || ""),
+      el("td", {class: "grow"}, el("span", {class: "ellipsis", title: change.comment || ""}, (change.comment || "").split("\n")[0])),
+      el("td", {class: "hide-sm muted nowrap"}, change.date ? shortWhen(tcDate(change.date)) : ""),
+      el("td", {class: "rowtools"}, change.webUrl ? outLink(change.webUrl, "Open") : null))))))) : null,
+    prs.length ? sub("Pull requests of those commits", prs.length, el("ul", {class: "plain"}, prs.map(pr => el("li", {},
+      pr.links?.self?.[0]?.href ? outLink(pr.links.self[0].href, `#${pr.id} ${pr.title || ""}`) : `#${pr.id} ${pr.title || ""}`,
+      el("span", {class: "muted"}, ` · ${pr.author?.user?.displayName || pr.author?.user?.name || "unknown author"} · ${(pr.state || "").toLowerCase()}`))))) : null,
+    issues.length ? sub("Jira issues", issues.length, el("ul", {class: "plain"}, issues.map(issue => el("li", {},
+      issue.url ? outLink(issue.url, issue.key) : issue.key, " ", issue.fields?.summary || "",
+      issue.fields?.status?.name ? el("span", {class: "badge"}, issue.fields.status.name) : null)))) : null,
+    context.ci_log ? el("details", {class: "output"}, el("summary", {}, "TeamCity build log (end)"), el("pre", {class: "view clip"}, context.ci_log)) : null);
+}
+/** Ratings and notes: what reviewers decided and why, kept with the state directory. */
+function reviewSection(detail) {
+  const s = detail.summary, record = s.triage || {}, notes = record.notes || [];
+  const candidate = ["ready", "published", "publication_unknown"].includes(runStatus(s)) || s.output_files.includes("fix.diff");
+  // Live refresh redraws a running run's page; the draft survives in noteDrafts.
+  const note = el("textarea", {rows: 2, placeholder: "A note for whoever looks at this run next", "aria-label": "Note", "data-key": "note:" + s.id,
+    oninput: event => { noteDrafts[s.id] = event.target.value; }}, noteDrafts[s.id] || "");
+  const rate = (value, label, name) => el("button", {class: "btn small" + (record.rating?.value === value ? " on" : ""), type: "button",
+    "aria-pressed": String(record.rating?.value === value), disabled: CAN_ACT ? null : "", onclick: () => safeTriage(s.id, "rate", {rating: value})}, lucide(name, 12), label);
+  return el("section", {}, el("h2", {}, "Review", el("span", {class: "sub"}, "decisions, ratings and notes")),
+    candidate ? el("div", {class: "tools rating"}, el("span", {}, "Was this fix good?"), rate("good", "Good fix", "check"), rate("bad", "Bad fix", "close"),
+      record.rating ? el("span", {class: "muted small"}, `Rated ${record.rating.value} by ${record.rating.by} ${ago(record.rating.at)}`) : null) : null,
+    notes.length ? el("ul", {class: "notes"}, notes.map(item => el("li", {}, el("div", {class: "text"}, item.text),
+      el("div", {class: "muted small"}, `${item.by} · ${ago(item.at)}` + (TRIAGE_WORD[item.action] ? ` · ${TRIAGE_WORD[item.action]}` : "")))))
+    : el("p", {class: "muted"}, "No notes yet."),
+    CAN_ACT ? el("form", {class: "notebox", onsubmit: async event => {
+      event.preventDefault();
+      const text = note.value.trim();
+      if (!text) return;
+      delete noteDrafts[s.id];
+      try { await triage(s.id, "note", {note: text}); } catch (error) { noteDrafts[s.id] = text; toast(error.message, "bad"); }
+    }}, note, el("button", {class: "btn", type: "submit"}, "Add note")) : null);
+}
+const noteDrafts = {};
+/** A unified diff as a table: old and new line numbers, one file after another. */
+function diffView(text) {
+  const files = [];
+  let file = null, oldNo = 0, newNo = 0;
+  const start = path => { file = {path, rows: [], add: 0, del: 0}; files.push(file); };
+  for (const line of text.replace(/\n$/, "").split("\n")) {
+    if (line.startsWith("diff --git ")) { start(line.split(" b/").pop()); continue; }
+    if (line.startsWith("+++ ")) { const path = line.slice(4).replace(/^b\//, ""); if (!file) start(path); else if (path !== "/dev/null") file.path = path; continue; }
+    if (line.startsWith("--- ")) { if (!file) start(line.slice(4).replace(/^a\//, "")); continue; }
+    if (/^(index |new file|deleted file|similarity|rename |old mode|new mode)/.test(line)) continue;
+    if (!file) start("patch");
+    const hunk = /^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/.exec(line);
+    if (hunk) { oldNo = Number(hunk[1]); newNo = Number(hunk[2]); file.rows.push(["hunk", "", "", line]); }
+    else if (line.startsWith("+")) { file.add++; file.rows.push(["add", "", newNo++, line]); }
+    else if (line.startsWith("-")) { file.del++; file.rows.push(["del", oldNo++, "", line]); }
+    else if (line.startsWith("\\")) file.rows.push(["note", "", "", line]);
+    else file.rows.push(["ctx", oldNo++, newNo++, line]);
+  }
+  if (!files.length) return el("div", {class: "bd muted"}, "The patch is empty.");
+  return el("div", {class: "diff"}, files.map(item => el("div", {class: "dfile"},
+    el("div", {class: "fh"}, el("span", {class: "mono"}, item.path), el("span", {class: "afile"}, el("b", {class: "add"}, "+" + item.add), " ", el("b", {class: "del"}, "−" + item.del))),
+    el("div", {class: "rows"}, item.rows.map(([kind, a, b, code]) => el("div", {class: "ln " + kind}, el("span", {class: "o"}, a), el("span", {class: "n"}, b), el("code", {}, code)))))));
+}
+/** One proposed edit as removed and added lines. Edits carry no line numbers, so none are shown. */
+function snippetDiff(edit) {
+  const rows = [...edit.old.split("\n").map(line => ["del", "-" + line]), ...edit.new.split("\n").map(line => ["add", "+" + line])];
+  return el("div", {class: "diff snippet"}, el("div", {class: "dfile"},
+    el("div", {class: "fh"}, el("span", {class: "mono"}, edit.path), el("span", {class: "afile"}, el("b", {class: "add"}, "+" + lineCount(edit.new)), " ", el("b", {class: "del"}, "−" + lineCount(edit.old)))),
+    el("div", {class: "rows"}, rows.map(([kind, code]) => el("div", {class: "ln " + kind}, el("code", {}, code))))));
+}
+/** A failed call's text as the model sent it, e.g. JSON cut off at the token limit. */
+function rawOutput(call) {
+  return call.raw ? el("details", {class: "output", open: ""}, el("summary", {}, "What the model returned"), el("pre", {class: "view clip"}, call.raw))
+    : el("div", {class: "muted"}, "The model returned no text, or the request failed before an answer arrived.");
+}
+/** Build and test checks by name: the evidence folders are named after the check that wrote them. */
+function buildLabel(label) {
+  if (label === "baseline") return "Baseline, before any edit";
+  if (label.startsWith("baseline-repeat-")) return `Baseline repeat ${label.slice(16)}`;
+  if (/^attempt-\d+$/.test(label)) return `Check after attempt ${label.slice(8)}`;
+  return label === "final-rebased" ? "Final check after rebasing" : label;
+}
+/** The compiler and test-runner output of every check, one log at a time. */
+function renderBuilds(detail) {
+  const builds = detail.builds;
+  if (!builds.length) return emptyState("log", "No build output recorded", "Compiler and test output appear here once the baseline check starts.");
+  if (!builds.some(build => build.files.some(file => file.path === state.buildFile))) {
+    const last = builds.at(-1).files;
+    state.buildFile = (last.find(file => /test[^/]*\.log$/.test(file.path)) || last.find(file => file.path.endsWith(".log")) || last[0])?.path || null;
+  }
+  const download = path => el("a", {class: "ib", href: downloadHref(state.selected, path), download: "", title: "Download " + path, "aria-label": "Download " + path}, lucide("download", 14));
+  const viewer = el("div", {class: "box"}, el("div", {class: "loading"}, icon("run"), "Loading the log…"));
+  if (state.buildFile) api(`/api/file?id=${encodeURIComponent(state.selected)}&path=${encodeURIComponent(state.buildFile)}`)
+    .then(text => viewer.replaceChildren(el("div", {class: "hd mono"}, state.buildFile, el("span", {class: "read"}, download(state.buildFile))), logView(String(text))))
+    .catch(() => viewer.replaceChildren(emptyState("missing", "Preview unavailable", "The log is too large to preview here; download it instead.", download(state.buildFile))));
+  const list = el("div", {class: "box filelist"}, builds.map(build => el("div", {class: "build"},
+    el("div", {class: "bh"}, el("b", {}, buildLabel(build.label)), el("span", {class: "muted small"}, shortWhen(build.time))),
+    build.files.length ? build.files.map(file => el("div", {class: "file" + (file.path === state.buildFile ? " sel" : ""), "data-key": "log:" + file.path,
+      "aria-current": file.path === state.buildFile ? "true" : null, onclick: () => { state.buildFile = file.path; renderDetail(); }},
+      el("span", {class: "fname", title: file.path}, file.path.split("/").pop()), el("span", {class: "fsize"}, size(file.size))))
+    : el("div", {class: "file muted"}, "No files"))));
+  return el("div", {class: "split"}, list, viewer);
+}
+/** A log with error lines marked, opened at its end, where compilers and test runners report. */
+function logView(text) {
+  const pre = el("pre", {class: "view logtext"});
+  for (const line of text.split("\n")) pre.append(el("span", {class: /\b(error|failed|failure)\b|^\[\s+FAILED/i.test(line) ? "del" : ""}, line + "\n"));
+  queueMicrotask(() => { pre.scrollTop = pre.scrollHeight; });
+  return pre;
+}
+
+/* ---------- tests ---------- */
+async function loadTests() { state.tests = await api("/api/tests?" + new URLSearchParams({q: state.testQuery || ""})); }
+async function loadTestRuns() { state.testRuns = await api("/api/tests?" + new URLSearchParams({name: state.testName || ""})); }
+function testsPage() {
+  const data = state.tests || {tests: [], total: 0}, q = state.testQuery || "";
+  const search = el("input", {type: "search", value: q, placeholder: "Part of a test name", "data-key": "tests-search", oninput: event => {
+    state.testQuery = event.target.value;
+    clearTimeout(testsPage.timer);
+    testsPage.timer = setTimeout(async () => {
+      history.replaceState(null, "", "#" + historyHash());
+      try { await loadTests(); } catch (error) { toast(error.message, "bad"); return; }
+      keepFocus(renderHome);
+      const input = document.activeElement;
+      if (input?.dataset?.key === "tests-search") input.setSelectionRange(input.value.length, input.value.length);
+    }, 300);
+  }});
+  return el("div", {class: "page"}, pageHead("Tests", `${data.total} failing test${data.total === 1 ? "" : "s"} seen by repair runs`),
+    el("div", {class: "history-filters"}, el("label", {}, "Search tests", search)),
+    data.tests.length ? el("div", {class: "box"}, el("table", {},
+      el("thead", {}, el("tr", {}, el("th", {}, "Test"), el("th", {class: "hide-sm"}, "Workflows"), el("th", {class: "num"}, "Runs"), el("th", {class: "num"}, "Fixed"),
+        el("th", {class: "num hide-sm"}, "Did not reproduce"), el("th", {}, "Latest run"))),
+      el("tbody", {}, data.tests.map(test => el("tr", {class: "click", "data-key": "test:" + test.name,
+        onclick: () => { location.hash = "#" + new URLSearchParams({view: "test", name: test.name}); }},
+        el("td", {class: "grow"}, el("span", {class: "mono"}, test.name),
+          test.not_reproduced ? el("span", {class: "badge", title: "Some runs could not reproduce this failure locally"}, "possibly flaky") : null),
+        el("td", {class: "hide-sm muted nowrap"}, test.build_types.map(pretty).join(", ")),
+        el("td", {class: "num"}, test.runs), el("td", {class: "num"}, test.fixed || "—"), el("td", {class: "num hide-sm"}, test.not_reproduced || "—"),
+        el("td", {class: "nowrap"}, statusIcon(runStatus(test.last)), " ", status(runStatus(test.last)).text, el("span", {class: "muted"}, " · " + ago(test.last.started))))))))
+    : emptyState("search", q ? "No test matches" : "No failing tests yet", q ? "Try another part of the test name." : "Tests appear here once a repair run records a TeamCity failure."));
+}
+function testPage() {
+  const runs = state.testRuns?.runs || [], name = state.testName || "";
+  const fixed = runs.filter(run => ["ready", "published"].includes(run.status)).length;
+  return el("div", {class: "page"}, el("nav", {class: "crumbs", "aria-label": "Breadcrumb"}, el("a", {href: "#view=tests"}, "Tests"), " / ", name),
+    pageHead(el("span", {class: "mono"}, name), `${runs.length} repair run${runs.length === 1 ? "" : "s"} · ${fixed} with a verified fix`,
+      el("a", {class: "btn", href: "#" + new URLSearchParams({view: "history", search: name})}, lucide("search", 12), "Search run history")),
+    runsTable([], runs, {workflow: true}) || emptyState("search", "No runs for this test", "No repair run of this state directory names it."));
+}
+
+/* ---------- metrics ---------- */
+async function loadMetrics() { state.metrics = await api("/api/metrics?days=" + (state.metricsDays || 30)); }
+const compact = n => n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e4 ? Math.round(n / 1e3) + "K" : n >= 1e3 ? (n / 1e3).toFixed(1) + "K" : String(n);
+const percent = value => value === null || value === undefined ? "—" : Math.round(value * 100) + "%";
+function metricsPage() {
+  const m = state.metrics;
+  if (!m) return el("div", {class: "page loading"}, icon("run"), "Loading metrics…");
+  const t = m.total, fixes = s => (s.ready || 0) + (s.published || 0);
+  const period = el("select", {"aria-label": "Period", onchange: event => { location.hash = "#" + new URLSearchParams({view: "metrics", days: event.target.value}); }},
+    [7, 30, 90].map(n => el("option", {value: n, selected: n === m.days ? "" : null}, `Last ${n} days`)));
+  const tile = (label, value, note) => el("div", {class: "kpi"}, el("div", {class: "l"}, label), el("div", {class: "v"}, value), note ? el("div", {class: "muted small"}, note) : null);
+  return el("div", {class: "page"},
+    pageHead("Metrics", `Runs started since ${new Date(m.since + "T00:00").toLocaleDateString(undefined, {day: "numeric", month: "short", year: "numeric"})}`, el("label", {class: "show"}, "Period", period)),
+    el("div", {class: "kpis"},
+      tile("Runs", t.runs, `${fixes(t.statuses)} verified fixes`),
+      tile("Fix rate", percent(t.fix_rate), "of runs that reached an outcome"),
+      tile("Median time to a verified fix", duration(t.median_time_to_candidate)),
+      tile("Failed model calls", t.model_calls ? percent(t.failed_model_calls / t.model_calls) : "—", `${t.failed_model_calls} of ${t.model_calls} calls`),
+      tile("Tokens", compact(t.tokens_in + t.tokens_out), `${compact(t.tokens_in)} in · ${compact(t.tokens_out)} out`)),
+    el("section", {class: "project"}, el("h2", {}, "Runs per day"), dailyChart(m.daily)),
+    el("section", {class: "project"}, el("h2", {}, "By workflow"), m.workflows.length ? el("div", {class: "box"}, el("table", {},
+      el("thead", {}, el("tr", {}, el("th", {}, "Workflow"), el("th", {class: "num"}, "Runs"), el("th", {class: "num"}, "Verified fixes"), el("th", {class: "num hide-sm"}, "Blocked"),
+        el("th", {class: "num"}, "Fix rate"), el("th", {class: "num hide-sm"}, "Median duration"), el("th", {class: "num hide-sm"}, "Failed calls"), el("th", {class: "num hide-sm"}, "Tokens"))),
+      el("tbody", {}, m.workflows.map(row => el("tr", {class: "click", onclick: () => openWorkflow(row.key)},
+        el("td", {class: "grow"}, findWorkflow(row.key)?.title || row.key.replace(/^(bt|other):/, "")),
+        el("td", {class: "num"}, row.runs), el("td", {class: "num"}, fixes(row.statuses)), el("td", {class: "num hide-sm"}, row.statuses.blocked || 0),
+        el("td", {class: "num"}, percent(row.fix_rate)), el("td", {class: "num hide-sm"}, duration(row.median_duration)),
+        el("td", {class: "num hide-sm"}, `${row.failed_model_calls} / ${row.model_calls}`), el("td", {class: "num hide-sm"}, compact(row.tokens_in + row.tokens_out)))))))
+      : el("p", {class: "muted"}, "No runs started in this period.")));
+}
+/** Clean axis steps: 1, 2 or 5 times a power of ten, never below one run. */
+const niceStep = max => { const raw = max / 4, mag = 10 ** Math.floor(Math.log10(raw)), n = raw / mag; return Math.max(1, (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * mag); };
+/** Runs started each day, one column per day; hovering a day lists its outcomes. */
+function dailyChart(daily) {
+  // Drawn at the width it will show at, so its text stays at the page's size.
+  const W = Math.max(420, Math.min(1400, document.getElementById("content").clientWidth - 90)), H = 180, left = 34, top = 10, bottom = 24, plot = H - top - bottom;
+  const total = day => Object.entries(day).reduce((sum, [key, value]) => key === "date" ? sum : sum + value, 0);
+  const totals = daily.map(total), step = niceStep(Math.max(1, ...totals)), ymax = Math.ceil(Math.max(1, ...totals) / step) * step;
+  const band = (W - left) / daily.length, bar = Math.min(24, band * 0.62), y = v => top + plot - v / ymax * plot;
+  const shortDay = iso => new Date(iso + "T00:00").toLocaleDateString(undefined, {day: "numeric", month: "short"});
+  const describe = (day, n) => `${shortDay(day.date)}: ${n} run${n === 1 ? "" : "s"}` + (n ? " — " + Object.entries(day).filter(([key]) => key !== "date")
+    .map(([key, value]) => `${value} ${status(key === "in_progress" ? "in_progress" : key).text.toLowerCase()}`).join(", ") : "");
+  const chart = svg("svg", {viewBox: `0 0 ${W} ${H}`, class: "chart", role: "img", "aria-label": `Runs per day, ${totals.reduce((a, b) => a + b, 0)} in total`});
+  for (let v = 0; v <= ymax; v += step)
+    chart.append(svg("line", {x1: left, x2: W, y1: y(v), y2: y(v), class: v ? "grid" : "base"}), svg("text", {x: left - 8, y: y(v) + 4, class: "tick", "text-anchor": "end"}, String(v)));
+  const tip = el("div", {class: "charttip", hidden: ""});
+  const plotBox = el("div", {class: "plot"}, chart, tip);
+  daily.forEach((day, i) => {
+    const x0 = left + i * band + (band - bar) / 2, x1 = x0 + bar, base = y(0), h = totals[i] / ymax * plot;
+    let mark = null;
+    if (h > 0) {
+      // 4px rounded data end, square at the baseline.
+      const r = Math.min(4, h, bar / 2), top0 = base - h;
+      mark = svg("path", {class: "bar", d: `M${x0} ${base}V${top0 + r}Q${x0} ${top0} ${x0 + r} ${top0}H${x1 - r}Q${x1} ${top0} ${x1} ${top0 + r}V${base}Z`});
+      chart.append(mark);
+    }
+    const hit = svg("rect", {x: left + i * band, y: top, width: band, height: plot, class: "hit", tabindex: "0", role: "img", "aria-label": describe(day, totals[i])});
+    const show = () => {
+      mark?.classList.add("on");
+      tip.textContent = describe(day, totals[i]);
+      tip.hidden = false;
+      const box = plotBox.getBoundingClientRect(), cell = hit.getBoundingClientRect();
+      tip.style.left = Math.max(0, Math.min(box.width - tip.offsetWidth, cell.left - box.left + cell.width / 2 - tip.offsetWidth / 2)) + "px";
+    };
+    const hide = () => { mark?.classList.remove("on"); tip.hidden = true; };
+    hit.addEventListener("mouseenter", show); hit.addEventListener("focus", show);
+    hit.addEventListener("mouseleave", hide); hit.addEventListener("blur", hide);
+    chart.append(hit);
+    if (i === 0 || i === daily.length - 1 || i === Math.floor((daily.length - 1) / 2))
+      chart.append(svg("text", {x: left + i * band + band / 2, y: H - 6, class: "tick", "text-anchor": i === 0 ? "start" : i === daily.length - 1 ? "end" : "middle"}, shortDay(day.date)));
+  });
+  const busy = daily.map((day, i) => [day, totals[i]]).filter(([, n]) => n);
+  return el("div", {class: "box chartbox"}, plotBox,
+    el("details", {class: "adv"}, el("summary", {}, "Show as a table"), busy.length ? el("table", {}, el("tbody", {}, busy.map(([day, n]) =>
+      el("tr", {}, el("td", {class: "nowrap"}, shortDay(day.date)), el("td", {class: "grow"}, describe(day, n).split(" — ")[1] || ""), el("td", {class: "num"}, n)))))
+      : el("p", {class: "muted"}, "No runs in this period.")));
+}
+
+/* ---------- settings: configuration, connections, notifications ---------- */
+async function loadSettings() { state.settings = await api("/api/settings"); }
+async function checkConnections() {
+  state.checking = true; state.health = null; renderHome();
+  try { state.health = (await post("/api/health", {})).checks; } catch (error) { toast(error.message, "bad"); }
+  state.checking = false; renderHome();
+}
+function settingsPage() {
+  const data = state.settings;
+  if (!data) return el("div", {class: "page loading"}, icon("run"), "Loading settings…");
+  const c = data.config, row = (label, value) => [el("dt", {}, label), el("dd", {}, value ?? "—")];
+  const argv = command => el("code", {}, command.map(arg => /\s/.test(arg) ? JSON.stringify(arg) : arg).join(" "));
+  const checks = Object.fromEntries((state.health || []).map(item => [item.name, item]));
+  const result = name => {
+    const item = checks[name];
+    if (!item) return el("span", {class: "muted"}, state.checking ? "Checking…" : "Not checked");
+    return el("span", {class: item.ok ? "t-ok" : "t-bad"}, icon(item.ok ? "ok" : "bad"), " ", item.detail, item.ms !== undefined ? el("span", {class: "muted"}, ` · ${item.ms} ms`) : null);
+  };
+  const services = c ? [["TeamCity", c.teamcity], ["Bitbucket", c.bitbucket], ["Jira", c.jira], ["Model endpoint", c.llm]].filter(([, service]) => service) : [];
+  return el("div", {class: "page"},
+    pageHead("Settings", c ? "The configuration this dashboard runs with. Edit the YAML file and restart the dashboard to change it."
+      : "Read-only dashboard: start it with --config to see and check a configuration."),
+    el("section", {class: "project"}, el("h2", {}, "This dashboard"), el("dl", {class: "info"},
+      row("State directory", copyable(data.root, data.root, "state directory")),
+      row("Configuration", data.config_path ? copyable(data.config_path, data.config_path, "configuration path") : "None (read-only)"),
+      row("Run controls", CAN_ACT ? "Enabled" : "Off"),
+      row("Runner", !data.runner ? "—" : data.runner.alive ? "Active" : el("span", {class: "t-bad"}, "Not running: queued jobs wait")),
+      c ? row("Timezone", c.timezone) : null)),
+    c ? el("section", {class: "project"}, el("div", {class: "projhead"}, el("h2", {}, "Connections"),
+        CAN_ACT ? el("button", {class: "btn", type: "button", disabled: state.checking ? "" : null, onclick: checkConnections}, lucide("reconcile", 12), "Check connections") : null),
+      el("div", {class: "box"}, el("table", {},
+        el("thead", {}, el("tr", {}, el("th", {}, "Service"), el("th", {class: "hide-sm"}, "Address"), el("th", {}, "Credentials"), el("th", {}, "Check"))),
+        el("tbody", {}, services.map(([name, service]) => el("tr", {},
+          el("td", {class: "strong nowrap"}, name), el("td", {class: "hide-sm mono small"}, service.url),
+          el("td", {class: "nowrap"}, el("code", {}, service.token_env), " ", service.token_set ? el("span", {class: "t-ok"}, "set") : el("span", {class: "t-bad"}, "missing")),
+          el("td", {}, result(name)))),
+          el("tr", {}, el("td", {class: "strong nowrap"}, "Git repository"), el("td", {class: "hide-sm mono small"}, c.repository.path),
+            el("td", {class: "nowrap muted"}, `${c.repository.remote}/${c.repository.base_branch}`), el("td", {}, result("Git repository"))))))) : null,
+    c ? el("section", {class: "project"}, el("h2", {}, "Model"), el("dl", {class: "info"},
+      row("Model", el("code", {}, c.llm.model)), row("Prompt", c.llm.prompt_version), row("Output limit", c.llm.max_tokens.toLocaleString() + " tokens"),
+      row("Context budget", c.llm.context_chars.toLocaleString() + " characters"), row("Temperature", String(c.llm.temperature)))) : null,
+    c ? el("section", {class: "project"}, el("h2", {}, "Build, tests and limits"), el("dl", {class: "info wide"},
+      c.build.configure.length ? row("Configure", c.build.configure.map(command => el("div", {}, argv(command)))) : null,
+      row("Build", c.build.build.map(command => el("div", {}, argv(command)))),
+      row("Tests", argv(c.build.test)),
+      c.build.additional_tests.length ? row("Additional suites", c.build.additional_tests.map(command => el("div", {}, argv(command)))) : null,
+      row("Command timeout", duration(c.build.timeout_seconds)),
+      row("Editable paths", c.repository.allowed_paths.join(", ")),
+      row("Repair attempts", String(c.limits.max_attempts)),
+      row("Baseline repetitions", String(c.limits.baseline_repetitions)))) : null,
+    el("section", {class: "project"}, el("h2", {}, "Notifications"), notificationToggle()));
+}
+function notificationToggle() {
+  if (!("Notification" in window)) return el("p", {class: "muted"}, "This browser cannot show notifications.");
+  return el("label", {class: "checkrow"}, el("input", {type: "checkbox", checked: notifyEnabled() ? "" : null, onchange: async event => {
+    const box = event.target;
+    if (box.checked && Notification.permission !== "granted" && await Notification.requestPermission() !== "granted") {
+      box.checked = false;
+      toast("The browser blocked notifications for this page", "bad");
+      return;
+    }
+    try { localStorage.setItem(NOTIFY_KEY, box.checked ? "1" : "0"); } catch (error) { /* private mode */ }
+  }}), "Notify me in this browser when a run needs attention, while a dashboard tab is open");
+}
+
+/* ---------- navigation, freshness and notifications ---------- */
+const PAGE_VIEWS = {schedules: () => schedulesPage(), batches: () => batchesPage(), tests: () => testsPage(), test: () => testPage(),
+  metrics: () => metricsPage(), settings: () => settingsPage()};
+/** Opens one of the global pages and loads what it shows. */
+async function openView(view, hash = new URLSearchParams()) {
+  dropFigure();
+  state.selected = null; state.detail = null; state.view = view;
+  if (!state.pageData) await loadRuns();
+  if (view === "schedules") await loadSchedules();
+  else if (view === "batches") { state.batchPage = Number(hash.get("batch_page")) || 1; await loadBatches(); }
+  else if (view === "tests") { state.testQuery = hash.get("q") || ""; await loadTests(); }
+  else if (view === "test") { state.testName = hash.get("name") || ""; await loadTestRuns(); }
+  else if (view === "metrics") { state.metricsDays = Number(hash.get("days")) || 30; state.metrics = null; renderHome(); await loadMetrics(); }
+  else if (view === "settings") await loadSettings();
+  document.getElementById("content").scrollTop = 0;
+  renderSidebar();
+  renderHome();
+}
+function markNav() {
+  const current = state.selected ? "" : state.view === "test" ? "tests" : state.view || "home";
+  for (const link of document.querySelectorAll(".topnav a"))
+    link.dataset.view === current ? link.setAttribute("aria-current", "page") : link.removeAttribute("aria-current");
+}
+function showAttentionCount() {
+  const n = state.attentionTotal || 0;
+  document.getElementById("nav-attention").textContent = n ? String(n) : "";
+  document.getElementById("nav-attention").title = n ? `${n} runs need attention` : "";
+  document.title = (n ? `(${n}) ` : "") + "Auto Fix Runs";
+}
+/** "Updated 12s ago" in the header, and a banner while the server does not answer. */
+function showFreshness() {
+  const fresh = document.getElementById("fresh"), banner = document.getElementById("offline");
+  if (!state.lastOk) return;
+  const seconds = Math.round((Date.now() - state.lastOk) / 1000), live = document.getElementById("live").checked;
+  fresh.textContent = state.offline ? "Not responding" : !live ? "Live refresh off" : seconds < 10 ? "Up to date" : seconds < 60 ? `Updated ${seconds}s ago` : `Updated ${ago(new Date(state.lastOk).toISOString())}`;
+  fresh.classList.toggle("stale", state.offline);
+  fresh.title = "Last successful refresh: " + when(new Date(state.lastOk).toISOString());
+  banner.hidden = !state.offline;
+  if (state.offline) banner.replaceChildren(lucide("warn", 16), el("span", {},
+    `The dashboard server is not responding. This page shows data from ${when(new Date(state.lastOk).toISOString(), false)} and reconnects by itself.`));
+}
+const NOTIFY_KEY = "auto-fix:notify", SEEN_KEY = "auto-fix:attention-seen", SIDEBAR_KEY = "auto-fix:sidebar";
+const notifyEnabled = () => { try { return localStorage.getItem(NOTIFY_KEY) === "1" && Notification.permission === "granted"; } catch (error) { return false; } };
+/** A browser notification for each run that newly needs attention since this browser last looked. */
+function notifyAttention() {
+  let seen = null;
+  try {
+    seen = JSON.parse(localStorage.getItem(SEEN_KEY));
+    localStorage.setItem(SEEN_KEY, JSON.stringify(state.attention.map(run => run.id)));
+  } catch (error) { return; }
+  if (!Array.isArray(seen) || !("Notification" in window) || !notifyEnabled()) return;
+  for (const run of state.attention.filter(item => !seen.includes(item.id))) {
+    const reason = run.reason ? ": " + explain(run.reason).title : "";
+    const note = new Notification(`${testsLabel(run)} needs attention`, {body: status(runStatus(run)).text + reason, tag: run.id});
+    note.onclick = () => { window.focus(); select(run.id); };
+  }
+}
+/** The workflow tree can be hidden; phones start without it. */
+function showSidebar(show, remember = false) {
+  document.body.classList.toggle("nosidebar", !show);
+  document.getElementById("sidebar-toggle").setAttribute("aria-pressed", String(show));
+  if (remember) try { localStorage.setItem(SIDEBAR_KEY, show ? "1" : "0"); } catch (error) { /* private mode */ }
+}
+{
+  let stored = null;
+  try { stored = localStorage.getItem(SIDEBAR_KEY); } catch (error) { /* private mode */ }
+  const narrow = matchMedia("(max-width: 900px)");
+  showSidebar(stored ? stored === "1" : !narrow.matches);
+  // Until someone picks, the tree follows the window: hidden on a phone-sized one.
+  narrow.addEventListener("change", event => { if (!stored) showSidebar(!event.matches); });
+  document.getElementById("sidebar-toggle").addEventListener("click", () => {
+    stored = "picked";
+    showSidebar(document.body.classList.contains("nosidebar"), true);
+  });
+}
+setInterval(() => { tickClocks(); showFreshness(); }, 1000);
+
 document.getElementById("q").addEventListener("input", () => renderSidebar());
 document.getElementById("home").addEventListener("click", event => { event.preventDefault(); openWorkflow(null); });
 document.getElementById("queue-link").addEventListener("click", () => openWorkflow(null));
-document.getElementById("schedules-link").addEventListener("click",async()=>{state.selected=null;state.detail=null;state.view="schedules";history.pushState(null,"","#view=schedules");await loadSchedules();renderHome();});
-document.getElementById("batches-link").addEventListener("click",async()=>{state.selected=null;state.detail=null;state.view="batches";state.batchPage=1;history.pushState(null,"","#view=batches");await loadBatches();renderHome();});
 // Back and Forward between runs, and links pasted into the address bar.
 function readHistoryRoute(hash) {
   state.history={page:Math.max(1,Number(hash.get("page"))||1),page_size:[25,50,100].includes(Number(hash.get("size")))?Number(hash.get("size")):25,
-    status:hash.get("status")||"",q:hash.get("search")||"",since:hash.get("since")||"",until:hash.get("until")||""};
+    status:hash.get("status")||"",q:hash.get("search")||"",since:hash.get("since")||"",until:hash.get("until")||"",sort:hash.get("sort")||"-started"};
   state.workflow=hash.get("wf");
   state.view=hash.get("view");
 }
 async function route() {
-  const hash=new URLSearchParams(location.hash.slice(1)), id=hash.get("run");
-  if(id) {
-    const back=hash.get("back")||"";
+  const hash = new URLSearchParams(location.hash.slice(1)), id = hash.get("run"), view = hash.get("view");
+  if (id) {
+    const back = hash.get("back") || "";
     readHistoryRoute(new URLSearchParams(back));
-    await select(id,false);
-    state.returnHash=back;state.tab=hash.get("tab")||"overview";state.file=hash.get("file");state.call=hash.get("call");
-    state.openSteps=new Set((hash.get("open")||"").split(",").filter(Boolean).map(Number));
-    if(state.detail) renderDetail();
-  } else if(hash.get("view")==="schedules") {state.selected=null;state.detail=null;state.view="schedules";await loadSchedules();renderHome();}
-  else if(hash.get("view")==="batches") {state.selected=null;state.detail=null;state.view="batches";state.batchPage=Number(hash.get("batch_page"))||1;await loadBatches();renderHome();}
-  else if(hash.get("view")==="history") {readHistoryRoute(hash);state.selected=null;state.detail=null;await loadRuns();renderHome();}
-  else {readHistoryRoute(hash);await openWorkflow(hash.get("wf"),false);}
+    await select(id, false);
+    state.returnHash = back; state.tab = hash.get("tab") || "overview"; state.file = hash.get("file"); state.call = hash.get("call");
+    state.buildFile = hash.get("log");
+    state.openSteps = new Set((hash.get("open") || "").split(",").filter(Boolean).map(Number));
+    if (state.detail) renderDetail();
+  } else if (view in PAGE_VIEWS) await openView(view, hash);
+  else if (view === "history") { readHistoryRoute(hash); state.selected = null; state.detail = null; await loadRuns(); renderSidebar(); renderHome(); }
+  else { readHistoryRoute(hash); await openWorkflow(hash.get("wf"), false); }
 }
 window.addEventListener("hashchange",()=>route().catch(error=>toast(error.message,"bad")));
 async function refresh() {
   try {
-    const [runsChanged, jobsChanged,schedulesChanged,batchesChanged] = await Promise.all([loadRuns(), loadJobs(),loadSchedules(),loadBatches()]);
+    const [runsChanged, jobsChanged, schedulesChanged, batchesChanged] = await Promise.all([loadRuns(), loadJobs(), loadSchedules(), loadBatches()]);
     if (!state.selected) { if (runsChanged || jobsChanged || schedulesChanged || batchesChanged) keepFocus(renderHome); }
     else {
       const current = state.runs.find(run => run.id === state.selected);
       // Re-read a run only when it changed, and never while an artifact is open.
       if (state.tab !== "files" && (!current || current.status === "in_progress" || busy() || state.detail?.summary.updated !== current.updated)) await loadDetail();
     }
-    tickClocks();
-  } catch (error) { /* keep the last view while the server restarts */ }
+    state.lastOk = Date.now();
+    state.offline = false;
+  } catch (error) { state.offline = true; /* keep the last view while the server restarts */ }
+  tickClocks();
+  showFreshness();
 }
 if(state.selected) readHistoryRoute(new URLSearchParams(state.returnHash));
-Promise.all([loadRuns(),loadSchedules(),loadBatches()]).then(() => state.selected ? loadDetail() : (renderSidebar(), renderHome())).catch(error=>toast(error.message,"bad"));
+Promise.all([loadRuns(), loadSchedules(), loadBatches()]).then(route).then(() => { state.lastOk = Date.now(); showFreshness(); })
+  .catch(error => toast(error.message, "bad"));
 setupControls().catch(() => { /* the run history still works without controls */ });
 /** Refresh every 4 seconds, or every 1.5 while a job runs or a stop request waits for its step to end. */
 const busy = () => controls.jobs.some(job => job.status === "running" || job.status === "queued") || Boolean(state.detail?.summary.request);

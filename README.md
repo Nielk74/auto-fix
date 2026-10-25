@@ -152,19 +152,23 @@ uv run --no-sync auto-fix dashboard --config config.local.yaml
 uv run --no-sync auto-fix dashboard --directory .auto-fix/evaluation/luna
 ```
 
-Open `http://127.0.0.1:8765/`. Each run shows its result and TeamCity, Git and PR links. The workflow graph highlights the nodes and loops the run executed. A timestamped build log lists the state each node changed; you can open the complete LangGraph checkpoint after any step. Model calls show their latency, token usage, request context and proposed edits. Artifacts and raw events are also listed. A live refresh follows a running worker. The server listens on localhost; use `--host` deliberately because the pages contain source and issue context.
+Open `http://127.0.0.1:8765/`. A run page leads with what a reviewer needs: **The fix** (the verified `fix.diff` with line numbers and copyable `git switch`/`git apply` commands) or **Why it stopped** in plain words, then **Validation** (the whole suite before and after the edit, with tests the edit newly broke called out), **The failure** (TeamCity failure messages, the failing build's commits, their pull requests and Jira issues) and the repair attempts. **Build log** shows each check's compiler and test output; **Checkpoints** lists the state each node changed, with the complete LangGraph checkpoint after any step; **Model calls** show latency, tokens, the request and, for a failed call, what the model returned. The header shows when the page last refreshed and warns when the server stops answering. The server listens on localhost; use `--host` deliberately because the pages contain source and issue context.
+
+The top bar leads to **History**, **Tests** (each failing test's runs, fixes and failures that did not reproduce), **Metrics** (fix rate, time to a verified fix, failed model calls and tokens per workflow and day), **Schedules**, **Batches** and **Settings** (the effective configuration, with token variables by name only, and a connection check for TeamCity, Bitbucket, Jira, the model and the repository). Settings can also turn on browser notifications for runs that need attention.
 
 ### Start and control workflows
 
-Started with `--config`, the dashboard can also run workflows. The tree groups **Repairs**, **Evaluations** and **Tools**. Repair workflows are named by their purpose, with the TeamCity configuration as their scope. **Workflows** leads with runs needing attention, active work, upcoming schedules and recent repair batches, followed by the workflow catalogue. **Run** uses default parameters; **…** lets you set them first. Jobs run one at a time. A run page has one main button for its state and an **Actions** menu for the rest:
+Started with `--config`, the dashboard can also run workflows. The tree groups **Repairs**, **Evaluations** and **Tools**. Repair workflows are named by their purpose, with the TeamCity configuration as their scope. **Workflows** leads with runs needing attention, active work, upcoming schedules and recent repair batches, followed by the workflow catalogue. **Run…** opens the workflow's parameters, with the equivalent command line, before anything starts; the clock button schedules it. Queued jobs can be reordered. Jobs run one at a time. A run page has one main button for its state and an **Actions** menu for the rest:
 
 | Run state | Main button | Actions menu |
 | --- | --- | --- |
 | Running | Stop… (after the current step, or immediately; not while publishing) | Pause after this step |
 | Paused | Resume | Re-run from a step, Cancel run |
 | Blocked or cancelled | Run again (a fresh worktree) | Re-run from a step |
-| Ready | Publish pull request | Re-run from a step |
+| Ready | Publish pull request (refused while the fix is rejected) | Re-run from a step |
 | Publication unknown | Reconcile with Bitbucket | |
+
+Every finished run's **Actions** menu also records a review decision: **Reject this fix**, **Mark handled manually**, **Snooze** or **Dismiss from attention**, each with an optional reason, and **Reopen**. A decided run leaves **Needs attention**; the decision, notes and a good/bad fix rating are kept in `triage.json` in the state directory.
 
 **Re-run from a step** (`baseline`, `investigate`, `repair` or `verify`) starts a new run (`<key>-rN`) from the same prepared commit, with the edits applied before that step and the checkpoint that step started from; the original run is kept. Stop and pause also work on runs that the scheduled `run` command started.
 
@@ -172,18 +176,19 @@ The dashboard runs queued jobs itself unless it is started with `--no-runner`; t
 
 ### Find runs and download evidence
 
-Each workflow's history, and **All run history**, supports 25/50/100 runs per page, search,
-exact status filters and a start-date range. The URL preserves the page and filters, including
-when returning from a run. History rows use stored summaries without loading every checkpoint.
-**Patch ↓** downloads the verified patch when available; **Artifacts ↓** downloads the run's
-ZIP evidence bundle. The Artifacts tab also downloads individual files. Downloads support large
+Each workflow's history, and **History**, supports 25/50/100 runs per page, search as you type,
+exact status filters, a start-date range with Today/7/30-day presets, and sorting by result,
+start or duration. The URL preserves the page and filters, including when returning from a run.
+History rows use stored summaries without loading every checkpoint. Row icons download the
+verified patch, when available, and the run's ZIP evidence bundle. The Artifacts tab also downloads individual files. Downloads support large
 logs and binary evidence; text previews retain their 2 MB limit. Text downloads redact configured
 secret values, and checkpoint databases and files outside the evidence directory are excluded.
 
-The run overview shows the outcome, the executed LangGraph path (including repeat visits),
-outputs, native validation and repair attempts. Click a step to inspect its state changes and
-checkpoint in **Execution log**. The attention list includes verified local candidates awaiting
-publication, paused and blocked runs, uncertain publication and runs whose worker disappeared.
+The run overview ends with the executed LangGraph path (including repeat visits); click a step
+to inspect its state changes in **Checkpoints**. The attention list includes verified local
+candidates awaiting publication, paused and blocked runs, uncertain publication, runs whose
+worker disappeared and jobs that could not start. Its rows act in place (publish, resume,
+reconcile, retry) and can be dismissed.
 
 ### Schedule workflows
 
@@ -220,7 +225,7 @@ The run history lists every run grouped by state directory or evaluation case:
 
 ![Run history with published, ready and blocked runs and their reasons](docs/images/dashboard-runs.png)
 
-The build log expands any graph step to the state it changed; this run's first repair failed verification before a second proposal passed:
+**Checkpoints** (formerly the build log) expands any graph step to the state it changed; this run's first repair failed verification before a second proposal passed:
 
 ![Build log with the investigate step and the failed verification expanded](docs/images/dashboard-build-log.png)
 
@@ -228,7 +233,7 @@ Each model call keeps its latency, token usage, explanation and exact proposed e
 
 ![Model calls with token usage and the accepted source edit](docs/images/dashboard-model-calls.png)
 
-The screenshots use synthetic runs with stubbed services.
+The screenshots use synthetic runs with stubbed services and predate the 2026-10-25 layout.
 
 Live OpenTelemetry traces are optional. Install the extra with `uv sync --locked --extra dev --extra trace`, start a self-hosted [Arize Phoenix](https://arize.com/docs/phoenix) collector (for example `phoenix serve`), and add to the configuration:
 
