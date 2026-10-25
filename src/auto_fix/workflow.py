@@ -6,6 +6,7 @@ import os
 import re
 import sqlite3
 import time
+from contextlib import closing
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, TypedDict
@@ -90,6 +91,15 @@ def model_usage(model: Any) -> dict[str, Any]:
 
 def matched_names(settings: Settings, failure: Failure) -> set[str]:
     return {settings.build.test_name_map.get(t.name, t.name) for t in failure.tests}
+
+
+def _strings(value: Any) -> list[str]:
+    """Every string inside nested lists and dicts, values only."""
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, dict):
+        value = list(value.values())
+    return [text for item in value for text in _strings(item)] if isinstance(value, list) else []
 
 
 def validates_fix(report: Verification, expected: set[str]) -> bool:
@@ -240,7 +250,8 @@ class Workflow:
             )
         )
         prs = self.bitbucket.context(commits)
-        text = json.dumps([failure.changes, prs])
+        # Search the texts themselves: JSON would turn "\nSTR-1" into "\\nSTR-1", hiding the key.
+        text = "\n".join(_strings([failure.changes, prs]))
         keys = sorted(set(re.findall(r"\b[A-Z][A-Z0-9_]+-\d+\b", text)))[:30]
         issues = self.jira.issues(keys) if self.jira and keys else []
         context = {
@@ -756,11 +767,13 @@ class Workflow:
         control.clear(self.directory)
         control.mark_process(self.directory)
         try:
+            # sqlite3's own context manager commits but never closes; Windows keeps the file locked.
             with (
                 tracing.session(self.run_id),
-                sqlite3.connect(
-                    self.directory / "checkpoints.sqlite", check_same_thread=False
+                closing(
+                    sqlite3.connect(self.directory / "checkpoints.sqlite", check_same_thread=False)
                 ) as conn,
+                conn,
             ):
                 graph = self.graph(SqliteSaver(conn))
                 config = {"configurable": {"thread_id": self.run_id}, "recursion_limit": 60}
@@ -842,7 +855,8 @@ def fork(flow: Workflow, source: Path, step_index: int) -> None:
         "branch": flow.workspace.branch,
         "prepared_head": start or flow.workspace.head(),
     }
-    with sqlite3.connect(flow.directory / "checkpoints.sqlite", check_same_thread=False) as conn:
+    database = flow.directory / "checkpoints.sqlite"
+    with closing(sqlite3.connect(database, check_same_thread=False)) as conn, conn:
         graph = flow.graph(SqliteSaver(conn))
         graph.update_state(
             {"configurable": {"thread_id": run_id}}, state, as_node=executed[step_index - 1]["node"]

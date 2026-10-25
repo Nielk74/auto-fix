@@ -243,6 +243,13 @@ def test_dashboard_serves_tests_metrics_settings_and_triage(controlled):
     assert error.value.code == 403
 
 
+def test_jira_keys_after_a_newline_in_a_commit_message_are_found():
+    from auto_fix.workflow import _strings
+
+    text = "\n".join(_strings([[{"comment": "Speed up\n\nSTR-412", "id": 7}], [{"title": "x"}]]))
+    assert text.split("\n")[-2:] == ["STR-412", "x"]
+
+
 def test_a_rejected_fix_cannot_be_published_until_reopened(tmp_path):
     from auto_fix.actions import Actions
 
