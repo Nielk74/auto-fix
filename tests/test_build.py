@@ -155,6 +155,26 @@ def test_command_timeout_and_secret_redaction(tmp_path, monkeypatch):
     assert "[REDACTED]" in (tmp_path / "timeout.log").read_text()
 
 
+def test_colour_is_turned_off_and_escape_codes_are_stripped(tmp_path, monkeypatch):
+    monkeypatch.setenv("FORCE_COLOR", "1")
+    monkeypatch.setenv("CLICOLOR_FORCE", "1")
+    result = run_command(
+        python(
+            "import os;"
+            "print(os.environ.get('NO_COLOR'), os.environ.get('FORCE_COLOR'), "
+            "os.environ.get('CLICOLOR_FORCE'));"
+            r"print('\x1b[1;31merror:\x1b[0m bad cast\x1b[K');"
+            r"print('\x1b]8;;https://example.test\x1b\\link\x1b]8;;\x1b\\ done')"
+        ),
+        tmp_path,
+        10,
+        tmp_path / "colour.log",
+    )
+    lines = ["1 None None", "error: bad cast", "link done"]
+    assert result.output.splitlines() == lines
+    assert (tmp_path / "colour.log").read_text(encoding="utf-8").splitlines() == lines
+
+
 def test_parser_prefers_failure_over_skipped(tmp_path):
     report = tmp_path / "report.xml"
     report.write_text(

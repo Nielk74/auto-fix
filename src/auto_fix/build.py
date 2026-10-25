@@ -16,6 +16,8 @@ from auto_fix.config import BuildConfig
 from auto_fix.models import CommandResult, TestReport, Verification
 
 OUTPUT_LIMIT = 24000
+# Terminal escapes: CSI (colours, erase line), OSC (hyperlinks, titles) and two-byte sequences.
+ESCAPES = re.compile(r"\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07\x1b]*(?:\x07|\x1b\\)|[@-Z\\-_])")
 
 
 def _redact(value: str) -> str:
@@ -33,7 +35,10 @@ def run_command(argv: list[str], cwd: Path, timeout: int, log_path: Path) -> Com
         raise ValueError("Command must be a nonempty argument array")
     log_path = log_path.resolve()
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    env = dict(os.environ, GIT_TERMINAL_PROMPT="0", GCM_INTERACTIVE="Never")
+    # Output goes to logs and the model, so tools are asked not to colour it.
+    env = dict(os.environ, GIT_TERMINAL_PROMPT="0", GCM_INTERACTIVE="Never", NO_COLOR="1")
+    for name in ("FORCE_COLOR", "CLICOLOR_FORCE"):
+        env.pop(name, None)
     options: dict = {}
     if os.name == "nt":
         options["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
@@ -79,8 +84,10 @@ def run_command(argv: list[str], cwd: Path, timeout: int, log_path: Path) -> Com
         except OSError as error:
             output_file.write(f"Unable to execute command: {error}\n".encode())
         output_file.seek(0)
-        output = _redact(output_file.read().decode("utf-8", errors="replace"))
-    log_path.write_text(output, encoding="utf-8")
+        # A command that colours anyway (--color=always) still leaves plain text.
+        output = _redact(ESCAPES.sub("", output_file.read().decode("utf-8", errors="replace")))
+    # Kept as captured: newline translation would turn Windows "\r\n" into "\r\r\n".
+    log_path.write_text(output, encoding="utf-8", newline="")
     if len(output) > OUTPUT_LIMIT:
         output = "[Earlier output omitted; see log file.]\n" + output[-OUTPUT_LIMIT:]
     return CommandResult(
