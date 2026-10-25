@@ -421,8 +421,23 @@ pre.log-view { max-height: 60vh; border: 1px solid var(--line); border-radius: 6
 }
 
 /* top navigation, freshness and the hideable tree */
-.topnav { display: flex; gap: 2px; align-items: center; min-width: 0; overflow-x: auto; }
-.topnav a { color: var(--muted); padding: 5px 10px; border-radius: 6px; white-space: nowrap; }
+.topnav { display: flex; gap: 2px; align-items: center; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.topnav::-webkit-scrollbar { display: none; }
+/* Items that do not fit scroll sideways without a scrollbar; a fade on the side that hides some says so. */
+.topnav.more-right { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent); }
+.topnav.more-left { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 32px), transparent);
+  mask-image: linear-gradient(to left, #000 calc(100% - 32px), transparent); }
+.topnav.more-left.more-right { -webkit-mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent); }
+.topnav a { color: var(--muted); padding: 5px 10px; border-radius: 6px; white-space: nowrap; flex: none; }
+@media (max-width: 1100px) { .topnav a { padding: 5px 8px; } }
+@media (max-width: 520px) {
+  .topnav { gap: 0; } .topnav a { padding: 5px 7px; }
+  /* The header's controls stay on one line: the demo banner on every page already says "demo". */
+  .badge.demo { display: none; }
+}
+@media (max-width: 420px) { .live > span { display: none; } .live { padding: 0 9px; } }
 .topnav a:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 6%, transparent); text-decoration: none; }
 .topnav a[aria-current="page"] { color: var(--ink); background: var(--sel); font-weight: 500; }
 .topnav .count { color: var(--bad); margin-left: 5px; font-variant-numeric: tabular-nums; font-weight: 600; }
@@ -3812,9 +3827,34 @@ async function openView(view, hash = new URLSearchParams()) {
   renderHome();
 }
 function markNav() {
-  const current = state.selected ? "" : state.view === "test" ? "tests" : state.view || "home";
-  for (const link of document.querySelectorAll(".topnav a"))
+  const current = state.selected ? "" : state.view === "test" ? "tests" : state.view || "home", nav = document.querySelector(".topnav");
+  for (const link of nav.querySelectorAll("a"))
     link.dataset.view === current ? link.setAttribute("aria-current", "page") : link.removeAttribute("aria-current");
+  // When the items do not all fit, the current page scrolls into view.
+  const active = nav.querySelector('[aria-current="page"]');
+  if (active && nav.scrollWidth > nav.clientWidth) {
+    const a = active.getBoundingClientRect(), n = nav.getBoundingClientRect();
+    if (a.left < n.left) nav.scrollLeft -= n.left - a.left + 32;
+    else if (a.right > n.right) nav.scrollLeft += a.right - n.right + 32;
+  }
+  navEdges();
+}
+/** Marks the sides of the nav that hide items, for their fade. */
+function navEdges() {
+  const nav = document.querySelector(".topnav");
+  nav.classList.toggle("more-left", nav.scrollLeft > 1);
+  nav.classList.toggle("more-right", nav.scrollLeft + nav.clientWidth < nav.scrollWidth - 1);
+}
+{
+  const nav = document.querySelector(".topnav");
+  nav.addEventListener("scroll", navEdges, {passive: true});
+  // Without a scrollbar, a mouse wheel scrolls the items sideways.
+  nav.addEventListener("wheel", event => {
+    if (nav.scrollWidth <= nav.clientWidth || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+    nav.scrollLeft += event.deltaY;
+    event.preventDefault();
+  }, {passive: false});
+  addEventListener("resize", navEdges);
 }
 function showAttentionCount() {
   const n = state.attentionTotal || 0;
