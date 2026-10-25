@@ -148,14 +148,16 @@ this layout. Nothing was committed or released.
 ### Run page
 
 - [x] The page leads with "The fix" (Ready, Published) or "Why it stopped" (Blocked, Cancelled,
-  Paused, abandoned), then Validation, The failure, Attempts and Review.
+  Paused, abandoned), then Validation, The failure, Trace and Review.
+- [x] A LangSmith-style trace replaces the Attempts table, the step list, Checkpoints and Model
+  calls: phases, steps, model calls and build checks in one tree, with a pane for the open span.
 - [x] The duplicate Outcome section is gone; known stop reasons read in plain words, with the
   workflow's own text kept as detail.
 - [x] Attempts without an edit read "No usable edit: <cause>" everywhere.
 - [x] Steps read "done", "tests pass", "candidate verified", "not published: local candidate".
-- [ ] The figure moved to the end of the page and "Replay" became "Animate"; its overlapping
-  labels on narrow screens remain.
-- [x] "Execution log" is now "Checkpoints", next to a real Build log.
+- [ ] The figure is behind the trace's Graph button and "Replay" became "Animate"; its
+  overlapping labels on narrow screens remain.
+- [x] "Execution log" became "Checkpoints", next to a real Build log; the trace now holds it.
 - [x] Attempt edits render as removed and added lines (edits carry no line numbers).
 - [x] Model calls say "characters of JSON context". Cost is not shown: there is no price data
   for a self-hosted model (skipped).

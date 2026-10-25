@@ -56,7 +56,7 @@ Each run directory under `state_dir/runs` contains context, events, final state,
 
 With `--config` the dashboard also queues jobs in `state_dir/jobs` and controls runs. A pause or cancel request is a `control.json` in the run directory that `Workflow.run` honours after the step's checkpoint, so a paused run resumes from the next step. `process.json` names the process running a run, for "Stop now". Repair-type jobs hold `worker.lock` like `run`, so jobs and the scheduled command never share worktrees.
 
-![Dashboard build log: each LangGraph step with its timestamp, duration, model call and changed state](images/dashboard-build-log.png)
+The run page draws these as a trace: each LangGraph step under its phase, with the model calls and build checks it made, its duration, tokens, the checkpoint state it started from and the state it changed.
 
 | Concern | Implementation |
 | --- | --- |

@@ -192,8 +192,14 @@ verified patch, when available, and the run's ZIP evidence bundle. The Artifacts
 logs and binary evidence; text previews retain their 2 MB limit. Text downloads redact configured
 secret values, and checkpoint databases and files outside the evidence directory are excluded.
 
-The run overview ends with the executed LangGraph path (including repeat visits); click a step
-to inspect its state changes in **Checkpoints**. The attention list includes verified local
+The run overview shows the run as a **trace**, the way LangSmith does: a tree of phases (setup,
+baseline, one per attempt, finish), the steps each ran, and under each step its model calls and
+build checks, with latency and token counts on every row. Click a row to open it, and to unfold
+it, in the pane beside the tree: a step's input (the full checkpoint state it started from) and
+output (test results, the proposed edit, test output, changed state); a model call's response,
+request and tokens; a build check's logs. **Graph** shows the executed LangGraph path above the
+tree, linked to it both ways. Arrow keys move through the trace, and the link names the open
+span (`span=step:5`), so it can be shared. The attention list includes verified local
 candidates awaiting publication, paused and blocked runs, uncertain publication, runs whose
 worker disappeared and jobs that could not start. Its rows act in place (publish, resume,
 reconcile, retry) and can be dismissed.
@@ -233,15 +239,9 @@ The run history lists every run grouped by state directory or evaluation case:
 
 ![Run history with published, ready and blocked runs and their reasons](docs/images/dashboard-runs.png)
 
-**Checkpoints** (formerly the build log) expands any graph step to the state it changed; this run's first repair failed verification before a second proposal passed:
-
-![Build log with the investigate step and the failed verification expanded](docs/images/dashboard-build-log.png)
-
-Each model call keeps its latency, token usage, explanation and exact proposed edits:
-
-![Model calls with token usage and the accepted source edit](docs/images/dashboard-model-calls.png)
-
-The screenshots use synthetic runs with stubbed services and predate the 2026-10-25 layout.
+The screenshots use synthetic runs with stubbed services and predate the 2026-10-25 layout and
+the trace, which replaced the Checkpoints and Model calls tabs; links to those tabs open the
+matching span. `auto-fix dashboard --demo` shows the current pages.
 
 Live OpenTelemetry traces are optional. Install the extra with `uv sync --locked --extra dev --extra trace`, start a self-hosted [Arize Phoenix](https://arize.com/docs/phoenix) collector (for example `phoenix serve`), and add to the configuration:
 

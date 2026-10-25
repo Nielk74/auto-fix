@@ -82,9 +82,8 @@ header { border-bottom: 1px solid var(--line); display: flex; align-items: cente
 .history-filters input[type="search"] { min-width:220px; }
 .pagination { align-items:center; justify-content:flex-end; }
 .pagination .muted { margin-right:auto; }
-/* workflow execution: a Hairline figure (MIT, Lucas Marques) beside the steps in run order */
-.flow { display: grid; grid-template-columns: minmax(0, 3fr) minmax(300px, 2fr); }
-.flow .figure { position: relative; border-right: 1px solid var(--line); display: grid; }
+/* workflow execution: a Hairline figure (MIT, Lucas Marques) over the trace */
+.flow .figure { position: relative; display: grid; }
 .flow .tags { position: absolute; top: 10px; left: 14px; right: 14px; z-index: 1; display: flex; align-items: center; gap: 8px; pointer-events: none; }
 .flow .tags .read { flex: 1; min-width: 0; font-family: var(--mono); font-size: 11.5px; font-variant-numeric: tabular-nums; color: var(--ink);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -122,18 +121,59 @@ header { border-bottom: 1px solid var(--line); display: flex; align-items: cente
 .flow .legend i.idle { border: 1.3px dashed var(--line); }
 .flow .legend i.path, .flow .legend i.retry { width: 18px; height: 0; border: 0; border-top: 2px solid var(--accent); border-radius: 0; background: none; }
 .flow .legend i.retry { border-top: 2px dashed var(--warn); }
-.flow-steps { list-style: none; margin: 0; padding: 6px 0; align-self: start; }
-.flow-steps button { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto 56px; gap: 10px; align-items: center; width: 100%;
-  padding: 6px 14px; border: 0; background: none; font: inherit; color: var(--ink); text-align: left; cursor: pointer; }
-.flow-steps button:hover, .flow-steps button.lit { background: var(--sel); }
-.flow-steps .n { font-family: var(--mono); font-size: 11.5px; color: var(--faint); text-align: right; font-variant-numeric: tabular-nums; }
-.flow-steps .n.t-ok { color: var(--ok); } .flow-steps .n.t-bad { color: var(--bad); }
-.flow-steps .n.t-warn { color: var(--warn); } .flow-steps .n.t-run { color: var(--run); }
-.flow-steps .st { font-size: 12px; white-space: nowrap; }
-.flow-steps .num { font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
+/* the trace: spans on the left and the open span on the right, as LangSmith shows a run */
+.trace .tgraph:not(:empty) { margin-bottom: 12px; }
+.tsplit { display: grid; grid-template-columns: minmax(260px, 360px) minmax(0, 1fr); }
+.ttree { border-right: 1px solid var(--line); max-height: 72vh; overflow: auto; padding: 6px 0; }
+.trow { position: relative; display: flex; align-items: flex-start; gap: 4px; padding: 5px 10px 5px calc(10px + var(--depth) * 16px); cursor: pointer; }
+/* One guide per level, under each ancestor's twisty. */
+.trow::before { content: ""; position: absolute; left: 18px; top: 0; bottom: 0; width: calc(var(--depth) * 16px); pointer-events: none;
+  background: repeating-linear-gradient(to right, var(--line) 0 1px, transparent 1px 16px); }
+.trow:hover, .trow.lit { background: var(--soft); }
+.trow.sel { background: var(--sel); box-shadow: inset 2px 0 0 var(--accent); }
+.trow:focus-visible { outline-offset: -2px; }
+.trow .twisty { flex: none; width: 16px; height: 19px; display: inline-flex; align-items: center; justify-content: center; color: var(--muted); }
+.tmain { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.tname { display: flex; align-items: center; gap: 6px; min-width: 0; line-height: 19px; }
+.tname .lu { flex: none; }
+.tname .lu:not([class*="t-"]) { color: var(--muted); }
+.tlabel { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--mono); font-size: 12.5px; }
+.trow[aria-level="1"] .tlabel, .trow[data-span^="phase:"] .tlabel { font-family: inherit; font-size: 13px; font-weight: 600; }
+.ttag { flex: none; font-size: 11px; line-height: 16px; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; white-space: nowrap; }
+.ttag.t-bad { color: var(--bad); } .ttag.t-warn { color: var(--warn); } .ttag.t-run { color: var(--run); }
+.tstats { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 11.5px; }
+.nostats .tstats { display: none; }
+.stat { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; line-height: 16px;
+  color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.stat.t-ok { color: var(--ok); } .stat.t-bad { color: var(--bad); }
+.tnote { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tpane { min-width: 0; container-type: inline-size; }
+.thead { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+.ttitle { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ttitle b { font-family: var(--mono); font-size: 14px; }
+.tcols { display: grid; grid-template-columns: minmax(0, 1fr) 200px; }
+.tio { min-width: 0; padding: 12px 16px 16px; display: grid; gap: 12px; align-content: start; }
+.tio .change { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; font-weight: 500; }
+.tio p { margin: 0; }
+.tblock { border: 1px solid var(--line); border-radius: 6px; min-width: 0; }
+.tblock > summary { cursor: pointer; padding: 7px 12px; font-weight: 600; }
+.tblock[open] > summary { border-bottom: 1px solid var(--line); }
+.tbody { min-width: 0; padding: 10px 12px; display: grid; gap: 10px; overflow-x: auto; }
+.tbody .chips { margin: 0; }
+.tmeta { margin: 0; padding: 12px 16px; border-left: 1px solid var(--line); display: grid; gap: 2px; align-content: start; }
+.tmeta dt { margin-top: 10px; color: var(--muted); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; }
+.tmeta dt:first-child { margin-top: 0; }
+.tmeta dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.ttags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tfiles .file { padding: 5px 0; }
+@container (max-width: 620px) {
+  .tcols { grid-template-columns: minmax(0, 1fr); }
+  .tmeta { border-left: none; border-top: 1px solid var(--line); grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; }
+  .tmeta dt { margin: 0; }
+}
 @media (max-width: 900px) {
-  .flow { grid-template-columns: minmax(0, 1fr); }
-  .flow .figure { border-right: none; border-bottom: 1px solid var(--line); }
+  .tsplit { grid-template-columns: minmax(0, 1fr); }
+  .ttree { border-right: none; border-bottom: 1px solid var(--line); max-height: 46vh; }
 }
 .attention-list { max-height:340px; overflow:auto; }
 
@@ -232,7 +272,6 @@ tr.lit td { background: var(--sel); }
 
 .node { display: inline-flex; align-items: center; gap: 6px; }
 .node .lu { color: var(--muted); }
-.line.bad .node .lu { color: var(--bad); } .line.warn .node .lu { color: var(--warn); }
 
 .afile { font-family: var(--mono); font-size: 11px; color: var(--muted); white-space: nowrap; }
 .afile .del { font-weight: 400; color: var(--bad); } .afile .add { font-weight: 400; color: var(--ok); }
@@ -253,15 +292,6 @@ td.grow { width: 100%; max-width: 0; }
 td .ellipsis { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* build log */
-.log { border: 1px solid var(--line); border-radius: 8px; font-family: var(--mono); font-size: 12px; padding: 8px 0; overflow-x: auto; }
-.line { display: grid; grid-template-columns: 82px 16px minmax(0, 1fr) auto; gap: 8px; padding: 2px 14px; align-items: baseline; cursor: pointer; }
-.line:hover { background: var(--soft); }
-.line .ts { color: var(--muted); }
-.line .tw { color: var(--muted); }
-.line .ms { color: var(--muted); }
-.line.bad .nm { color: var(--bad); } .line.warn .nm { color: var(--warn); }
-.nest { margin-left: 120px; padding: 4px 12px 8px 12px; border-left: 1px solid var(--line); }
-.nest .row { color: var(--muted); }
 button.link { background: none; border: none; padding: 0; font: inherit; color: var(--accent); cursor: pointer; }
 button.link:hover { text-decoration: underline; text-underline-offset: 3px; }
 button.btn { font: inherit; font-size: 12.5px; height: 30px; padding: 0 12px; border-radius: 6px; cursor: pointer;
@@ -368,9 +398,7 @@ dl.info dd { margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis;
 h2 .sub { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 8px; }
 .mark { display: inline-flex; align-items: center; gap: 4px; font-weight: 500; }
 .mark .lu { vertical-align: 0; }
-table.attempts .change { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
 .small { font-size: 11.5px; }
-tr.detailrow > td { background: var(--soft); padding: 12px 16px 16px 36px; }
 .adetail { display: grid; gap: 8px; }
 .adetail .explain { white-space: pre-wrap; max-width: 80ch; }
 .adetail .edit { max-width: 900px; margin: 0; background: var(--ground); }
@@ -419,8 +447,6 @@ pre.log-view { max-height: 60vh; border: 1px solid var(--line); border-radius: 6
   .nav, .root { display: none; }
   .hide-sm { display: none; }
 
-  .line { grid-template-columns: 62px 14px minmax(0, 1fr) auto; }
-  .nest { margin-left: 16px; }
   .box { overflow-x: auto; }
   .split { grid-template-columns:minmax(0,1fr); }
 }
@@ -465,7 +491,7 @@ a.ib { width: 24px; height: 24px; display: inline-grid; place-items: center; col
 a.ib:hover { background: var(--soft); color: var(--ink); text-decoration: none; }
 .lu.up { transform: rotate(-90deg); }
 button.btn.icon.small { width: 24px; padding: 0; }
-button.btn.on { border-color: var(--accent); color: var(--accent); background: var(--sel); }
+button.btn.on, button.btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--sel); }
 .presets { display: flex; gap: 4px; align-items: center; align-self: end; height: 32px; }
 .sortbtn { background: none; border: none; padding: 0; font: inherit; color: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
 .sortbtn:hover { color: var(--ink); }
@@ -1404,11 +1430,11 @@ const STATUS = {
 const status = key => STATUS[key] || {tone: "none", text: key || "—"};
 /** A run's status as shown: an in-progress run with no live worker was abandoned, not running. */
 const runStatus = run => run.status === "in_progress" && !run.live ? "abandoned" : run.status;
-// Deep links: #wf=<workflow> or #run=<id>&tab=<log|calls|files>&open=<step,...>&call=<file>&file=<path>
-const link = new URLSearchParams(location.hash.slice(1));
-const state = {runs: [], show: "all", workflow: link.get("wf"), openAttempts: new Set(), collapsed: new Set(), selected: link.get("run"), detail: null,
-  tab: link.get("tab") || "overview", openSteps: new Set((link.get("open") || "").split(",").filter(Boolean).map(Number)),
-  file: link.get("file"), call: link.get("call"), figure: null, catalog: [], total:0, allTotal:0, pages:1,
+// Deep links: #wf=<workflow> or #run=<id>&tab=<build|files>&span=<trace span>&log=<path>&file=<path>
+const link = new URLSearchParams(location.hash.slice(1)), linked = legacySpan(link);
+const state = {runs: [], show: "all", workflow: link.get("wf"), collapsed: new Set(), selected: link.get("run"), detail: null,
+  tab: linked.tab, span: linked.span, traceOpen: new Map(), trace: null,
+  file: link.get("file"), figure: null, catalog: [], total:0, allTotal:0, pages:1,
   history: {page:Math.max(1, Number(link.get("page")) || 1), page_size:[25,50,100].includes(Number(link.get("size"))) ? Number(link.get("size")) : 25,
     status:link.get("status") || "", q:link.get("search") || "", since:link.get("since") || "", until:link.get("until") || "", sort:link.get("sort") || "-started"}, buildFile:link.get("log"),
   returnHash:link.get("back") || "", request:0, offline:false, failures:0, lastError:"", view:link.get("view"), schedules:[],timezone:"Europe/Paris",attention:[],active:[],attentionTotal:0,
@@ -1563,9 +1589,6 @@ const ART = {
     + "<circle class='il-dash' cx='34' cy='41' r='4'/><path class='il-dash' d='M44 41h40'/><circle class='il-dash' cx='34' cy='55' r='4'/><path class='il-dash' d='M44 55h30'/>"
     + "<circle class='il-dash' cx='34' cy='69' r='4'/><path class='il-dash' d='M44 69h36'/>"
     + "<circle class='il-accent il-fill' cx='108' cy='54' r='17'/><path class='il-accent' d='M120 66l13 13M101 54h14'/>",
-  calls: "<rect class='il-card' x='34' y='40' width='44' height='34' rx='7'/><path d='M56 40V29h-8M47 53v5m18-5v5M28 57h6m44 0h6'/>"
-    + "<path class='il-dash' d='M92 20h44a6 6 0 0 1 6 6v18a6 6 0 0 1-6 6h-28l-10 8v-8h-6a6 6 0 0 1-6-6V26a6 6 0 0 1 6-6z'/>"
-    + "<circle class='il-dot' cx='106' cy='35' r='2'/><circle class='il-dot' cx='115' cy='35' r='2'/><circle class='il-dot' cx='124' cy='35' r='2'/>",
   missing: "<path class='il-card' d='M58 52V18a4 4 0 0 1 4-4h26l14 14v24l-2 1.5-6-4-6 4-6-4-6 4-6-4-6 4-6-4z'/><path d='M88 14v10a4 4 0 0 0 4 4h10M66 30h14m-14 9h26'/>"
     + "<path class='il-dash' d='M58 62v18a4 4 0 0 0 4 4h36a4 4 0 0 0 4-4V62'/>"
     + "<circle class='il-accent il-fill' cx='110' cy='18' r='10'/><path class='il-accent' d='M106.5 14.5l7 7m0-7l-7 7'/>",
@@ -1989,7 +2012,7 @@ async function select(id, push = true) {
   if (!id) { openWorkflow(null, push); return; }
   if (!state.selected) state.returnHash=historyHash();
   const changed = id !== state.selected;
-  if (changed) { state.openSteps.clear(); state.openAttempts.clear(); state.file = null; state.call = null; state.buildFile = null; state.tab = "overview"; }
+  if (changed) { state.traceOpen.clear(); state.span = null; state.file = null; state.buildFile = null; state.tab = "overview"; }
   state.selected = id;
   if (push && changed) history.pushState(null, "", "#"+new URLSearchParams({run:id,back:state.returnHash}));
   const content = document.getElementById("content");
@@ -2063,7 +2086,8 @@ function phases(detail) {
   return rows;
 }
 const ended = step => step.ended ? Date.parse(step.ended) : Date.now();
-const callsIn = (detail, steps) => detail.model_calls.filter(c => steps.some(s => c.started >= s.started && (!s.ended || c.started <= s.ended)));
+// Each call has one owner, so a call that starts as one step ends is not counted twice.
+const callsIn = (detail, steps) => detail.model_calls.filter(call => steps.includes(callOwner(detail, call)));
 const lineCount = text => (text || "").split("\n").length;
 
 /** Failing tests at the baseline and after each attempt that reached a verify; null for a check still running. */
@@ -2076,43 +2100,6 @@ function failingTrail(detail, rows = phases(detail)) {
     const report = step.status !== "running" && results.find(x => x.step === step)?.report;
     return report ? report.failed.length : null;
   }).filter(n => n !== undefined);
-}
-
-/* ---------- build log ---------- */
-function stepTone(step) {
-  return step.status === "interrupted" || step.status === "blocked" || step.status === "verification_failed" ? "bad"
-    : step.status === "invalid_proposal" || step.status === "publication_unknown" ? "warn" : "";
-}
-function renderLog(detail) {
-  const steps = detail.steps;
-  if (!steps.length) return emptyState("log", "No steps recorded yet", "Steps appear here as the workflow writes checkpoints.");
-  const calls = detail.model_calls;
-  const lines = [];
-  for (const step of steps) {
-    const open = state.openSteps.has(step.index), tone = stepTone(step);
-    const related = calls.filter(call => step.started && call.started && call.started >= step.started && (!step.ended || call.started <= step.ended));
-    lines.push(el("div", {class: "line " + tone, "aria-expanded": String(open), "data-key": "line:" + step.index, onclick: () => { open ? state.openSteps.delete(step.index) : state.openSteps.add(step.index); renderDetail(); }},
-      el("span", {class: "ts"}, "[" + when(step.started, false) + "]"),
-      el("span", {class: "tw"}, chevron(open)),
-      el("span", {class: "nm"}, nodeTag(step.node), el("span", {class: "muted"}, `  → ${stepStatus(step).text}`)),
-      el("span", {class: "ms"}, duration(step.duration_seconds))));
-    if (!open) continue;
-    const keys = Object.keys(step.changes || {});
-    lines.push(el("div", {class: "nest"},
-      step.details && Object.keys(step.details).length ? jsonView(step.details) : null,
-      related.map(call => el("div", {class: "row"}, `model ${call.kind} call #${call.index} · ${duration(call.elapsed_seconds)} · `,
-        el("button", {class: "link", onclick: event => { event.stopPropagation(); state.tab = "calls"; state.call = call.file; renderDetail(); }}, "open call"))),
-      keys.length ? el("div", {class: "row"}, "State updated: " + keys.join(", ")) : el("div", {class: "row"}, step.details ? "" : "No state change."),
-      keys.length ? jsonView(step.changes) : null,
-      step.checkpoint !== null && step.checkpoint !== undefined ? el("div", {style: "margin-top:6px"},
-        el("button", {class: "link", onclick: async event => {
-          event.stopPropagation();
-          const button = event.currentTarget;
-          const full = await api(`/api/state?id=${encodeURIComponent(state.selected)}&step=${step.checkpoint}`);
-          button.replaceWith(el("div", {}, el("div", {class: "row", style: "margin:4px 0"}, `Complete state at checkpoint ${full.step}`), jsonView(full.values)));
-        }}, "Show complete state at this checkpoint")) : null));
-  }
-  return el("div", {class: "log"}, lines);
 }
 
 /* ---------- model calls ---------- */
@@ -2135,32 +2122,291 @@ function renderResponse(response) {
   for (const edit of response.edits || []) parts.push(snippetDiff(edit));
   return el("div", {}, parts);
 }
-function renderCalls(detail) {
-  const calls = detail.model_calls;
-  if (!calls.length) return emptyState("calls", "No model calls recorded",
-    "Runs from before the dashboard keep proposal-N.json and investigation-N.json under Artifacts.",
-    detail.files.length ? el("button", {class: "btn", type: "button", onclick: () => { state.tab = "files"; renderDetail(); }}, "Open Artifacts") : null);
-  const selected = calls.find(c => c.file === state.call) || calls[0];
-  state.call = selected.file;
-  return el("div", {style: "display:grid;gap:16px"},
-    el("div", {class: "box"}, el("table", {},
-      el("thead", {}, el("tr", {}, el("th", {}, el("span", {class: "sr"}, "Status")), el("th", {}, "#"), el("th", {}, "Kind"), el("th", {class: "num"}, "Attempt"), el("th", {class: "hide-sm"}, "Started"),
-        el("th", {class: "num"}, "Latency"), el("th", {class: "num hide-sm"}, "Tokens in"), el("th", {class: "num hide-sm"}, "Tokens out"))),
-      el("tbody", {}, calls.map(call => el("tr", {class: "click" + (call.file === selected.file ? " sel" : ""), "aria-selected": String(call.file === selected.file), "data-key": "call:" + call.file, onclick: () => { state.call = call.file; renderDetail(); }},
-        el("td", {style: "width:28px"}, icon(call.error ? "bad" : "ok")), el("td", {}, call.index), el("td", {class: "mono"}, nodeTag(call.kind)),
-        el("td", {class: "num"}, call.attempt ?? "—"), el("td", {class: "hide-sm muted"}, when(call.started)),
-        el("td", {class: "num"}, duration(call.elapsed_seconds)),
-        el("td", {class: "num hide-sm"}, (tokens(call.usage, "in") ?? "—").toLocaleString()),
-        el("td", {class: "num hide-sm"}, (tokens(call.usage, "out") ?? "—").toLocaleString())))))),
-    el("div", {class: "box"},
-      el("div", {class: "hd"}, icon(selected.error ? "bad" : "ok"), `Call #${selected.index} · ${selected.kind}`, el("span", {class: "sub"}, selected.model || "")),
-      el("div", {class: "bd"},
-        selected.error ? el("div", {class: "result t-bad"}, selected.error) : null,
-        selected.error ? rawOutput(selected) : renderResponse(selected.response),
-        el("div", {style: "margin-top:12px"}, el("button", {class: "btn", onclick: () => { state.tab = "files"; state.file = selected.file; renderDetail(); }},
-          `View full request · ${selected.context_chars.toLocaleString()} characters of JSON context`)))));
+
+/* ---------- trace: the run as nested spans, the way LangSmith draws a trace ---------- */
+const callTokens = call => (tokens(call.usage, "in") || 0) + (tokens(call.usage, "out") || 0);
+/**
+ * The step that made a model call: the step of the call's kind running when it started, else any step running then.
+ * A call that starts the moment one step ends and the next begins belongs to the one that began.
+ */
+function callOwner(detail, call) {
+  const at = detail.steps.filter(s => s.started && call.started && s.started <= call.started && (!s.ended || call.started <= s.ended));
+  return at.filter(s => s.node === call.kind).at(-1) || at.at(-1) || null;
+}
+/** The step that ran a build check. Evidence folders are named after it: baseline, attempt-N, final-rebased. */
+function buildOwner(detail, build, rows) {
+  const first = node => detail.steps.find(s => s.node === node) || null;
+  if (build.label.startsWith("baseline")) return first("baseline");
+  if (build.label === "final-rebased") return first("finalize");
+  const n = /^attempt-(\d+)$/.exec(build.label)?.[1];
+  const verify = n && rows.find(row => row.label === "Attempt " + n)?.steps.find(s => s.node === "verify");
+  return verify || detail.steps.filter(s => s.started && s.started <= build.time).at(-1) || null;
+}
+/** The tone that speaks for a group of spans: running, then failed, then needs a look. A finished group with none of those passed. */
+function worstTone(spans) {
+  const tones = spans.map(span => span.tone);
+  return ["run", "bad", "warn"].find(tone => tones.includes(tone)) || (spans.every(span => span.done) ? "ok" : "");
+}
+/**
+ * The run as spans: the run, its phases (setup, baseline, one per attempt, finish), the steps each phase ran,
+ * and under each step the model calls it made and the build checks it ran. Ids go in the page's link:
+ * run, phase:<label>, step:<index>, call:<file>, build:<folder>.
+ */
+function traceTree(detail) {
+  const rows = phases(detail), s = detail.summary, under = {}, loose = [];
+  const hang = (step, span) => step ? (under[step.index] ||= []).push(span) : loose.push(span);
+  for (const call of detail.model_calls) hang(callOwner(detail, call), {id: "call:" + call.file, kind: "call", call, name: `${call.kind} call #${call.index}`,
+    tone: call.error ? "bad" : "ok", done: true, seconds: call.elapsed_seconds, tokens: callTokens(call), started: call.started, children: []});
+  for (const build of detail.builds) hang(buildOwner(detail, build, rows), {id: "build:" + build.folder, kind: "build", build, name: buildLabel(build.label),
+    tone: "", done: true, seconds: null, tokens: 0, started: build.time, children: []});
+  const visits = {}, sum = spans => spans.reduce((total, span) => total + span.tokens, 0);
+  const phaseSpans = rows.map(row => {
+    const steps = row.steps.map(step => {
+      const children = under[step.index] || [];
+      visits[step.node] = (visits[step.node] || 0) + 1;
+      return {id: "step:" + step.index, kind: "step", step, row, name: step.node, visit: visits[step.node], tone: flowTone(step), done: Boolean(step.ended),
+        seconds: step.duration_seconds, tokens: sum(children), started: step.started, ended: step.ended, children};
+    });
+    // A step that was interrupted never ended; only a running one counts up to now.
+    const first = row.steps[0], stops = row.steps.filter(step => step.ended || step.status === "running").map(ended);
+    return {id: "phase:" + row.label, kind: "phase", row, name: row.label, tone: worstTone(steps), done: steps.every(span => span.done),
+      seconds: first?.started && stops.length ? (Math.max(...stops) - Date.parse(first.started)) / 1000 : null, tokens: sum(steps), started: first?.started, children: steps};
+  });
+  const children = [...phaseSpans, ...loose], key = runStatus(s);
+  return {id: "run", kind: "run", name: s.name, tone: status(key).tone, done: key !== "in_progress", seconds: s.duration_seconds,
+    tokens: sum(children), started: s.started, children};
+}
+/** Every span with the chain of spans above it, depth first. */
+function walkSpans(span, up = [], out = []) {
+  out.push({span, up});
+  for (const child of span.children) walkSpans(child, [...up, span], out);
+  return out;
+}
+/** Where the trace opens: the running step, else the first step that failed, else the last attempt's check. */
+function defaultSpan(detail) {
+  const pick = detail.steps.find(s => s.status === "running") || detail.steps.find(s => flowTone(s) === "bad");
+  if (pick) return "step:" + pick.index;
+  const verify = phases(detail).filter(row => row.kind === "attempt").at(-1)?.steps.find(s => s.node === "verify");
+  return verify ? "step:" + verify.index : "run";
+}
+/** Attempts and anything that failed or runs start open; setup, baseline and finish that went well start folded. */
+function spanOpen(span) {
+  if (state.traceOpen.has(span.id)) return state.traceOpen.get(span.id);
+  return span.kind !== "phase" || span.row.kind === "attempt" || ["bad", "warn", "run"].includes(span.tone);
+}
+/** Links from older dashboards named the Checkpoints and Model calls tabs; both now open a span of the trace. */
+function legacySpan(hash) {
+  const tab = hash.get("tab");
+  if (tab === "log") { const step = (hash.get("open") || "").split(",").find(Boolean); return {tab: "overview", span: step ? "step:" + step : null}; }
+  if (tab === "calls") return {tab: "overview", span: hash.get("call") ? "call:" + hash.get("call") : null};
+  return {tab: tab || "overview", span: hash.get("span")};
+}
+/** Opens a span of the trace from anywhere on the run page, bringing the trace into view. */
+function selectSpan(id) {
+  state.span = id;
+  if (state.tab === "overview" && state.trace?.alive()) state.trace.select(id);
+  else { state.tab = "overview"; renderDetail(); }
+  document.querySelector(`.trace [data-span="${CSS.escape(id)}"]`)?.scrollIntoView({block: "nearest"});
+}
+const TRACE_GRAPH = "auto-fix:trace-graph", TRACE_STATS = "auto-fix:trace-stats";
+const SPAN_KIND = {run: "Run", phase: "Phase", step: "Step", call: "Model call", build: "Build check"};
+
+/** A span's mark: the run's status, a step's node icon, a robot for model calls, a log for build checks. */
+function spanIcon(span) {
+  if (span.kind === "run") return statusIcon(runStatus(state.detail.summary));
+  if (span.kind === "phase") return icon(span.tone || "none");
+  const name = span.kind === "step" ? stepInfo(span.step.node).icon : span.kind === "call" ? "bot" : "logfile";
+  return lucide(name, 14, span.tone ? "t-" + span.tone : "");
+}
+/** The latency and token chips under a span's name. */
+function spanStats(span) {
+  const live = span.kind === "run" ? state.detail.summary.status === "in_progress" && state.detail.summary.live : span.tone === "run";
+  const time = live && span.started ? clock(span.started) : span.seconds !== null && span.seconds !== undefined ? duration(span.seconds) : null;
+  return el("span", {class: "tstats"}, time ? el("span", {class: "stat t-" + (span.tone === "bad" ? "bad" : "ok")}, lucide("clock", 11), time) : null,
+    span.tokens ? el("span", {class: "stat", title: "Tokens"}, lucide("events", 11), span.tokens.toLocaleString()) : null,
+    span.kind === "phase" && span.row.kind === "attempt" ? el("span", {class: "tnote"}, attemptAfter(state.detail, span.row)) : null);
+}
+/** Small tags beside a span's name, like LangSmith's: which visit of a node, which model. */
+function spanTags(span) {
+  if (span.kind === "step") return [span.visit > 1 ? el("span", {class: "ttag"}, "visit " + span.visit) : null,
+    span.tone && span.tone !== "ok" ? el("span", {class: "ttag t-" + span.tone}, stepStatus(span.step).text) : null];
+  if (span.kind === "call") return [span.call.model ? el("span", {class: "ttag"}, span.call.model) : null];
+  if (span.kind === "run") return [el("span", {class: "ttag"}, workflowOf(state.detail.summary).replace(/^bt:/, ""))];
+  return [];
 }
 
+/**
+ * The trace section: the tree of spans on the left, the open span on the right, and the workflow figure above
+ * them when Graph is on. Picking a span redraws only this section, so the patch and the figure stay as they are.
+ */
+function traceSection(detail) {
+  const root = traceTree(detail), all = walkSpans(root), byId = Object.fromEntries(all.map(item => [item.span.id, item]));
+  const tree = el("div", {class: "ttree" + (readPref(TRACE_STATS, "1") === "1" ? "" : " nostats"), role: "tree", "aria-label": "Run trace"});
+  const pane = el("div", {class: "tpane"});
+  const graph = el("div", {class: "tgraph"});
+  const section = el("section", {class: "trace", "data-tour": "trace"});
+  const current = () => byId[state.span] ? state.span : defaultSpan(detail) in byId ? defaultSpan(detail) : "run";
+  const visible = () => {
+    const out = [];
+    (function add(span, depth, parent) {
+      out.push({span, depth, parent});
+      if (span.children.length && spanOpen(span)) for (const child of span.children) add(child, depth + 1, span);
+    })(root, 0, null);
+    return out;
+  };
+  const toggle = (span, open) => { state.traceOpen.set(span.id, open); draw(true); };
+  function pick(id, focus = true) {
+    state.span = id;
+    history.replaceState(null, "", "#" + runPageHash());
+    draw(focus);
+  }
+  function row({span, depth}, selected) {
+    const open = span.children.length ? spanOpen(span) : null;
+    // The twisty is for the mouse; the keyboard folds with Left and Right on the row.
+    const twisty = el("span", {class: "twisty", "aria-hidden": "true", onclick: open === null ? null : event => { event.stopPropagation(); toggle(span, !open); }},
+      open === null ? null : chevron(open));
+    twisty.tabIndex = -1;
+    twisty.removeAttribute("role");
+    const node = el("div", {class: "trow" + (selected ? " sel" : ""), role: "treeitem", "aria-level": depth + 1, "aria-selected": String(selected),
+      "aria-expanded": open === null ? null : String(open), "data-span": span.id, "data-key": "span:" + span.id, "data-step": span.step?.index,
+      // A click unfolds a folded span as it opens it; a second click on the open span folds it again.
+      style: `--depth:${depth}`, onclick: () => { if (open !== null && (!open || selected)) state.traceOpen.set(span.id, !open); pick(span.id); },
+      onmouseenter: span.step ? () => state.figure?.pick(span.step) : null, onmouseleave: span.step ? () => state.figure?.pick(null) : null},
+      twisty, el("span", {class: "tmain"}, el("span", {class: "tname"}, spanIcon(span), el("span", {class: "tlabel"}, span.name), spanTags(span)), spanStats(span)));
+    node.tabIndex = selected ? 0 : -1;
+    return node;
+  }
+  function draw(focus = false) {
+    const id = current(), chain = byId[id].up;
+    // The open span always shows: everything above it unfolds.
+    for (const span of chain) if (!spanOpen(span)) state.traceOpen.set(span.id, true);
+    tree.replaceChildren(...visible().map(item => row(item, item.span.id === id)));
+    pane.replaceChildren(spanPane(detail, byId[id].span, chain));
+    if (focus) tree.querySelector('[aria-selected="true"]')?.focus({preventScroll: true});
+    tree.querySelector('[aria-selected="true"]')?.scrollIntoView({block: "nearest"});
+    folds.textContent = all.some(({span}) => span.kind === "phase" && spanOpen(span)) ? "Collapse all" : "Expand all";
+  }
+  tree.addEventListener("keydown", event => {
+    const rows = visible(), i = rows.findIndex(item => item.span.id === current()), item = rows[i];
+    if (!item) return;
+    const open = item.span.children.length && spanOpen(item.span);
+    const move = {ArrowDown: rows[i + 1], ArrowUp: rows[i - 1], Home: rows[0], End: rows.at(-1),
+      ArrowRight: open ? rows[i + 1] : null, ArrowLeft: open ? null : rows.find(r => r.span === item.parent)}[event.key];
+    if (move) { event.preventDefault(); pick(move.span.id); }
+    else if (event.key === "ArrowRight" && item.span.children.length) { event.preventDefault(); toggle(item.span, true); }
+    else if (event.key === "ArrowLeft" && open) { event.preventDefault(); toggle(item.span, false); }
+  });
+  const folds = el("button", {class: "btn small", type: "button", onclick: () => {
+    const open = folds.textContent === "Expand all";
+    for (const {span} of all) if (span.kind === "phase") state.traceOpen.set(span.id, open);
+    // A folded phase would hide the open span, so the run takes over.
+    if (!open && byId[current()].up.some(span => span.kind === "phase")) pick("run", false);
+    else draw();
+  }}, "Collapse all");
+  const press = (label, key, onchange) => {
+    const button = el("button", {class: "btn small", type: "button", "aria-pressed": String(readPref(key, key === TRACE_STATS ? "1" : "0") === "1"), onclick: () => {
+      const on = button.getAttribute("aria-pressed") !== "true";
+      button.setAttribute("aria-pressed", String(on));
+      writePref(key, on ? "1" : "0");
+      onchange(on);
+    }}, label);
+    return button;
+  };
+  const showGraph = on => {
+    dropFigure();
+    graph.replaceChildren(...(on && detail.graph && detail.steps.length ? [flowFigure(detail, tree)] : []));
+  };
+  state.trace = {alive: () => section.isConnected, select: id => pick(id, false)};
+  section.append(el("div", {class: "projhead"}, el("h2", {}, "Trace", el("span", {class: "sub"}, "every step, model call and build check")),
+      el("div", {class: "tools tight"}, folds, press("Stats", TRACE_STATS, on => tree.classList.toggle("nostats", !on)),
+        detail.graph && detail.steps.length ? press([lucide("overview", 12), "Graph"], TRACE_GRAPH, showGraph) : null)),
+    graph, el("div", {class: "box tsplit"}, tree, pane));
+  showGraph(readPref(TRACE_GRAPH, "0") === "1");
+  draw();
+  return section;
+}
+
+/** The open span: what it took in, what it gave back, and its metadata, as LangSmith lays out a run. */
+function spanPane(detail, span, chain) {
+  const s = detail.summary, block = (title, body, attrs = {open: ""}) => el("details", {class: "tblock", ...attrs}, el("summary", {}, title), el("div", {class: "tbody"}, body));
+  const meta = pairs => el("dl", {class: "tmeta"}, pairs.filter(([, value]) => value !== null && value !== undefined && value !== "")
+    .map(([label, value]) => [el("dt", {}, label), el("dd", {}, value)]));
+  const tone = (t, text) => el("span", {class: "mark " + (t ? "t-" + t : "muted")}, icon(t || "none", 13), text);
+  const latency = span.seconds !== null && span.seconds !== undefined ? duration(span.seconds) : span.tone === "run" ? "running" : null;
+  const tags = list => list.length ? el("span", {class: "ttags"}, list.map(text => el("span", {class: "ttag"}, text))) : null;
+  let body, data;
+  if (span.kind === "step") {
+    const step = span.step, st = stepStatus(step), proposal = step.changes?.proposal || step.changes?.last_repair?.proposal;
+    const report = step.changes?.verification?.report || step.changes?.baseline?.report, keys = Object.keys(step.changes || {});
+    // Test output reads as a log, not as one long JSON string.
+    const {feedback, ...rest} = step.changes || {}, log = typeof feedback === "string" && feedback.includes("\n");
+    const input = el("div", {class: "muted"}, step.from_checkpoint === undefined || step.from_checkpoint === null ? "This run kept no checkpoint before the step." : "Loading the state…");
+    const loadInput = event => {
+      if (!event.currentTarget.open || input.dataset.loaded || step.from_checkpoint === undefined || step.from_checkpoint === null) return;
+      input.dataset.loaded = "1";
+      api(`/api/state?id=${encodeURIComponent(s.id)}&step=${step.from_checkpoint}`)
+        .then(full => input.replaceWith(el("div", {}, el("div", {class: "muted small"}, `The complete state at checkpoint ${full.step}, which the step started from`), jsonView(full.values))))
+        .catch(() => input.replaceChildren("The state could not be loaded."));
+    };
+    body = [stepInfo(step.node).does ? el("p", {class: "muted tdoes"}, stepInfo(step.node).does[0].toUpperCase() + stepInfo(step.node).does.slice(1) + ".") : null,
+      block("Input", input, {ontoggle: loadInput}),
+      block("Output", step.status === "running" ? el("div", {class: "muted"}, "Running…") : [
+        report ? el("div", {class: "chips"}, chip(report.failed.length ? "bad" : "ok", `${report.failed.length} failed`), chip("none", `${report.passed.length} passed`),
+          report.failed.length ? el("code", {class: "small"}, report.failed.join(", ")) : null) : null,
+        proposal && Object.keys(proposal).length ? renderResponse(proposal) : null,
+        step.details && Object.keys(step.details).length ? jsonView(step.details) : null,
+        log ? el("details", {class: "output"}, el("summary", {}, "Build and test output"), el("pre", {class: "view clip"}, feedback)) : null,
+        !keys.length ? el("div", {class: "muted"}, "No state change.") : log ? (Object.keys(rest).length ? jsonView(rest) : null) : jsonView(step.changes)])];
+    data = [["Start time", when(step.started)], ["End time", step.ended ? when(step.ended) : null], ["Status", tone(st.tone, st.text)], ["Latency", latency],
+      ["Tokens", span.tokens ? span.tokens.toLocaleString() : null], ["Type", stepInfo(step.node).group], ["Phase", span.row.label],
+      ["Checkpoint", step.checkpoint ?? null], ["Changed", tags(keys)]];
+  } else if (span.kind === "call") {
+    const call = span.call;
+    body = [block("Input", el("div", {}, `${call.context_chars.toLocaleString()} characters of JSON context. `,
+        el("button", {class: "link", type: "button", onclick: () => { state.tab = "files"; state.file = call.file; renderDetail(); }}, "Open the full request"))),
+      block("Output", call.error ? [el("div", {class: "callout bad"}, el("b", {}, call.error)), rawOutput(call)] : renderResponse(call.response))];
+    data = [["Start time", when(call.started)], ["Status", call.error ? tone("bad", "failed") : tone("ok", "answered")], ["Latency", latency],
+      ["Tokens in", tokens(call.usage, "in")?.toLocaleString()], ["Tokens out", tokens(call.usage, "out")?.toLocaleString()],
+      ["Model", call.model], ["Kind", call.kind], ["Attempt", call.attempt ?? null], ["File", el("span", {class: "mono small"}, call.file)]];
+  } else if (span.kind === "build") {
+    const build = span.build;
+    body = [block("Output", build.files.length ? el("div", {class: "tfiles"}, build.files.map(file => el("div", {class: "file", "data-key": "tlog:" + file.path,
+        onclick: () => { state.tab = "build"; state.buildFile = file.path; renderDetail(); }},
+      el("span", {class: "fname", title: file.path}, file.path.split("/").pop()), el("span", {class: "fsize"}, size(file.size)),
+      el("a", {class: "ib", href: downloadHref(s.id, file.path), download: "", title: "Download " + file.path, "aria-label": "Download " + file.path,
+        onclick: event => event.stopPropagation()}, lucide("download", 14))))) : el("div", {class: "muted"}, "This check wrote no files."))];
+    data = [["Written", when(build.time)], ["Check", buildLabel(build.label)], ["Files", String(build.files.length)], ["Folder", el("span", {class: "mono small"}, build.folder)]];
+  } else if (span.kind === "phase") {
+    const row = span.row, calls = callsIn(detail, row.steps);
+    const report = row.steps.filter(step => step.node === "verify").map(step => reports(detail).find(r => r.step === step)?.report).find(Boolean);
+    body = row.kind === "attempt"
+      ? [el("div", {class: "change"}, attemptChange(detail, row)), el("div", {}, attemptAfter(detail, row)), attemptDetail(row, report, calls)]
+      : [el("ul", {class: "plain"}, row.steps.map(step => el("li", {}, el("button", {class: "link", type: "button", onclick: () => selectSpan("step:" + step.index)}, step.node),
+          el("span", {class: "muted"}, ` · ${stepInfo(step.node).does || ""} · `), el("span", {class: flowTone(step) ? "t-" + flowTone(step) : "muted"}, stepStatus(step).text))))];
+    const model = calls.reduce((total, call) => total + (call.elapsed_seconds || 0), 0);
+    data = [["Start time", span.started ? when(span.started) : null], ["Status", row.kind === "attempt" ? attemptAfter(detail, row) : tone(span.tone, span.done ? "finished" : "running")], ["Latency", latency],
+      ["Model time", model ? duration(model) : null], ["Tokens", span.tokens ? span.tokens.toLocaleString() : null], ["Steps", String(row.steps.length)]];
+  } else {
+    const key = runStatus(s), st = status(key);
+    body = [el("p", {class: "tstory"}, attemptStory(detail)),
+      el("p", {class: "muted"}, "Pick a step, a model call or a build check in the trace to see what it took in and what it gave back.")];
+    data = [["Start time", s.started ? when(s.started) : null], ["Status", tone(st.tone, st.text)], ["Latency", key === "in_progress" && s.started ? clock(s.started) : latency],
+      ["Tokens", span.tokens ? span.tokens.toLocaleString() : null], ["Model calls", String(detail.model_calls.length)], ["Attempts", String(s.attempts)],
+      ["Steps", String(detail.steps.length)], ["Tags", tags([s.build_type, s.branch].filter(Boolean))]];
+  }
+  const replay = span.kind === "step" && CAN_ACT && (detail.controls?.actions || []).includes("replay") && REPLAYABLE.has(span.step.node) && span.step.index > 0
+    ? el("button", {class: "btn small", type: "button", onclick: () => replayDialog(detail, span.step.index)}, lucide("rerun", 12), "Re-run from here") : null;
+  const copy = el("button", {class: "btn small", type: "button", title: "Copy a link to this span", onclick: async () => {
+    try { await navigator.clipboard.writeText(location.href); } catch (error) { return; }
+    copy.replaceChildren(lucide("check", 12), "Copied");
+    setTimeout(() => copy.replaceChildren(lucide("copy", 12), "Copy link"), 1200);
+  }}, lucide("copy", 12), "Copy link");
+  return el("div", {class: "tview"},
+    el("div", {class: "thead"}, el("div", {class: "ttitle"}, spanIcon(span), el("b", {}, span.name), el("span", {class: "ttag"}, SPAN_KIND[span.kind]),
+        chain.length > 1 ? el("span", {class: "muted small tpath"}, chain.slice(1).map(up => up.name).join(" › ")) : null),
+      el("div", {class: "tools tight"}, replay, copy)),
+    el("div", {class: "tcols"}, el("div", {class: "tio"}, body), meta(data)));
+}
 /* ---------- artifacts ---------- */
 function highlight(text, path) {
   const pre = el("pre", {class: "view"});
@@ -2215,49 +2461,38 @@ function testsGrid(detail) {
         : report.passed.includes(test) ? PASS() : el("span", {class: "muted"}, "Not run"));
     }))))));
 }
-/** One row per repair attempt: what the model changed and what the tests said. A row opens to the diff. */
-function attemptsTable(detail) {
-  const rows = phases(detail).filter(row => row.kind === "attempt"), total = detail.summary.tests.length;
-  if (!rows.length) return el("p", {class: "muted"}, detail.summary.status === "in_progress" ? "No repair attempt yet." : "The run stopped before any repair attempt.");
-  const results = reports(detail);
-  return el("div", {class: "box"}, el("table", {class: "attempts"},
-    el("thead", {}, el("tr", {}, el("th", {}, "Attempt"), el("th", {}, "Change"), el("th", {}, "Tests after"), el("th", {class: "num"}, "Duration"))),
-    el("tbody", {}, rows.flatMap(row => {
-      const steps = row.steps, verify = steps.find(s => s.node === "verify"), running = steps.find(s => s.status === "running");
-      const calls = callsIn(detail, steps), proposal = steps.map(s => s.changes?.last_repair?.proposal || s.changes?.proposal).find(Boolean);
-      const report = verify && results.find(result => result.step === verify)?.report, open = state.openAttempts.has(row.label);
-      const change = proposal?.summary ? [el("span", {}, proposal.summary), ...(proposal.edits || []).map(edit =>
-          el("span", {class: "afile"}, edit.path.split("/").pop(), el("b", {class: "del"}, " −" + lineCount(edit.old)), el("b", {class: "add"}, " +" + lineCount(edit.new))))]
-        : running ? el("span", {class: "muted"}, "Waiting for the model…")
-        : el("span", {class: "t-bad"}, attemptProblem(steps, calls));
-      const after = running && verify === running ? el("span", {class: "muted"}, "Running…")
-        : report ? el("span", {class: report.failed.length ? "t-bad" : "t-ok"}, report.failed.length ? `${report.failed.length} of ${total} still failing` : (total === 1 ? "The targeted test passes" : `All ${total} targeted tests pass`))
-        : el("span", {class: "muted"}, "—");
-      const spent = steps.length ? (Math.max(...steps.map(ended)) - Date.parse(steps[0].started)) / 1000 : null;
-      const model = calls.reduce((sum, call) => sum + (call.elapsed_seconds || 0), 0);
-      const line = el("tr", {class: "click" + (open ? " sel" : ""), "aria-expanded": String(open), "data-key": "attempt:" + row.label,
-        onclick: () => { open ? state.openAttempts.delete(row.label) : state.openAttempts.add(row.label); renderDetail(); }},
-        el("td", {style: "white-space:nowrap"}, chevron(open), " ", row.label.replace("Attempt ", "#")),
-        el("td", {class: "grow"}, el("div", {class: "change"}, change)),
-        el("td", {style: "white-space:nowrap"}, after),
-        el("td", {class: "num"}, spent === null ? "—" : duration(spent), model ? el("div", {class: "muted small"}, `model ${duration(model)}`) : null));
-      return open ? [line, el("tr", {class: "detailrow"}, el("td", {colspan: "4"}, attemptDetail(row, report, calls)))] : [line];
-    }))));
+/** What an attempt changed: the model's summary and the files it edited, or why it made no edit. */
+function attemptChange(detail, row) {
+  const steps = row.steps, running = steps.find(s => s.status === "running");
+  const proposal = steps.map(s => s.changes?.last_repair?.proposal || s.changes?.proposal).find(Boolean);
+  return proposal?.summary ? [el("span", {}, proposal.summary), ...(proposal.edits || []).map(edit =>
+      el("span", {class: "afile"}, edit.path.split("/").pop(), el("b", {class: "del"}, " −" + lineCount(edit.old)), el("b", {class: "add"}, " +" + lineCount(edit.new))))]
+    : running ? el("span", {class: "muted"}, "Waiting for the model…")
+    : el("span", {class: "t-bad"}, attemptProblem(steps, callsIn(detail, steps)));
+}
+/** What the tests said after an attempt; an attempt that never reached a check says how it ended. */
+function attemptAfter(detail, row) {
+  const verify = row.steps.find(s => s.node === "verify"), total = detail.summary.tests.length;
+  const said = step => { const st = stepStatus(step); return el("span", {class: st.tone ? "t-" + st.tone : "muted"}, st.text); };
+  if (!verify) return said(row.steps.at(-1));
+  if (verify.status === "running") return el("span", {class: "muted"}, "Running…");
+  const report = reports(detail).find(result => result.step === verify)?.report;
+  return report ? el("span", {class: report.failed.length ? "t-bad" : "t-ok"}, report.failed.length ? `${report.failed.length} of ${total} still failing`
+      : (total === 1 ? "The targeted test passes" : `All ${total} targeted tests pass`))
+    : said(verify);
 }
 /** An opened attempt: the model's reasoning, the exact edits, what still fails, and where to look next. */
 function attemptDetail(row, report, calls) {
   const proposal = row.steps.map(s => s.changes?.last_repair?.proposal || s.changes?.proposal).find(Boolean);
-  const openLog = () => { state.tab = "log"; state.openSteps.add(row.steps[0].index); renderDetail(); };
   return el("div", {class: "adetail"},
     proposal?.explanation ? el("div", {class: "explain"}, proposal.explanation) : null,
     (proposal?.edits || []).map(snippetDiff),
     calls.filter(call => call.error).map(call => el("div", {class: "t-bad"}, `Model call ${call.index}: ${call.error}`)),
     report?.failed.length ? el("div", {}, el("span", {class: "muted"}, "Still failing: "), el("code", {}, report.failed.join(", "))) : null,
-    el("div", {class: "alinks"}, el("button", {class: "link", type: "button", onclick: openLog}, "Open in checkpoints"),
+    el("div", {class: "alinks"},
       row.steps.some(step => step.node === "verify") ? el("button", {class: "link", type: "button", onclick: () => { state.tab = "build"; renderDetail(); }}, "Build log") : null,
-      calls.map(call => el("button", {class: "link", type: "button", onclick: () => { state.tab = "calls"; state.call = call.file; renderDetail(); }}, `Model call ${call.index}`))));
+      calls.map(call => el("button", {class: "link", type: "button", onclick: () => selectSpan("call:" + call.file)}, `Model call ${call.index}`))));
 }
-
 /* ---------- run controls ---------- */
 // The server fills the token in only when it runs with --config; every write request echoes it.
 const TOKEN = document.querySelector('meta[name="auto-fix-token"]').content;
@@ -2367,13 +2602,15 @@ function stopDialog(detail) {
   }, {danger: true});
 }
 /** Re-run from a step: a new run that starts at that step, from the same commit and edits. */
-function replayDialog(detail) {
+function replayDialog(detail, from = null) {
   let attempt = 0;
   const choices = detail.steps.map(step => {
     if (step.node === "repair") attempt += 1;
     return {step, label: `Step ${step.index + 1} · ${step.node}` + (["investigate", "repair", "verify"].includes(step.node) ? ` (attempt ${Math.max(attempt, 1)})` : "")};
   }).filter(({step}) => step.index > 0 && REPLAYABLE.has(step.node));
-  const pick = el("select", {id: "f-step"}, choices.map(({step, label}, i) => el("option", {value: step.index, selected: i === choices.length - 1 ? "" : null}, label)));
+  // The trace's "Re-run from here" picks its step; the Actions menu starts at the latest one.
+  const chosen = choices.some(({step}) => step.index === from) ? from : choices.at(-1)?.step.index;
+  const pick = el("select", {id: "f-step"}, choices.map(({step, label}) => el("option", {value: step.index, selected: step.index === chosen ? "" : null}, label)));
   openDialog("Re-run from a step", el("div", {},
     el("div", {class: "field"}, el("label", {for: "f-step"}, "Start at"), pick),
     el("p", {class: "muted"}, "A new run starts at that step from the same commit, with the edits made before it. This run stays as it is.")),
@@ -2649,23 +2886,13 @@ function batchesPage() {
 /* ---------- run page ---------- */
 function renderDetail() { keepFocus(drawDetail); }
 function drawDetail() {
-  const TABS = ["overview", "build", "calls", "log", "files"];
-  if (!TABS.includes(state.tab)) state.tab = "overview";
-  const hash = new URLSearchParams({run: state.selected});
-  if (state.returnHash) hash.set("back", state.returnHash);
-  if (state.tab !== "overview") hash.set("tab", state.tab);
-  // Only the open tab's selection goes in the link, so a copied link carries no state from another tab.
-  if (state.tab === "files" && state.file) hash.set("file", state.file);
-  if (state.tab === "calls" && state.call) hash.set("call", state.call);
-  if (state.tab === "build" && state.buildFile) hash.set("log", state.buildFile);
-  if (state.tab === "log" && state.openSteps.size) hash.set("open", [...state.openSteps].join(","));
-  history.replaceState(null, "", "#" + hash);
+  if (!["overview", "build", "files"].includes(state.tab)) state.tab = "overview";
+  history.replaceState(null, "", "#" + runPageHash());
   markNav();
   const detail = state.detail, s = detail.summary, key = runStatus(s), st = status(key), reason = explain(s.reason);
   const running = s.status === "in_progress" && s.live, workflow = findWorkflow(workflowOf(s));
   const used = detail.model_calls.reduce((sum, c) => sum + (tokens(c.usage, "in") || 0) + (tokens(c.usage, "out") || 0), 0);
-  const tabs = [["overview", "Overview"], ["build", "Build log", detail.builds.length], ["calls", "Model calls", detail.model_calls.length],
-    ["log", "Checkpoints", detail.steps.length], ["files", "Artifacts", detail.files.length]];
+  const tabs = [["overview", "Overview"], ["build", "Build log", detail.builds.length], ["files", "Artifacts", detail.files.length]];
   dropFigure();
   const info = [
     ["Failing tests", s.tests.length ? el("span", {class: "testlinks"}, s.tests.slice(0, 3).map(name =>
@@ -2683,14 +2910,9 @@ function drawDetail() {
       onclick: event => { event.preventDefault(); select("runs/" + s.forked_from.source); }}, s.forked_from.source), ` from step ${s.forked_from.step + 1}`) : null],
   ].filter(([, value]) => value !== null && value !== "");
   let content;
-  if (state.tab === "log") content = renderLog(detail);
-  else if (state.tab === "build") content = renderBuilds(detail);
-  else if (state.tab === "calls") content = renderCalls(detail);
+  if (state.tab === "build") content = renderBuilds(detail);
   else if (state.tab === "files") content = renderFiles(detail);
-  else content = el("div", {class: "stack"}, leadSection(detail), validationSection(detail), failureSection(detail),
-    el("section", {}, el("h2", {}, "Attempts", el("span", {class: "sub"}, "open a row for the explanation and the edits")), attemptsTable(detail)),
-    reviewSection(detail),
-    el("section", {}, el("h2", {}, "Workflow execution", el("span", {class: "sub"}, "LangGraph · executed path")), executionPath(detail)));
+  else content = el("div", {class: "stack"}, leadSection(detail), validationSection(detail), failureSection(detail), traceSection(detail), reviewSection(detail));
   const tabbar = el("div", {class: "tabs", role: "tablist", "aria-label": "Run sections", onkeydown: event => {
     // Left and Right move between tabs, as in any tab strip.
     const step = {ArrowRight: 1, ArrowLeft: -1}[event.key];
@@ -2717,6 +2939,16 @@ function drawDetail() {
     el("dl", {class: "info"}, info.map(([label, value]) => [el("dt", {}, label), el("dd", {}, value)])),
     tabbar,
     el("div", {role: "tabpanel"}, content)));
+}
+/** The run page's link: the run, where Back returns to, and the open tab with only that tab's selection. */
+function runPageHash() {
+  const hash = new URLSearchParams({run: state.selected});
+  if (state.returnHash) hash.set("back", state.returnHash);
+  if (state.tab !== "overview") hash.set("tab", state.tab);
+  if (state.tab === "overview" && state.span) hash.set("span", state.span);
+  if (state.tab === "files" && state.file) hash.set("file", state.file);
+  if (state.tab === "build" && state.buildFile) hash.set("log", state.buildFile);
+  return hash;
 }
 const backLabel = hash => {
   const params = new URLSearchParams(hash), view = params.get("view");
@@ -3018,21 +3250,8 @@ function flowLegend(detail) {
     tones.has("warn") ? item("t-warn", "needs a look") : null, tones.has("run") ? item("t-run", "running") : null,
     tones.has("") ? item("", "did its work") : null, idle ? item("idle", live ? "not reached yet" : "not run") : null);
 }
-/** The Overview's execution box: the figure on the left, the steps in the order they ran on the right. */
-function executionPath(detail) {
-  if (!detail.steps.length) return el("p", {class: "muted"}, "Waiting for the first recorded step.");
-  const openStep = step => { state.tab = "log"; state.openSteps.add(step.index); renderDetail(); };
-  const visits = {};
-  const list = el("ol", {class: "flow-steps", "aria-label": "Executed workflow steps"}, detail.steps.map(step => {
-    const visit = visits[step.node] = (visits[step.node] || 0) + 1, tone = flowTone(step), live = step.status === "running";
-    return el("li", {}, el("button", {type: "button", "data-step": step.index, "data-key": "step:" + step.index, title: stepInfo(step.node).does || "Open in the execution log",
-      onclick: () => openStep(step), onmouseenter: () => state.figure?.pick(step), onmouseleave: () => state.figure?.pick(null),
-      onfocus: () => state.figure?.pick(step), onblur: () => state.figure?.pick(null)},
-      el("span", {class: "n" + (tone ? " t-" + tone : "")}, step.index + 1), nodeTag(step.node),
-      el("span", {class: "st " + (tone ? "t-" + tone : "muted")},
-        (visit > 1 ? `visit ${visit} · ` : "") + stepStatus(step).text),
-      el("span", {class: "num muted"}, live ? "" : duration(step.duration_seconds))));
-  }));
+/** The figure over the trace: hovering a plate lights the steps it ran in the tree, and clicking one opens that step. */
+function flowFigure(detail, tree) {
   const read = el("span", {class: "read"}), does = el("span", {class: "does"}), stage = el("div", {class: "stage", "data-hairline": "workflow"});
   const story = attemptStory(detail);
   const describe = name => {
@@ -3042,8 +3261,8 @@ function executionPath(detail) {
   describe(null);
   const mount = () => {
     if (!stage.isConnected || !detail.graph) return;
-    const figure = mountFlow(detail, stage, read, {onPick: step => step && openStep(step), onDescribe: describe,
-      onHover: indexes => list.querySelectorAll("button[data-step]").forEach(b => b.classList.toggle("lit", indexes.includes(Number(b.dataset.step))))});
+    const figure = mountFlow(detail, stage, read, {onPick: step => step && selectSpan("step:" + step.index), onDescribe: describe,
+      onHover: indexes => tree.querySelectorAll(".trow[data-step]").forEach(row => row.classList.toggle("lit", indexes.includes(Number(row.dataset.step))))});
     state.figure = {pick: figure.pick, destroy: figure.destroy};
     replay.hidden = runStatus(detail.summary) === "in_progress";
     replay.onclick = figure.replay;
@@ -3051,9 +3270,7 @@ function executionPath(detail) {
   const replay = el("button", {class: "btn small", type: "button", title: "Animate the path the run took"}, lucide("play", 12), "Animate");
   queueMicrotask(mount);
   return el("div", {class: "box flow"},
-    el("div", {class: "figure"}, el("div", {class: "tags"}, el("div", {class: "text"}, read, does), replay), stage,
-      detail.graph ? flowLegend(detail) : null),
-    list);
+    el("div", {class: "figure"}, el("div", {class: "tags"}, el("div", {class: "text"}, read, does), replay), stage, flowLegend(detail)));
 }
 /** Kept for the run page's lifecycle; the plain pages have no timers of their own. */
 function dropFigure() {
@@ -3238,7 +3455,7 @@ function whySection(detail) {
     el("div", {class: "callout " + (key === "paused" || key === "cancelled" ? "warn" : "bad")}, el("b", {}, title),
       reason.detail && reason.detail !== title ? el("div", {class: "detail"}, reason.detail) : null, next ? el("div", {class: "muted"}, next) : null),
     errors.length ? el("ul", {class: "plain"}, errors.map(call => el("li", {}, el("span", {class: "t-bad"}, `Model call ${call.index} (${call.kind}) failed: `), call.error, " ",
-      el("button", {class: "link", type: "button", onclick: () => { state.tab = "calls"; state.call = call.file; renderDetail(); }}, "See what it returned")))) : null,
+      el("button", {class: "link", type: "button", onclick: () => selectSpan("call:" + call.file)}, "See what it returned")))) : null,
     check?.output ? el("details", {class: "output"}, el("summary", {}, "Output of the last build and test check"), el("pre", {class: "view clip"}, check.output),
       detail.builds.length ? el("button", {class: "link", type: "button", onclick: () => { state.tab = "build"; renderDetail(); }}, "Open the full build log") : null) : null);
 }
@@ -4072,10 +4289,10 @@ const SCENARIOS = [
       text: () => { const c = storyFacts().comparison; return [
         c ? `The last edit made ${c.fixed.join(", ") || "the failing test"} pass, but ${c.regressions.join(", ")} failed afterwards, and it passed before.` : "The last edit broke a test that passed before it.",
         "Auto Fix checks the whole suite, not only the test it was asked to fix, so it stopped instead of handing you a regression."]; }},
-    {route: x => runHash(x.regression), target: "table.attempts", click: () => 'table.attempts tr[data-key^="attempt:"]',
-      until: () => Boolean(document.querySelector('table.attempts tr[aria-expanded="true"]')), title: "Every attempt, on the record",
-      text: () => `${plural(storyFacts().attempts, "attempt")}, each with the edit the model proposed and what the tests said after it.`,
-      action: "Click an attempt to see its exact change and the model's reasoning."},
+    {route: x => runHash(x.regression), target: '[data-tour="trace"]', click: () => '.trace .trow[data-span^="phase:Attempt"]',
+      until: () => Boolean(document.querySelector('.trace .trow.sel[data-span^="phase:Attempt"]')), title: "Every attempt, on the record",
+      text: () => `${plural(storyFacts().attempts, "attempt")} in the trace, each with its steps, model calls and build checks, and what the tests said after it.`,
+      action: "Click an attempt in the trace to see its exact change and the model's reasoning."},
     {route: x => runHash(x.regression), target: '[data-tour="review"]', title: "Pick up where a teammate left off",
       text: () => [storyFacts().notes ? "A teammate already noted where to look." : "Leave a note on where to look.",
         "Fix it by hand, then mark the run handled so nobody repeats the work, or re-run it from a step once the cause is clear."]},
@@ -4310,9 +4527,9 @@ async function route() {
     const back = hash.get("back") || "";
     readHistoryRoute(new URLSearchParams(back));
     await select(id, false);
-    state.returnHash = back; state.tab = hash.get("tab") || "overview"; state.file = hash.get("file"); state.call = hash.get("call");
+    const linked = legacySpan(hash);
+    state.returnHash = back; state.tab = linked.tab; state.span = linked.span; state.file = hash.get("file");
     state.buildFile = hash.get("log");
-    state.openSteps = new Set((hash.get("open") || "").split(",").filter(Boolean).map(Number));
     if (state.detail) renderDetail();
   } else if (view in PAGE_VIEWS) await openView(view, hash);
   else if (view === "history") { readHistoryRoute(hash); state.selected = null; state.detail = null; await loadRuns(); renderSidebar(); renderHome(); }
