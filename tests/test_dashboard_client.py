@@ -74,3 +74,61 @@ const end=html.indexOf('\nasync function loadRuns()',start);
         timeout=15,
     )
     assert result.returncode == 0, result.stderr
+
+
+def test_diff_model_parses_files_pairs_lines_marks_words_and_highlights_cpp():
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("Node is required to execute the browser's diff functions")
+    page = Path(__file__).parents[1] / "src/auto_fix/dashboard.html"
+    script = r"""
+// Loose asserts: arrays made inside the vm context have that context's prototypes.
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert');
+const html=fs.readFileSync(process.argv[1],'utf8');
+const start=html.indexOf('/* ---------- diff model');
+const end=html.indexOf('/* ---------- diff view',start);
+const context={};vm.createContext(context);vm.runInContext(html.slice(start,end)+
+  ';Object.assign(globalThis,{parseDiff,pairRows,wordRanges,lexLine,annotate});',context);
+const {parseDiff,pairRows,wordRanges,lexLine,annotate}=context;
+const diff=[
+  'diff --git a/src/add.cc b/src/add.cc','index 1..2 100644','--- a/src/add.cc','+++ b/src/add.cc',
+  '@@ -10,4 +10,3 @@ int Add(int a, int b) {','   // sum','--- not a header, a removed line',
+  '-  return a - b;','+  return a + b;',' }',
+  'diff --git a/old.h b/new.h','similarity index 100%','rename from old.h','rename to new.h',
+  'diff --git a/n.txt b/n.txt','new file mode 100644','--- /dev/null','+++ b/n.txt','@@ -0,0 +1 @@',
+  '+hello',String.fromCharCode(92)+' No newline at end of file',''].join('\n');
+const files=parseDiff(diff);
+assert.deepEqual(files.map(f=>[f.path,f.status,f.add,f.del]),
+  [['src/add.cc','modified',1,2],['new.h','renamed',0,0],['n.txt','added',1,0]]);
+const hunk=files[0].hunks[0];
+assert.equal(hunk.context,'int Add(int a, int b) {');
+assert.deepEqual(hunk.lines.map(l=>[l.kind,l.old,l.new]),
+  [['ctx',10,10],['del',11,undefined],['del',12,undefined],['add',undefined,11],['ctx',13,12]]);
+assert.equal(files[2].hunks[0].lines.at(-1).kind,'note');
+const rows=pairRows(hunk.lines);
+assert.equal(rows.length,4);
+assert.equal(rows[1].left.text,'-- not a header, a removed line');
+assert.equal(rows[1].right.text,'  return a + b;');
+assert.equal(rows[2].right,null);
+assert.deepEqual(wordRanges('return a - b;','return a + b;'),[[[9,10]],[[9,10]]]);
+assert.equal(wordRanges('abc','xyz'),null);
+const lexed=lexLine('if (x) return Foo("s", 3); // done /*','cpp');
+assert.deepEqual(lexed.runs.map(r=>r[2]),['kw','kw','fn','str','num','com']);
+const open=lexLine('int a; /* begins','cpp');
+assert.equal(open.open,true);
+assert.deepEqual(lexLine('still */ int b;','cpp',true).runs.map(r=>r[2]),['com','kw']);
+assert.equal(lexLine('x = 1','').runs.length,0);
+const one='--- a/x.cc\n+++ b/x.cc\n@@ -1 +1 @@\n-int a = 1;\n+int a = 2;\n';
+const marked=annotate(parseDiff(one)[0]);
+assert.deepEqual(marked.hunks[0].lines.map(l=>l.changed),[[[8,9]],[[8,9]]]);
+const bare=parseDiff('-return a - b;\n+return a + b;\n')[0];
+assert.deepEqual([bare.path,bare.add,bare.del,bare.hunks[0].lines[0].old],['patch',1,1,undefined]);
+"""
+    result = subprocess.run(
+        [node, "-e", script, str(page)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=15,
+    )
+    assert result.returncode == 0, result.stderr

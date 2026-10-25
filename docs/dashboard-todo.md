@@ -74,6 +74,14 @@ this layout. Nothing was committed or released.
 - [x] A guided tour (14 steps across Home, a run, Tests, Metrics and Settings) opens on a demo's
   first visit; the header's ? button replays it on any dashboard.
 
+### Diff viewer
+
+- [x] Unified and side-by-side views (remembered; narrow pages use unified), word-level change
+  marks, C/C++ and Python syntax colours in both themes, a file list with change counts, sticky
+  collapsible file headers with copy-path, GitHub's change boxes and a remembered "Viewed"
+  checkbox, line wrapping, and files over 400 lines collapsed until loaded.
+- [ ] Expanding unchanged context around a hunk needs the source files, which runs do not keep.
+
 ### Bugs
 
 

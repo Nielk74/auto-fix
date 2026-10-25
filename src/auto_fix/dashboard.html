@@ -18,6 +18,7 @@ try { const theme = localStorage.getItem("auto-fix:theme"); if (theme === "light
   --ground: #ffffff; --ink: #1f2328; --muted: #5f6873; --faint: #8c959f; --line: #e3e6ea;
   --soft: #f6f8fa; --sel: #eaf1fd; --accent: #2f6feb;
   --ok: #1a7f37; --bad: #cf222e; --warn: #9a6700; --run: #2f6feb;
+  --syn-kw: #cf222e; --syn-fn: #8250df; --syn-str: #0a3069; --syn-com: #6e7781; --syn-num: #0550ae;
   --mono: ui-monospace, SFMono-Regular, Menlo, "Cascadia Mono", Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
@@ -26,6 +27,7 @@ try { const theme = localStorage.getItem("auto-fix:theme"); if (theme === "light
     --ground: #0b0c0e; --ink: #d6dae1; --muted: #959ca6; --faint: #6e7681; --line: #262a30;
     --soft: #14161a; --sel: #16243a; --accent: #5b95ff;
     --ok: #3fb950; --bad: #f47067; --warn: #d29922; --run: #5b95ff;
+  --syn-kw: #ff7b72; --syn-fn: #d2a8ff; --syn-str: #a5d6ff; --syn-com: #8b949e; --syn-num: #79c0ff;
   }
 }
 :root[data-theme="dark"] {
@@ -33,6 +35,7 @@ try { const theme = localStorage.getItem("auto-fix:theme"); if (theme === "light
   --ground: #0b0c0e; --ink: #d6dae1; --muted: #959ca6; --faint: #6e7681; --line: #262a30;
   --soft: #14161a; --sel: #16243a; --accent: #5b95ff;
   --ok: #3fb950; --bad: #f47067; --warn: #d29922; --run: #5b95ff;
+  --syn-kw: #ff7b72; --syn-fn: #d2a8ff; --syn-str: #a5d6ff; --syn-com: #8b949e; --syn-num: #79c0ff;
 }
 * { box-sizing: border-box; }
 [hidden] { display:none !important; }
@@ -494,20 +497,61 @@ label.checkrow { display: flex; gap: 8px; align-items: center; cursor: pointer; 
 .build .bh { display: flex; justify-content: space-between; gap: 8px; padding: 6px 14px 2px; }
 pre.view.logtext .del { color: var(--bad); }
 
-/* diffs */
-.diff { font-family: var(--mono); font-size: 12px; }
+/* diffs, laid out like code review tools: numbers, signs, word marks, unified or split */
+.box:has(> .diff) { overflow: visible; }
+.diff { font-size: 12px;
+  --add-bg: color-mix(in srgb, var(--ok) 11%, transparent); --add-num: color-mix(in srgb, var(--ok) 19%, transparent);
+  --add-word: color-mix(in srgb, var(--ok) 34%, transparent); --del-bg: color-mix(in srgb, var(--bad) 11%, transparent);
+  --del-num: color-mix(in srgb, var(--bad) 19%, transparent); --del-word: color-mix(in srgb, var(--bad) 34%, transparent); }
+.dtools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+label.checkrow.small { font-size: 12px; color: var(--muted); }
+label.checkrow.off { opacity: 0.5; cursor: default; }
+.dlist { list-style: none; margin: 0; padding: 8px 12px; border-bottom: 1px solid var(--line); display: grid; gap: 3px;
+  font-family: var(--mono); font-size: 12px; }
 .dfile + .dfile { border-top: 1px solid var(--line); }
-.diff .fh { display: flex; justify-content: space-between; gap: 12px; padding: 7px 12px; background: var(--soft); border-bottom: 1px solid var(--line); }
-.diff .rows { display: grid; grid-template-columns: minmax(100%, max-content); overflow-x: auto; max-height: 70vh; }
-.diff .ln { display: grid; grid-template-columns: 44px 44px minmax(0, 1fr); line-height: 1.55; }
-.diff .ln .o, .diff .ln .n { color: var(--faint); text-align: right; padding-right: 8px; user-select: none; }
-.diff .ln code { white-space: pre; padding: 0 12px 0 6px; font-size: 12px; }
-.diff .ln.add { background: color-mix(in srgb, var(--ok) 11%, transparent); }
-.diff .ln.del { background: color-mix(in srgb, var(--bad) 11%, transparent); }
-.diff .ln.hunk { color: var(--muted); background: color-mix(in srgb, var(--accent) 6%, transparent); }
-.diff .ln.note { color: var(--muted); }
-.diff.snippet { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; max-width: 900px; background: var(--ground); }
-.diff.snippet .ln { grid-template-columns: minmax(0, 1fr); }
+.diff .fh { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 8px; padding: 5px 12px; min-height: 36px;
+  background: var(--soft); border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: 12px; }
+.diff .fh .spacer { flex: 1; }
+.fpath { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fpath .dir { color: var(--muted); }
+.fpath b { font-weight: 600; }
+.fstatus { font-size: 11px; border-radius: 10px; padding: 0 7px; border: 1px solid currentColor; }
+.fstatus.added { color: var(--ok); } .fstatus.deleted { color: var(--bad); } .fstatus.renamed { color: var(--warn); }
+.dstat { display: inline-flex; gap: 1px; }
+.dstat i { width: 8px; height: 8px; border-radius: 2px; background: var(--line); }
+.dstat i.add { background: var(--ok); } .dstat i.del { background: var(--bad); }
+label.viewed { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--ground); color: var(--muted); font: 12px ui-sans-serif, system-ui, "Segoe UI", sans-serif; cursor: pointer; white-space: nowrap; }
+label.viewed:has(input:checked) { color: var(--ink); border-color: var(--accent); }
+.diff .rows { display: grid; grid-template-columns: minmax(100%, max-content); overflow-x: auto; font-family: var(--mono); }
+.diff.wrap .rows { grid-template-columns: minmax(0, 1fr); }
+.diff .ln { display: grid; grid-template-columns: 50px 50px 22px minmax(0, 1fr); line-height: 20px; }
+.diff.snippet .ln { grid-template-columns: 22px minmax(0, 1fr); }
+.diff .o, .diff .n { color: var(--faint); text-align: right; padding: 0 8px; user-select: none; font-variant-numeric: tabular-nums; }
+.diff .sg { color: var(--muted); text-align: center; user-select: none; }
+.diff code { display: block; white-space: pre; padding: 0 14px 0 2px; font-size: 12px; min-height: 20px; }
+.diff.wrap code { white-space: pre-wrap; overflow-wrap: anywhere; }
+.diff .ln.add { background: var(--add-bg); } .diff .ln.add .o, .diff .ln.add .n { background: var(--add-num); }
+.diff .ln.del { background: var(--del-bg); } .diff .ln.del .o, .diff .ln.del .n { background: var(--del-num); }
+.diff .ln.add .sg { color: var(--ok); } .diff .ln.del .sg { color: var(--bad); }
+.diff .ln.note code { color: var(--muted); font-style: italic; }
+.diff .hunk { background: color-mix(in srgb, var(--accent) 7%, var(--ground)); color: var(--muted); }
+.diff .hunk code { grid-column: 3 / -1; }
+.diff .hunk .hctx { color: var(--ink); }
+.diff .ln.add .wd, .diff .r-add .half:last-child .wd { background: var(--add-word); border-radius: 2px; }
+.diff .ln.del .wd, .diff .l-del .half:first-of-type .wd { background: var(--del-word); border-radius: 2px; }
+.diff .sln { display: grid; grid-template-columns: 50px 22px minmax(0, 1fr) 50px 22px minmax(0, 1fr); line-height: 20px; }
+.diff .sln > :nth-child(4) { border-left: 1px solid var(--line); }
+.diff .sln.l-del > :nth-child(-n+3) { background: var(--del-bg); }
+.diff .sln.l-del > :nth-child(-n+2) { background: var(--del-num); }
+.diff .sln.r-add > :nth-child(n+4) { background: var(--add-bg); }
+.diff .sln.r-add > :nth-child(n+4):nth-child(-n+5) { background: var(--add-num); }
+.diff .sln .empty { background: color-mix(in srgb, var(--soft) 70%, var(--line)); }
+.diff .half { min-width: 0; }
+.syn-kw { color: var(--syn-kw); } .syn-fn { color: var(--syn-fn); } .syn-str { color: var(--syn-str); }
+.syn-com { color: var(--syn-com); font-style: italic; } .syn-num { color: var(--syn-num); } .syn-pp { color: var(--syn-kw); }
+.diff.snippet { border: 1px solid var(--line); border-radius: 6px; max-width: 900px; background: var(--ground); }
+.diff.snippet .fh { position: static; }
 
 /* metrics */
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 26px; }
@@ -2109,7 +2153,7 @@ function renderFiles(detail) {
   const viewer = el("div", {class: "box"}, emptyState("file", "No artifact open", "Pick a file on the left to view it."));
   if (state.file) api(`/api/file?id=${encodeURIComponent(state.selected)}&path=${encodeURIComponent(state.file)}`)
     .then(text => viewer.replaceChildren(el("div", {class: "hd mono"}, state.file, el("span", {class: "read"}, download(state.file))),
-      /\.(diff|patch)$/.test(state.file) ? diffView(String(text)) : highlight(typeof text === "string" ? text : JSON.stringify(text, null, 2), state.file)))
+      /\.(diff|patch)$/.test(state.file) ? diffView(String(text), {key: state.selected}) : highlight(typeof text === "string" ? text : JSON.stringify(text, null, 2), state.file)))
     .catch(() => viewer.replaceChildren(emptyState("missing", "Preview unavailable", "Download the original file to inspect large or binary evidence.", download(state.file))));
   return el("div", {class: "stack"},
     el("div", {}, el("a", {class: "btn small", href: downloadHref(state.selected), download: ""}, lucide("download", 12), "Download all (.zip)")),
@@ -2150,7 +2194,7 @@ function attemptsTable(detail) {
         : running ? el("span", {class: "muted"}, "Waiting for the model…")
         : el("span", {class: "t-bad"}, attemptProblem(steps, calls));
       const after = running && verify === running ? el("span", {class: "muted"}, "Running…")
-        : report ? el("span", {class: report.failed.length ? "t-bad" : "t-ok"}, report.failed.length ? `${report.failed.length} of ${total} still failing` : `All ${total} targeted tests pass`)
+        : report ? el("span", {class: report.failed.length ? "t-bad" : "t-ok"}, report.failed.length ? `${report.failed.length} of ${total} still failing` : (total === 1 ? "The targeted test passes" : `All ${total} targeted tests pass`))
         : el("span", {class: "muted"}, "—");
       const spent = steps.length ? (Math.max(...steps.map(ended)) - Date.parse(steps[0].started)) / 1000 : null;
       const model = calls.reduce((sum, call) => sum + (call.elapsed_seconds || 0), 0);
@@ -3129,7 +3173,7 @@ function fixSection(detail) {
   const viewer = el("div", {class: "box"}, hasDiff ? el("div", {class: "loading"}, icon("run"), "Loading the patch…")
     : el("div", {class: "bd muted"}, "This run kept no fix.diff; open an attempt below for its edits."));
   if (hasDiff) api(`/api/file?id=${encodeURIComponent(s.id)}&path=fix.diff`)
-    .then(text => viewer.replaceChildren(diffView(String(text))))
+    .then(text => viewer.replaceChildren(diffView(String(text), {key: s.id})))
     .catch(() => viewer.replaceChildren(el("div", {class: "bd muted"}, "The patch could not be previewed; download it instead.")));
   const commands = [s.branch ? ["Check out the verified branch in the configured repository", `git switch ${s.branch}`] : null,
     hasDiff ? ["Apply the downloaded patch to another checkout", "git apply fix.diff"] : null].filter(Boolean);
@@ -3220,35 +3264,292 @@ function reviewSection(detail) {
     }}, note, el("button", {class: "btn", type: "submit"}, "Add note")) : null);
 }
 const noteDrafts = {};
-/** A unified diff as a table: old and new line numbers, one file after another. */
-function diffView(text) {
-  const files = [];
-  let file = null, oldNo = 0, newNo = 0;
-  const start = path => { file = {path, rows: [], add: 0, del: 0}; files.push(file); };
-  for (const line of text.replace(/\n$/, "").split("\n")) {
-    if (line.startsWith("diff --git ")) { start(line.split(" b/").pop()); continue; }
-    if (line.startsWith("+++ ")) { const path = line.slice(4).replace(/^b\//, ""); if (!file) start(path); else if (path !== "/dev/null") file.path = path; continue; }
-    if (line.startsWith("--- ")) { if (!file) start(line.slice(4).replace(/^a\//, "")); continue; }
-    if (/^(index |new file|deleted file|similarity|rename |old mode|new mode)/.test(line)) continue;
-    if (!file) start("patch");
-    const hunk = /^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/.exec(line);
-    if (hunk) { oldNo = Number(hunk[1]); newNo = Number(hunk[2]); file.rows.push(["hunk", "", "", line]); }
-    else if (line.startsWith("+")) { file.add++; file.rows.push(["add", "", newNo++, line]); }
-    else if (line.startsWith("-")) { file.del++; file.rows.push(["del", oldNo++, "", line]); }
-    else if (line.startsWith("\\")) file.rows.push(["note", "", "", line]);
-    else file.rows.push(["ctx", oldNo++, newNo++, line]);
+/* ---------- diff model: parsing, side-by-side pairing, word changes and syntax, without the DOM ---------- */
+/** Files, hunks and numbered lines of a unified diff, as `git diff` writes it. */
+function parseDiff(text) {
+  const files = [], lines = text.replace(/\r\n/g, "\n").replace(/\n$/, "").split("\n");
+  let file = null, hunk = null, oldNo = null, newNo = null, oldLeft = 0, newLeft = 0;
+  const start = path => { file = {path, from: path, status: "modified", binary: false, hunks: [], add: 0, del: 0}; files.push(file); hunk = null; };
+  const strip = (path, prefix) => path.replace(/\t.*$/, "").replace(prefix, "");
+  const next = number => number === null ? undefined : number;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    // A hunk ends when the line counts in its @@ header are used up.
+    if (hunk && oldLeft <= 0 && newLeft <= 0 && !line.startsWith("\\")) hunk = null;
+    if (line.startsWith("diff --git ")) {
+      const names = / a\/(.+) b\/(.+)$/.exec(line);
+      start(names ? names[2] : line.slice(11));
+      if (names) file.from = names[1];
+      continue;
+    }
+    if (!hunk) {
+      if (line.startsWith("--- ") && lines[i + 1]?.startsWith("+++ ")) {
+        const from = strip(line.slice(4), /^a\//), to = strip(lines[i + 1].slice(4), /^b\//);
+        if (!file || file.hunks.length) start(to === "/dev/null" ? from : to);
+        if (from === "/dev/null") file.status = "added"; else file.from = from;
+        if (to === "/dev/null") { file.status = "deleted"; file.path = from; } else file.path = to;
+        i++;
+        continue;
+      }
+      if (file && !file.hunks.length) {
+        if (line.startsWith("new file mode")) { file.status = "added"; continue; }
+        if (line.startsWith("deleted file mode")) { file.status = "deleted"; continue; }
+        if (line.startsWith("rename from ")) { file.from = line.slice(12); continue; }
+        if (line.startsWith("rename to ")) { file.path = line.slice(10); continue; }
+        if (line.startsWith("Binary files ")) { file.binary = true; continue; }
+        if (/^(index |similarity index |dissimilarity index |old mode |new mode |copy from |copy to )/.test(line)) continue;
+      }
+    }
+    const range = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@ ?(.*)$/.exec(line);
+    if (range) {
+      if (!file) start("patch");
+      oldNo = Number(range[1]); newNo = Number(range[3]);
+      oldLeft = range[2] === undefined ? 1 : Number(range[2]); newLeft = range[4] === undefined ? 1 : Number(range[4]);
+      hunk = {header: line, context: range[5], lines: []};
+      file.hunks.push(hunk);
+      continue;
+    }
+    if (!hunk) {
+      // A bare patch with no headers keeps its lines, without numbers.
+      if (!/^[-+ ]/.test(line) || file?.hunks.length) continue;
+      if (!file) start("patch");
+      hunk = {header: "", context: "", lines: []};
+      file.hunks.push(hunk);
+      oldNo = newNo = null; oldLeft = newLeft = Infinity;
+    }
+    if (line.startsWith("+")) { hunk.lines.push({kind: "add", text: line.slice(1), new: next(newNo)}); file.add++; newLeft--; if (newNo !== null) newNo++; }
+    else if (line.startsWith("-")) { hunk.lines.push({kind: "del", text: line.slice(1), old: next(oldNo)}); file.del++; oldLeft--; if (oldNo !== null) oldNo++; }
+    else if (line.startsWith("\\")) hunk.lines.push({kind: "note", text: line.slice(2)});
+    else {
+      hunk.lines.push({kind: "ctx", text: line.slice(1), old: next(oldNo), new: next(newNo)});
+      oldLeft--; newLeft--;
+      if (oldNo !== null) { oldNo++; newNo++; }
+    }
   }
-  if (!files.length) return el("div", {class: "bd muted"}, "The patch is empty.");
-  return el("div", {class: "diff"}, files.map(item => el("div", {class: "dfile"},
-    el("div", {class: "fh"}, el("span", {class: "mono"}, item.path), el("span", {class: "afile"}, el("b", {class: "add"}, "+" + item.add), " ", el("b", {class: "del"}, "−" + item.del))),
-    el("div", {class: "rows"}, item.rows.map(([kind, a, b, code]) => el("div", {class: "ln " + kind}, el("span", {class: "o"}, a), el("span", {class: "n"}, b), el("code", {}, code)))))));
+  for (const item of files) if (item.status === "modified" && item.from !== item.path) item.status = "renamed";
+  return files;
 }
-/** One proposed edit as removed and added lines. Edits carry no line numbers, so none are shown. */
+/** Rows of a side-by-side view: context on both sides, each removed line beside the line that replaced it. */
+function pairRows(lines) {
+  const rows = [];
+  for (let i = 0; i < lines.length;) {
+    if (lines[i].kind === "del" || lines[i].kind === "add") {
+      const removed = [], added = [];
+      while (lines[i]?.kind === "del") removed.push(lines[i++]);
+      while (lines[i]?.kind === "add") added.push(lines[i++]);
+      for (let k = 0; k < Math.max(removed.length, added.length); k++) rows.push({left: removed[k] || null, right: added[k] || null});
+    } else { rows.push({left: lines[i], right: lines[i]}); i++; }
+  }
+  return rows;
+}
+const WORD = /\w+|\s+|[^\w\s]/g;
+/** The character ranges that differ between two versions of a line, compared word by word, or null when
+ *  the lines are too long to compare or share too little for marks to help. */
+function wordRanges(before, after) {
+  const a = before.match(WORD) || [], b = after.match(WORD) || [];
+  if (!a.length || !b.length || a.length * b.length > 40000) return null;
+  const table = Array.from({length: a.length + 1}, () => new Uint16Array(b.length + 1));
+  for (let i = a.length - 1; i >= 0; i--)
+    for (let j = b.length - 1; j >= 0; j--) table[i][j] = a[i] === b[j] ? table[i + 1][j + 1] + 1 : Math.max(table[i + 1][j], table[i][j + 1]);
+  const left = [], right = [], mark = (ranges, from, to) => {
+    const last = ranges.at(-1);
+    if (last && last[1] === from) last[1] = to; else ranges.push([from, to]);
+  };
+  let i = 0, j = 0, x = 0, y = 0;
+  while (i < a.length || j < b.length) {
+    if (i < a.length && j < b.length && a[i] === b[j]) { x += a[i++].length; y += b[j++].length; }
+    else if (j < b.length && (i === a.length || table[i][j + 1] >= table[i + 1][j])) { mark(right, y, y + b[j].length); y += b[j++].length; }
+    else { mark(left, x, x + a[i].length); x += a[i++].length; }
+  }
+  const share = (ranges, length) => ranges.reduce((sum, [from, to]) => sum + to - from, 0) / Math.max(1, length);
+  return share(left, before.length) > 0.6 && share(right, after.length) > 0.6 ? null : [left, right];
+}
+const CPP_WORDS = new Set(("alignas alignof auto bool break case catch char char8_t char16_t char32_t class co_await co_return co_yield concept const "
+  + "consteval constexpr constinit const_cast continue decltype default delete do double dynamic_cast else enum explicit export extern false "
+  + "final float for friend goto if inline int int8_t int16_t int32_t int64_t long mutable namespace new noexcept nullptr operator override "
+  + "private protected public register reinterpret_cast requires return short signed size_t sizeof static static_assert static_cast struct "
+  + "switch template this thread_local throw true try typedef typeid typename uint8_t uint16_t uint32_t uint64_t union unsigned using "
+  + "virtual void volatile wchar_t while").split(" "));
+const PY_WORDS = new Set(("and as assert async await break class continue def del elif else except False finally for from global if import "
+  + "in is lambda None nonlocal not or pass raise return True try while with yield").split(" "));
+/** The highlighter for a file: C and C++, Python, or hash-commented build files. */
+const languageOf = path => /\.(c|cc|cpp|cxx|c\+\+|h|hh|hpp|hxx|ipp|inl|tpp|cu)$/i.test(path) ? "cpp"
+  : /\.pyi?$/i.test(path) ? "py" : /(\.cmake|CMakeLists\.txt|\.ya?ml|\.toml|\.sh)$/i.test(path) ? "hash" : "";
+/** Syntax classes of one line as [start, end, class] runs. `open` says a block comment continues from the line before;
+ *  the result says whether one continues to the next. */
+function lexLine(text, language, open = false) {
+  const runs = [];
+  if (!language || text.length > 2000) return {runs, open: false};
+  let from = 0;
+  if (open) {
+    const end = text.indexOf("*/");
+    from = end < 0 ? text.length : end + 2;
+    runs.push([0, from, "com"]);
+    if (end < 0) return {runs, open: true};
+  }
+  const pattern = language === "cpp"
+    ? /\/\/.*|\/\*|"(?:\\.|[^"\\])*"?|'(?:\\.|[^'\\])*'?|^\s*#\s*\w+|\b\d[\w.']*|[A-Za-z_]\w*/g
+    : /#.*|"(?:\\.|[^"\\])*"?|'(?:\\.|[^'\\])*'?|\b\d[\w.]*|[A-Za-z_]\w*/g;
+  const words = language === "cpp" ? CPP_WORDS : language === "py" ? PY_WORDS : new Set();
+  pattern.lastIndex = from;
+  for (let match; (match = pattern.exec(text));) {
+    const token = match[0], start = match.index;
+    if (token === "/*") {
+      const end = text.indexOf("*/", start + 2), stop = end < 0 ? text.length : end + 2;
+      runs.push([start, stop, "com"]);
+      if (end < 0) return {runs, open: true};
+      pattern.lastIndex = stop;
+      continue;
+    }
+    const kind = token.startsWith("//") || (language !== "cpp" && token.startsWith("#")) ? "com"
+      : token[0] === '"' || token[0] === "'" ? "str" : /^\d/.test(token) ? "num" : /^\s*#/.test(token) ? "pp"
+      : words.has(token) ? "kw" : /^\s*\(/.test(text.slice(start + token.length)) ? "fn" : null;
+    if (kind) runs.push([start + (kind === "pp" ? token.length - token.trimStart().length : 0), start + token.length, kind]);
+  }
+  return {runs, open: false};
+}
+/** Adds syntax runs and changed-word ranges to every line of a parsed file. */
+function annotate(file) {
+  const language = languageOf(file.path);
+  for (const hunk of file.hunks) {
+    // A hunk starts mid-file: an open block comment from before it is not known.
+    let oldOpen = false, newOpen = false;
+    for (const line of hunk.lines) {
+      if (line.kind === "note") continue;
+      const lexed = lexLine(line.text, language, line.kind === "add" ? newOpen : oldOpen);
+      line.runs = lexed.runs;
+      if (line.kind !== "add") oldOpen = lexed.open;
+      if (line.kind !== "del") newOpen = lexed.open;
+    }
+    for (const row of pairRows(hunk.lines)) {
+      if (row.left?.kind !== "del" || row.right?.kind !== "add") continue;
+      const ranges = wordRanges(row.left.text, row.right.text);
+      if (ranges) [row.left.changed, row.right.changed] = ranges;
+    }
+  }
+  return file;
+}
+/* ---------- diff view: unified or split, as GitHub, GitLab and Bitbucket show a change ---------- */
+const DIFF_VIEW_KEY = "auto-fix:diff-view", DIFF_WRAP_KEY = "auto-fix:diff-wrap", VIEWED_KEY = "auto-fix:viewed";
+const LARGE_DIFF = 400;
+const readPref = (key, fallback) => { try { return localStorage.getItem(key) ?? fallback; } catch (error) { return fallback; } };
+const writePref = (key, value) => { try { localStorage.setItem(key, value); } catch (error) { /* private mode */ } };
+const viewedFiles = () => { try { return new Set(JSON.parse(localStorage.getItem(VIEWED_KEY)) || []); } catch (error) { return new Set(); } };
+/** A line of code with its syntax colours and its changed words marked. */
+function codeCell(line) {
+  const code = el("code", {});
+  if (!line) return code;
+  const text = line.text, runs = line.runs || [], changed = line.changed || [];
+  const cuts = [...new Set([0, text.length, ...runs.flatMap(([a, b]) => [a, b]), ...changed.flatMap(([a, b]) => [a, b])])]
+    .filter(point => point >= 0 && point <= text.length).sort((a, b) => a - b);
+  for (let k = 0; k < cuts.length - 1; k++) {
+    const from = cuts[k], to = cuts[k + 1], piece = text.slice(from, to);
+    const syntax = runs.find(([a, b]) => a <= from && to <= b)?.[2], marked = changed.some(([a, b]) => a <= from && to <= b);
+    code.append(syntax || marked ? el("span", {class: [syntax && "syn-" + syntax, marked && "wd"].filter(Boolean).join(" ")}, piece) : piece);
+  }
+  return code;
+}
+/** GitHub's five boxes: the share of added and removed lines in a file. */
+function diffStat(add, del) {
+  const total = add + del, green = total ? Math.round(5 * add / total) : 0, red = total ? Math.min(5 - green, Math.max(del ? 1 : 0, Math.round(5 * del / total))) : 0;
+  return el("span", {class: "dstat", "aria-hidden": "true"}, [...Array(5)].map((_, i) => el("i", {class: i < green ? "add" : i < green + red ? "del" : ""})));
+}
+const hunkRow = (hunk, split) => el("div", {class: (split ? "sln" : "ln") + " hunk"}, el("span", {class: "o"}), el("span", {class: "n"}),
+  el("code", {class: split ? "span" : ""}, hunk.header.replace(/ @@ .*$/, " @@"), hunk.context ? el("span", {class: "hctx"}, " " + hunk.context) : null));
+function unifiedRows(hunk, numbers) {
+  return [hunk.header && numbers ? hunkRow(hunk, false) : null, ...hunk.lines.map(line => el("div", {class: "ln " + line.kind},
+    numbers ? el("span", {class: "o"}, line.old ?? "") : null, numbers ? el("span", {class: "n"}, line.new ?? "") : null,
+    el("span", {class: "sg"}, {add: "+", del: "−", note: ""}[line.kind] ?? " "), codeCell(line)))];
+}
+function splitRows(hunk) {
+  const side = (line, which) => [el("span", {class: "o" + (line ? "" : " empty")}, line ? line[which] ?? "" : ""),
+    el("span", {class: "sg" + (line ? "" : " empty")}, line?.kind === "add" ? "+" : line?.kind === "del" ? "−" : " "),
+    el("div", {class: "half" + (line ? "" : " empty")}, codeCell(line))];
+  return [hunk.header ? hunkRow(hunk, true) : null, ...pairRows(hunk.lines.filter(line => line.kind !== "note")).map(({left, right}) =>
+    el("div", {class: "sln" + (left === right ? " ctx" : "") + (left && left !== right ? " l-" + left.kind : "") + (right && left !== right ? " r-" + right.kind : "")},
+      side(left, "old"), side(right, "new")))];
+}
+/** One file of a diff: a sticky header that collapses it, then its hunks. */
+function fileView(file, {key = "", split = false, numbers = true, compact = false} = {}) {
+  const id = key + ":" + file.path, viewed = viewedFiles(), lines = file.hunks.reduce((sum, hunk) => sum + hunk.lines.length, 0);
+  let open = !viewed.has(id) && lines <= LARGE_DIFF;
+  const body = el("div", {class: "rows"});
+  const fill = () => body.replaceChildren(...(file.binary ? [el("div", {class: "bd muted"}, "Binary file; download it to inspect.")]
+    : !lines ? [el("div", {class: "bd muted"}, file.status === "renamed" ? "Renamed without changes." : "No line changes.")]
+    : file.hunks.flatMap(hunk => split ? splitRows(hunk) : unifiedRows(hunk, numbers)).filter(Boolean)));
+  const toggle = el("button", {class: "ib", type: "button", "aria-expanded": String(open), title: open ? "Collapse file" : "Expand file",
+    onclick: () => setOpen(!open)}, chevron(open));
+  const large = el("button", {class: "btn small", type: "button", onclick: () => setOpen(true)}, `Load diff · ${lines} lines`);
+  const setOpen = value => {
+    open = value;
+    toggle.replaceChildren(chevron(open)); toggle.setAttribute("aria-expanded", String(open)); toggle.title = open ? "Collapse file" : "Expand file";
+    if (open && !body.childElementCount) fill();
+    body.hidden = !open;
+    large.hidden = open || lines <= LARGE_DIFF || viewed.has(id);
+  };
+  const slash = file.path.lastIndexOf("/");
+  const name = el("span", {class: "fpath", title: file.path}, slash >= 0 ? el("span", {class: "dir"}, file.path.slice(0, slash + 1)) : null,
+    el("b", {}, file.path.slice(slash + 1)));
+  const viewedBox = compact ? null : el("label", {class: "viewed"}, el("input", {type: "checkbox", checked: viewed.has(id) ? "" : null, onchange: event => {
+    const all = viewedFiles();
+    event.target.checked ? all.add(id) : all.delete(id);
+    writePref(VIEWED_KEY, JSON.stringify([...all].slice(-500)));
+    setOpen(!event.target.checked);
+  }}), "Viewed");
+  const node = el("div", {class: "dfile", id: "file-" + encodeURIComponent(id)},
+    el("div", {class: "fh"}, compact ? null : toggle,
+      file.status !== "modified" ? el("span", {class: "fstatus " + file.status}, file.status) : null,
+      file.status === "renamed" ? el("span", {class: "fpath muted", title: file.from}, file.from + " → ") : null,
+      name, compact ? null : copyable(file.path, "", "path").lastChild,
+      el("span", {class: "spacer"}),
+      large,
+      el("span", {class: "afile"}, el("b", {class: "add"}, "+" + file.add), " ", el("b", {class: "del"}, "−" + file.del)),
+      compact ? null : diffStat(file.add, file.del), viewedBox),
+    body);
+  setOpen(open);
+  return node;
+}
+/** A whole diff: a summary and the view controls, the list of files, then each file. */
+function diffView(text, {key = ""} = {}) {
+  const files = parseDiff(text).map(annotate);
+  if (!files.length) return el("div", {class: "bd muted"}, "The patch is empty.");
+  const root = el("div", {class: "diff"});
+  const draw = () => {
+    // Side by side needs room; a narrow page always shows the unified view.
+    const roomy = document.getElementById("content").clientWidth >= 760, split = roomy && readPref(DIFF_VIEW_KEY, "unified") === "split";
+    const wrap = split || readPref(DIFF_WRAP_KEY, "0") === "1";
+    const add = files.reduce((sum, file) => sum + file.add, 0), del = files.reduce((sum, file) => sum + file.del, 0);
+    const choice = (value, label) => el("button", {class: "btn small" + ((value === "split") === split ? " on" : ""), type: "button",
+      role: "radio", "aria-checked": String((value === "split") === split), disabled: value === "split" && !roomy ? "" : null,
+      title: value === "split" && !roomy ? "Side by side needs a wider window" : "", onclick: () => { writePref(DIFF_VIEW_KEY, value); draw(); }}, label);
+    root.classList.toggle("wrap", wrap);
+    // "split" is already the two-column page layout class; this one says side by side.
+    root.classList.toggle("sbs", split);
+    // replaceChildren, unlike el, would print a null as text.
+    root.replaceChildren(...[
+      el("div", {class: "dtools"},
+        el("span", {}, el("b", {}, `${files.length} file${files.length === 1 ? "" : "s"} changed`), " ",
+          el("span", {class: "afile"}, el("b", {class: "add"}, `+${add}`), " ", el("b", {class: "del"}, `−${del}`))),
+        el("span", {class: "spacer"}),
+        el("label", {class: "checkrow small" + (split ? " off" : "")}, el("input", {type: "checkbox", checked: wrap ? "" : null, disabled: split ? "" : null,
+          onchange: event => { writePref(DIFF_WRAP_KEY, event.target.checked ? "1" : "0"); draw(); }}), "Wrap lines"),
+        el("div", {class: "tools tight", role: "radiogroup", "aria-label": "Diff layout"}, choice("unified", "Unified"), choice("split", "Split"))),
+      files.length > 1 ? el("ul", {class: "dlist"}, files.map(file => el("li", {},
+        el("a", {href: "#", onclick: event => {
+          event.preventDefault();
+          document.getElementById("file-" + encodeURIComponent(key + ":" + file.path))?.scrollIntoView({block: "start"});
+        }}, file.path), " ", el("span", {class: "afile"}, el("b", {class: "add"}, "+" + file.add), " ", el("b", {class: "del"}, "−" + file.del))))) : null,
+      ...files.map(file => fileView(file, {key, split}))].filter(Boolean));
+  };
+  draw();
+  return root;
+}
+/** One proposed edit: the text it replaces and its replacement, compared word by word. Edits carry no line numbers. */
 function snippetDiff(edit) {
-  const rows = [...edit.old.split("\n").map(line => ["del", "-" + line]), ...edit.new.split("\n").map(line => ["add", "+" + line])];
-  return el("div", {class: "diff snippet"}, el("div", {class: "dfile"},
-    el("div", {class: "fh"}, el("span", {class: "mono"}, edit.path), el("span", {class: "afile"}, el("b", {class: "add"}, "+" + lineCount(edit.new)), " ", el("b", {class: "del"}, "−" + lineCount(edit.old)))),
-    el("div", {class: "rows"}, rows.map(([kind, code]) => el("div", {class: "ln " + kind}, el("code", {}, code))))));
+  const lines = [...edit.old.split("\n").map(text => ({kind: "del", text})), ...edit.new.split("\n").map(text => ({kind: "add", text}))];
+  const file = annotate({path: edit.path, from: edit.path, status: "modified", binary: false, add: lineCount(edit.new), del: lineCount(edit.old),
+    hunks: [{header: "", context: "", lines}]});
+  return el("div", {class: "diff snippet"}, fileView(file, {numbers: false, compact: true}));
 }
 /** A failed call's text as the model sent it, e.g. JSON cut off at the token limit. */
 function rawOutput(call) {
