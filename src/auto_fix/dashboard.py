@@ -34,6 +34,7 @@ SECURITY_HEADERS = {
 BODY_LIMIT = 64 * 1024
 LOG_LIMIT = 200_000
 TOKEN_META = b'<meta name="auto-fix-token" content="">'
+DEMO_META = b'<meta name="auto-fix-demo" content="">'
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -47,6 +48,8 @@ class Handler(BaseHTTPRequestHandler):
     # TeamCity build configurations from the config: the Repairs project's workflows.
     build_types: list[str]
     schedules: ScheduleStore
+    # Serving the sample state of ``auto-fix dashboard --demo``: the page offers its tour.
+    demo: bool
 
     def log_message(self, format: str, *args: Any) -> None:  # noqa: A002 - stdlib signature
         pass
@@ -95,6 +98,8 @@ class Handler(BaseHTTPRequestHandler):
                 page = page.replace(
                     TOKEN_META, f'<meta name="auto-fix-token" content="{self.token}">'.encode()
                 )
+            if self.demo:
+                page = page.replace(DEMO_META, b'<meta name="auto-fix-demo" content="1">')
             self._send(HTTPStatus.OK, page, "text/html")
         elif url.path == "/api/runs":
             try:
@@ -334,7 +339,11 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def serve(
-    root: Path, host: str = "127.0.0.1", port: int = 8765, config: Path | None = None
+    root: Path,
+    host: str = "127.0.0.1",
+    port: int = 8765,
+    config: Path | None = None,
+    demo: bool = False,
 ) -> ThreadingHTTPServer:
     # Show the directory as given (mapped drives intact); containment checks use resolved paths.
     attributes = {
@@ -344,6 +353,7 @@ def serve(
         "actions": Actions(root.resolve()) if config else None,
         "config": config.resolve() if config else None,
         "token": secrets.token_urlsafe(32),
+        "demo": demo,
         "build_types": list(load_settings(config).teamcity.build_types) if config else [],
         "schedules": ScheduleStore(
             root.resolve(), load_settings(config).timezone if config else "Europe/Paris"
@@ -354,16 +364,21 @@ def serve(
 
 
 def run_dashboard(
-    root: Path, host: str, port: int, config: Path | None = None, runner: bool = True
+    root: Path,
+    host: str,
+    port: int,
+    config: Path | None = None,
+    runner: bool = True,
+    demo: bool = False,
 ) -> int:
     if not root.exists():
         if not config:
             print(f"No run history at {root}")
             return 2
         root.mkdir(parents=True)
-    server = serve(root, host, port, config)
+    server = serve(root, host, port, config, demo)
     shown = f"[{host}]" if ":" in host else host
-    mode = "with run controls" if config else "read-only"
+    mode = "demo" if demo else "with run controls" if config else "read-only"
     print(
         f"Auto Fix dashboard ({mode}) for {root.absolute()} at http://{shown}:{server.server_port}/"
     )

@@ -144,6 +144,14 @@ Inspect the result with `Get-ScheduledTask -TaskName AutoFix-Daily` and remove i
 
 ## Inspect run history in the dashboard
 
+To look around before connecting anything, start the demo:
+
+```powershell
+uv run --no-sync auto-fix dashboard --demo
+```
+
+It writes a sample state to `.auto-fix/dashboard-demo` (or `--directory`), rebuilt on each start, and opens a guided tour on the first visit; the **?** button in the header replays it. The demo's runs are real workflow runs against stand-in TeamCity, Bitbucket, Jira, model and build services on a simulated clock: a published fix, a verified candidate after a truncated model answer, a paused, a cancelled and an abandoned run, a fix that broke another test, a failure that did not reproduce, an uncertain publication, schedules, batches and review decisions. Run controls work, but no job runs and every service address is a placeholder. `--demo` refuses a directory that holds anything but an earlier demo.
+
 The dashboard reads the state directory, including runs that finished before it started. It needs no additional service or package:
 
 ```powershell

@@ -67,7 +67,15 @@ Verification, 2026-10-25: full suite **649 passed, 12 skipped, 1 known Windows e
 1440 px and 375 px on an enriched sample state with run controls. The README screenshots predate
 this layout. Nothing was committed or released.
 
+### Onboarding
+
+- [x] `auto-fix dashboard --demo` builds a sample state from real workflow runs (every run status,
+  schedules, batches, review decisions) and serves it with run controls but no runner.
+- [x] A guided tour (14 steps across Home, a run, Tests, Metrics and Settings) opens on a demo's
+  first visit; the header's ? button replays it on any dashboard.
+
 ### Bugs
+
 
 - [x] The whole page scrolls by 21 px and the header slides off on click/focus: the `.sr`
   labels are absolutely positioned with no positioned ancestor (`#content` needs `position: relative`).

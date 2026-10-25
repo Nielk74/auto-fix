@@ -6,6 +6,8 @@
 <title>Auto Fix Runs</title>
 <!-- Filled in by the server when actions are enabled; write requests must echo it. -->
 <meta name="auto-fix-token" content="">
+<!-- Filled in by the server for `auto-fix dashboard --demo`. -->
+<meta name="auto-fix-demo" content="">
 <script>
 // The chosen theme, set before the first paint so the page never flashes the other one.
 try { const theme = localStorage.getItem("auto-fix:theme"); if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme; } catch (error) { /* private mode */ }
@@ -532,6 +534,22 @@ pre.view.logtext .del { color: var(--bad); }
   .topnav { order: 5; flex-basis: 100%; }
   .fresh { display: none; }
 }
+
+/* the guided tour */
+.badge.demo { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, var(--line)); }
+.tour-shade { position: fixed; inset: 0; z-index: 44; background: rgb(15 18 22 / 0.45); }
+.tour-shade[hidden] { display: none; }
+.tour-spot { position: fixed; z-index: 45; border-radius: 8px; pointer-events: none; outline: 2px solid var(--accent);
+  box-shadow: 0 0 0 9999px rgb(15 18 22 / 0.45); transition: left 0.2s, top 0.2s, width 0.2s, height 0.2s; }
+.tour-card { position: fixed; z-index: 46; width: min(380px, calc(100vw - 32px)); padding: 16px 18px 14px; border-radius: 10px;
+  background: var(--ground); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 24px 60px -16px rgb(0 0 0 / 0.45); }
+.tour-card.centered { left: 50% !important; top: 50% !important; transform: translate(-50%, -50%); width: min(460px, calc(100vw - 32px)); }
+.tour-card.docked { left: 16px !important; right: 16px; bottom: 16px; top: auto !important; width: auto; }
+.tour-card h2 { font-size: 15px; margin: 2px 0 8px; }
+.tour-card p { margin: 0 0 8px; color: var(--muted); }
+.tour-count { color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.tour-foot { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+@media (prefers-reduced-motion: reduce) { .tour-spot { transition: none; } }
 </style>
 </head>
 <body>
@@ -541,6 +559,7 @@ pre.view.logtext .del { color: var(--bad); }
     <svg width="20" height="18" viewBox="0 0 22 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2 12.5l9-4.5 9 4.5-9 4.5z" opacity=".45"/><path d="M2 9l9-4.5 9 4.5-9 4.5z"/></svg>
     Auto Fix
   </a>
+  <span id="demo-badge" class="badge demo" hidden>Demo data</span>
   <nav class="topnav" aria-label="Main">
     <a href="#" data-view="home">Home<span class="count" id="nav-attention"></span></a>
     <a href="#view=history" data-view="history">History</a>
@@ -553,6 +572,7 @@ pre.view.logtext .del { color: var(--bad); }
   <span class="spacer"></span>
   <button id="queue-link" class="qlink" type="button" hidden></button>
   <span class="fresh" id="fresh" aria-live="off"></span>
+  <button id="tour-button" class="ib" type="button" title="Take the guided tour" aria-label="Take the guided tour"><svg class="lu" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3m.08 4h.01"/></svg></button>
   <button id="theme-toggle" class="ib" type="button"></button>
   <label class="live" title="Re-read the state directory every 4 seconds"><input type="checkbox" id="live" checked> Live refresh</label>
 </header>
@@ -1731,6 +1751,7 @@ function sortHeader(label, key, cls) {
     label, dir === "none" ? null : lucide("chevron", 11, dir === "ascending" ? "up" : "down")));
 }
 function runnerNotice() {
+  if (DEMO) return el("div", {class: "notice quiet"}, lucide("flask", 16), el("span", {}, "Demo data: jobs you start are queued but never run, and every service address is a placeholder."));
   if (!CAN_ACT) return null;
   if (!controls.runner.alive) return el("div", {class: "notice"}, lucide("warn", 16), el("span", {}, "No runner is active, so queued jobs wait. Restart the dashboard with --config, or run ", el("code", {}, "auto-fix worker"), "."));
   return controls.runner.waiting ? el("div", {class: "notice"}, lucide("clock", 16), el("span", {}, controls.runner.waiting)) : null;
@@ -3112,7 +3133,7 @@ function fixSection(detail) {
     .catch(() => viewer.replaceChildren(el("div", {class: "bd muted"}, "The patch could not be previewed; download it instead.")));
   const commands = [s.branch ? ["Check out the verified branch in the configured repository", `git switch ${s.branch}`] : null,
     hasDiff ? ["Apply the downloaded patch to another checkout", "git apply fix.diff"] : null].filter(Boolean);
-  return el("section", {}, el("div", {class: "projhead"}, el("h2", {}, "The fix"),
+  return el("section", {"data-tour": "lead"}, el("div", {class: "projhead"}, el("h2", {}, "The fix"),
       el("div", {class: "tools tight"}, hasDiff ? el("a", {class: "btn small", href: downloadHref(s.id, "fix.diff"), download: ""}, lucide("download", 12), "fix.diff") : null,
         s.pr_url ? outLink(s.pr_url, "Open pull request") : null)),
     proposal?.summary ? el("p", {class: "lead"}, el("b", {}, proposal.summary), proposal.explanation && proposal.explanation !== proposal.summary
@@ -3129,7 +3150,7 @@ function whySection(detail) {
     : reason.title || status(key).text;
   const next = key === "abandoned" ? "Cancel it, or re-run it from its last completed step."
     : key === "blocked" ? "Look at the attempts and the last check's output below, then run it again or mark it handled." : "";
-  return el("section", {}, el("h2", {}, key === "paused" ? "Paused" : "Why it stopped"),
+  return el("section", {"data-tour": "lead"}, el("h2", {}, key === "paused" ? "Paused" : "Why it stopped"),
     el("div", {class: "callout " + (key === "paused" || key === "cancelled" ? "warn" : "bad")}, el("b", {}, title),
       reason.detail && reason.detail !== title ? el("div", {class: "detail"}, reason.detail) : null, next ? el("div", {class: "muted"}, next) : null),
     errors.length ? el("ul", {class: "plain"}, errors.map(call => el("li", {}, el("span", {class: "t-bad"}, `Model call ${call.index} (${call.kind}) failed: `), call.error, " ",
@@ -3140,7 +3161,7 @@ function whySection(detail) {
 /** The whole suite before any edit and after the last one, then each failing test per check. */
 function validationSection(detail) {
   const c = detail.comparison, plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
-  return el("section", {}, el("h2", {}, "Validation", el("span", {class: "sub"}, "the whole suite before any edit and after the last one")),
+  return el("section", {"data-tour": "validation"}, el("h2", {}, "Validation", el("span", {class: "sub"}, "the whole suite before any edit and after the last one")),
     c ? [c.regressions.length ? el("div", {class: "callout bad"}, el("b", {}, `${plural(c.regressions.length, "test")} newly failing after the edit`),
           el("div", {class: "mono small"}, c.regressions.join(", "))) : null,
       el("div", {class: "chips"}, chip(c.fixed.length ? "ok" : "none", `${c.fixed.length} fixed`),
@@ -3156,7 +3177,7 @@ function failureSection(detail) {
   const tests = failure.tests || [], changes = failure.changes || [], prs = context.pull_requests || [], issues = context.issues || [];
   if (!tests.length && !changes.length && !prs.length && !issues.length && !context.ci_log) return null;
   const sub = (title, count, body) => el("div", {class: "subsection"}, el("h3", {}, title, count !== null ? el("span", {class: "sub"}, count) : null), body);
-  return el("section", {}, el("h2", {}, "The failure", s.build_url ? el("span", {class: "sub"}, outLink(s.build_url, `TeamCity build #${s.build_id}`)) : null),
+  return el("section", {"data-tour": "failure"}, el("h2", {}, "The failure", s.build_url ? el("span", {class: "sub"}, outLink(s.build_url, `TeamCity build #${s.build_id}`)) : null),
     tests.length ? sub("Failing tests", tests.length, el("div", {class: "box"}, tests.map(test => el("details", {class: "testfail", open: tests.length === 1 ? "" : null},
       el("summary", {}, el("code", {}, test.name), " ", el("a", {href: "#" + new URLSearchParams({view: "test", name: test.name})}, "history"),
         test.url ? [" · ", outLink(test.url, "TeamCity")] : null),
@@ -3184,7 +3205,7 @@ function reviewSection(detail) {
     oninput: event => { noteDrafts[s.id] = event.target.value; }}, noteDrafts[s.id] || "");
   const rate = (value, label, name) => el("button", {class: "btn small" + (record.rating?.value === value ? " on" : ""), type: "button",
     "aria-pressed": String(record.rating?.value === value), disabled: CAN_ACT ? null : "", onclick: () => safeTriage(s.id, "rate", {rating: value})}, lucide(name, 12), label);
-  return el("section", {}, el("h2", {}, "Review", el("span", {class: "sub"}, "decisions, ratings and notes")),
+  return el("section", {"data-tour": "review"}, el("h2", {}, "Review", el("span", {class: "sub"}, "decisions, ratings and notes")),
     candidate ? el("div", {class: "tools rating"}, el("span", {}, "Was this fix good?"), rate("good", "Good fix", "check"), rate("bad", "Bad fix", "close"),
       record.rating ? el("span", {class: "muted small"}, `Rated ${record.rating.value} by ${record.rating.by} ${ago(record.rating.at)}`) : null) : null,
     notes.length ? el("ul", {class: "notes"}, notes.map(item => el("li", {}, el("div", {class: "text"}, item.text),
@@ -3415,7 +3436,7 @@ function settingsPage() {
       row("Run controls", CAN_ACT ? "Enabled" : "Off"),
       row("Runner", !data.runner ? "—" : data.runner.alive ? "Active" : el("span", {class: "t-bad"}, "Not running: queued jobs wait")),
       c ? row("Timezone", c.timezone) : null)),
-    c ? el("section", {class: "project"}, el("div", {class: "projhead"}, el("h2", {}, "Connections"),
+    c ? el("section", {class: "project", "data-tour": "connections"}, el("div", {class: "projhead"}, el("h2", {}, "Connections"),
         CAN_ACT ? el("button", {class: "btn", type: "button", disabled: state.checking ? "" : null, onclick: checkConnections}, lucide("reconcile", 12), "Check connections") : null),
       el("div", {class: "box"}, el("table", {},
         el("thead", {}, el("tr", {}, el("th", {}, "Service"), el("th", {class: "hide-sm"}, "Address"), el("th", {}, "Credentials"), el("th", {}, "Check"))),
@@ -3556,6 +3577,134 @@ function showSidebar(show, remember = false) {
 }
 setInterval(() => { tickClocks(); showFreshness(); }, 1000);
 
+/* ---------- guided tour: a spotlight on one part of the page and a card that explains it ---------- */
+const DEMO = document.querySelector('meta[name="auto-fix-demo"]').content === "1";
+const TOUR_KEY = "auto-fix:tour-done";
+/** The run the tour opens: a verified candidate when there is one. */
+const tourRun = () => state.attention.find(run => run.status === "ready") || state.runs.find(run => run.status === "ready") || state.runs[0];
+const runRoute = () => tourRun() ? "#" + new URLSearchParams({run: tourRun().id}) : null;
+const TOUR = [
+  {title: "Welcome to Auto Fix", text: [
+    "Auto Fix repairs failing C++ tests from TeamCity. For each failure it checks out the failing revision in its own worktree, reproduces the failure, asks your model for an edit, rebuilds and reruns the whole suite, and can open a Bitbucket pull request.",
+    DEMO ? "This tour uses demo data: real workflow runs against stand-in services. Nothing you click here reaches a real system." : "This tour walks through the dashboard on your own runs."]},
+  {route: "#", target: ".attention-list", title: "Needs attention",
+    text: "Start here. Each row waits for a person: a verified fix to publish, a paused run, a run that stopped, or one whose worker died. Act in place, open the run, or dismiss it."},
+  {route: "#", target: ".topnav", title: "Find your way",
+    text: "History searches every run. Tests, Metrics, Schedules, Batches and Settings are one click away. The number beside Home counts runs that need you; the browser tab shows it too."},
+  {route: "#", target: ".workflows tbody tr:first-child .rowtools", title: "Start a workflow",
+    text: "Run… opens the workflow's parameters, and its command line, before anything starts. The clock button schedules it."},
+  {route: runRoute, target: '[data-tour="lead"]', title: "Review the fix",
+    text: "A verified candidate opens on its patch: the exact diff, what the model changed and why, and the commands to try it on your machine."},
+  {route: runRoute, target: '[data-tour="validation"]', title: "Is it safe to ship?",
+    text: "The whole test suite before the edit and after it: what the fix repaired, what still fails, and any test the edit newly broke."},
+  {route: runRoute, target: '[data-tour="failure"]', title: "Why it failed",
+    text: "The TeamCity failure message, the commits in the failing build, their pull requests and Jira issues, gathered before the repair started."},
+  {route: runRoute, target: ".titlebar .actions", title: "Decide",
+    text: "Publish the pull request, or record a decision under Actions: reject the fix, mark it handled elsewhere, snooze or dismiss it. A decision takes the run out of Needs attention and stays with its evidence."},
+  {route: runRoute, target: '[data-tour="review"]', title: "Rate and leave notes",
+    text: "Rate the fix good or bad and leave a note for whoever looks at it next."},
+  {route: runRoute, target: ".tabs", title: "All the evidence",
+    text: "Build log has each compiler and test run. Model calls show every request and what came back, also when it failed. Checkpoints hold the workflow state after each step; Artifacts has every file."},
+  {route: "#view=tests", target: "#content table", title: "Tests",
+    text: "Every failing test the runs have seen: how often it failed, how often it was fixed, and failures that did not reproduce locally, which points to a flaky test."},
+  {route: "#view=metrics", target: ".kpis", title: "Metrics",
+    text: "Fix rate, time to a verified fix, failed model calls and token use, per workflow and per day."},
+  {route: "#view=settings", target: '[data-tour="connections"]', title: "Settings",
+    text: "The configuration in use, with token variables named but never shown, and a check that every service answers. The theme and browser notifications are set here too."},
+  {title: DEMO ? "Connect your own systems" : "That's the tour", text: DEMO ? [
+    "Copy examples/config.windows.yaml to config.local.yaml, fill in your TeamCity, Bitbucket, Jira and model addresses, and put the tokens in .env.",
+    "Then start the dashboard with auto-fix dashboard --config config.local.yaml. The ? button in the header replays this tour."]
+    : "The ? button in the header replays it any time."},
+];
+let tour = null;
+/** Whether the page already shows what a step's route asks for. */
+function atRoute(route) {
+  const hash = new URLSearchParams(route.slice(1));
+  if (hash.get("run")) return state.selected === hash.get("run") && Boolean(state.detail);
+  if (hash.get("view")) return !state.selected && state.view === hash.get("view");
+  return !state.selected && !state.view && !state.workflow;
+}
+/** The first visible element for a selector, or null after a few seconds. */
+async function waitFor(selector, index) {
+  for (let i = 0; i < 40; i++) {
+    const node = [...document.querySelectorAll(selector)].find(item => item.getClientRects().length);
+    if (node || tour?.index !== index) return node || null;
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  return null;
+}
+function startTour(index = 0) {
+  endTour(false);
+  closePopover();
+  const spot = el("div", {class: "tour-spot", hidden: ""});
+  const card = el("div", {class: "tour-card", role: "dialog", "aria-modal": "false", "aria-labelledby": "tour-title"});
+  const shade = el("div", {class: "tour-shade"});
+  document.body.append(shade, spot, card);
+  tour = {index, spot, card, shade, target: null, timer: setInterval(placeTour, 250)};
+  showStep();
+}
+function endTour(done = true) {
+  if (!tour) return;
+  clearInterval(tour.timer);
+  tour.spot.remove(); tour.card.remove(); tour.shade.remove();
+  tour = null;
+  if (done) try { localStorage.setItem(TOUR_KEY, "1"); } catch (error) { /* private mode */ }
+}
+async function showStep() {
+  const index = tour.index, step = TOUR[index], last = index === TOUR.length - 1;
+  const route = typeof step.route === "function" ? step.route() : step.route;
+  const go = to => { if (tour) { tour.index = to; showStep(); } };
+  tour.card.replaceChildren(
+    el("div", {class: "tour-count"}, `${index + 1} of ${TOUR.length}`),
+    el("h2", {id: "tour-title"}, step.title),
+    ...[step.text].flat().map(text => el("p", {}, text)),
+    el("div", {class: "tour-foot"},
+      last ? null : el("button", {class: "link", type: "button", onclick: () => endTour()}, "Skip the tour"),
+      el("span", {class: "spacer"}),
+      index ? el("button", {class: "btn", type: "button", onclick: () => go(index - 1)}, "Back") : null,
+      el("button", {class: "btn primary", type: "button", "data-tour-next": "", onclick: () => last ? endTour() : go(index + 1)},
+        last ? "Finish" : index ? "Next" : "Start the tour")));
+  tour.card.querySelector("[data-tour-next]").focus({preventScroll: true});
+  tour.target = null;
+  if (route && !atRoute(route)) location.hash = route === "#" ? "" : route;
+  tour.selector = step.target || null;
+  if (step.target) {
+    const node = await waitFor(step.target, index);
+    if (tour?.index !== index) return;
+    node?.scrollIntoView({block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+  }
+  placeTour();
+}
+/** Keeps the spotlight on its element as the page scrolls, resizes or redraws itself. */
+function placeTour() {
+  if (!tour) return;
+  const node = tour.selector && [...document.querySelectorAll(tour.selector)].find(item => item.getClientRects().length);
+  const {spot, card, shade} = tour, gap = 8, narrow = innerWidth < 640;
+  shade.hidden = Boolean(node);
+  spot.hidden = !node;
+  card.classList.toggle("centered", !node);
+  if (!node) { card.style.left = card.style.top = ""; return; }
+  const r = node.getBoundingClientRect();
+  Object.assign(spot.style, {left: r.left - 6 + "px", top: r.top - 6 + "px", width: r.width + 12 + "px", height: Math.min(r.height, innerHeight - 24) + 12 + "px"});
+  if (narrow) { card.style.left = card.style.top = ""; card.classList.add("docked"); return; }
+  card.classList.remove("docked");
+  const width = card.offsetWidth, height = card.offsetHeight;
+  const below = r.bottom + gap + 6, above = r.top - gap - 6 - height;
+  const top = below + height < innerHeight ? below : above > 8 ? above : Math.max(8, innerHeight - height - 8);
+  card.style.top = top + "px";
+  card.style.left = Math.max(8, Math.min(innerWidth - width - 8, r.left)) + "px";
+}
+document.addEventListener("keydown", event => {
+  if (!tour || dialog.open) return;
+  if (event.key === "Escape") endTour();
+  else if (event.key === "ArrowRight" && tour.index < TOUR.length - 1) { tour.index++; showStep(); }
+  else if (event.key === "ArrowLeft" && tour.index > 0) { tour.index--; showStep(); }
+});
+addEventListener("resize", placeTour);
+document.getElementById("content").addEventListener("scroll", placeTour, {passive: true});
+document.getElementById("tour-button").addEventListener("click", () => startTour(0));
+document.getElementById("demo-badge").hidden = !DEMO;
+
 document.getElementById("q").addEventListener("input", () => renderSidebar());
 document.getElementById("home").addEventListener("click", event => { event.preventDefault(); openWorkflow(null); });
 document.getElementById("queue-link").addEventListener("click", () => openWorkflow(null));
@@ -3597,7 +3746,13 @@ async function refresh() {
   showFreshness();
 }
 if(state.selected) readHistoryRoute(new URLSearchParams(state.returnHash));
-Promise.all([loadRuns(), loadSchedules(), loadBatches()]).then(route).then(() => { state.lastOk = Date.now(); showFreshness(); })
+Promise.all([loadRuns(), loadSchedules(), loadBatches()]).then(route).then(() => {
+  state.lastOk = Date.now();
+  showFreshness();
+  let seen = true;
+  try { seen = localStorage.getItem(TOUR_KEY) === "1"; } catch (error) { /* private mode: no automatic tour */ }
+  if (DEMO && !seen) startTour(0);
+})
   .catch(error => toast(error.message, "bad"));
 setupControls().catch(() => { /* the run history still works without controls */ });
 /** Refresh every 4 seconds, or every 1.5 while a job runs or a stop request waits for its step to end. */

@@ -266,6 +266,12 @@ def main(argv: list[str] | None = None) -> int:
     dashboard.add_argument("--host", default="127.0.0.1")
     dashboard.add_argument("--port", type=int, default=8765)
     dashboard.add_argument(
+        "--demo",
+        action="store_true",
+        help="Build a complete sample state (default .auto-fix/dashboard-demo) and explore it "
+        "with a guided tour; nothing is contacted or run",
+    )
+    dashboard.add_argument(
         "--no-runner",
         action="store_true",
         help="Queue jobs without running them here; an `auto-fix worker` runs them",
@@ -288,6 +294,20 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "dashboard":
         from auto_fix.dashboard import run_dashboard
 
+        if args.demo:
+            from auto_fix.onboarding import build_demo
+
+            if args.config:
+                parser.error("--demo builds its own configuration; omit --config")
+            directory = args.directory or Path(".auto-fix/dashboard-demo")
+            try:
+                config = build_demo(directory)
+            except ValueError as exc:
+                parser.error(str(exc))
+            print(f"Demo state written to {directory.absolute()}")
+            return run_dashboard(
+                directory / "state", args.host, args.port, config=config, runner=False, demo=True
+            )
         root = args.directory or (
             load_settings(args.config).state_dir if args.config else Path(".auto-fix")
         )
