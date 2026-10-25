@@ -63,8 +63,14 @@ header { border-bottom: 1px solid var(--line); display: flex; align-items: cente
 /* the state directory: clipped at its start, so the folder names that tell runs apart stay visible */
 .root { color: var(--muted); font-family: var(--mono); font-size: 11.5px; flex: 1; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: right; }
-.live { display: flex; align-items: center; gap: 7px; color: var(--muted); cursor: pointer; white-space: nowrap; user-select: none; }
-.live input { accent-color: var(--accent); margin: 0; }
+/* Live, Paused or Offline: one button that says whether the page keeps itself current, and pauses it. */
+.live { display: inline-flex; align-items: center; gap: 7px; height: 26px; padding: 0 10px; border: 1px solid var(--line); border-radius: 13px;
+  background: var(--ground); color: var(--muted); font: inherit; font-size: 12px; cursor: pointer; white-space: nowrap; }
+.live:hover { border-color: var(--faint); color: var(--ink); }
+.live .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+.live[aria-pressed="false"] .dot { background: var(--faint); }
+.live.offline { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, var(--line)); }
+.live.offline .dot { background: var(--bad); }
 .history-filters, .pagination { display:flex; align-items:end; gap:12px; flex-wrap:wrap; margin:16px 0; }
 .history-filters label { display:grid; gap:4px; color:var(--muted); font-size:12px; }
 .history-filters input, .history-filters select, .pagination select { font:inherit; color:var(--ink); background:var(--ground); border:1px solid var(--line); border-radius:5px; padding:6px 8px; }
@@ -422,8 +428,6 @@ pre.log-view { max-height: 60vh; border: 1px solid var(--line); border-radius: 6
 .topnav .count { color: var(--bad); margin-left: 5px; font-variant-numeric: tabular-nums; font-weight: 600; }
 .topnav .count:empty { display: none; }
 .spacer { flex: 1; }
-.fresh { color: var(--muted); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.fresh.stale { color: var(--bad); font-weight: 500; }
 .offline { position: fixed; top: 58px; left: 50%; transform: translateX(-50%); z-index: 35; display: flex; gap: 8px; align-items: center;
   max-width: min(640px, calc(100vw - 32px)); padding: 9px 14px; border-radius: 6px; color: var(--ink);
   background: color-mix(in srgb, var(--bad) 12%, var(--ground)); border: 1px solid color-mix(in srgb, var(--bad) 40%, var(--line)); box-shadow: 0 8px 24px -10px rgb(0 0 0 / 0.35); }
@@ -576,7 +580,6 @@ label.viewed:has(input:checked) { color: var(--ink); border-color: var(--accent)
 @container (max-width: 760px) { .hide-md { display: none; } }
 @media (max-width: 900px) {
   .topnav { order: 5; flex-basis: 100%; }
-  .fresh { display: none; }
 }
 
 /* the guided tour */
@@ -629,10 +632,9 @@ label.viewed:has(input:checked) { color: var(--ink); border-color: var(--accent)
   </nav>
   <span class="spacer"></span>
   <button id="queue-link" class="qlink" type="button" hidden></button>
-  <span class="fresh" id="fresh" aria-live="off"></span>
   <button id="tour-button" class="ib" type="button" title="Take the guided tour" aria-label="Take the guided tour"><svg class="lu" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3m.08 4h.01"/></svg></button>
   <button id="theme-toggle" class="ib" type="button"></button>
-  <label class="live" title="Re-read the state directory every 4 seconds"><input type="checkbox" id="live" checked> Live refresh</label>
+  <button id="live" class="live" type="button" aria-pressed="true"><i class="dot" aria-hidden="true"></i><span>Live</span></button>
 </header>
 <main>
   <aside aria-label="Runs">
@@ -1389,7 +1391,7 @@ const state = {runs: [], show: "all", workflow: link.get("wf"), openAttempts: ne
   file: link.get("file"), call: link.get("call"), figure: null, catalog: [], total:0, allTotal:0, pages:1,
   history: {page:Math.max(1, Number(link.get("page")) || 1), page_size:[25,50,100].includes(Number(link.get("size"))) ? Number(link.get("size")) : 25,
     status:link.get("status") || "", q:link.get("search") || "", since:link.get("since") || "", until:link.get("until") || "", sort:link.get("sort") || "-started"}, buildFile:link.get("log"),
-  returnHash:link.get("back") || "", request:0, view:link.get("view"), schedules:[],timezone:"Europe/Paris",attention:[],active:[],attentionTotal:0,
+  returnHash:link.get("back") || "", request:0, live:true, offline:false, view:link.get("view"), schedules:[],timezone:"Europe/Paris",attention:[],active:[],attentionTotal:0,
   batches:[],batchPage:Number(link.get("batch_page"))||1,batchPages:1,batchTotal:0};
 
 function el(tag, attrs = {}, ...children) {
@@ -3820,15 +3822,17 @@ function showAttentionCount() {
   document.getElementById("nav-attention").title = n ? `${n} runs need attention` : "";
   document.title = (n ? `(${n}) ` : "") + "Auto Fix Runs";
 }
-/** "Updated 12s ago" in the header, and a banner while the server does not answer. */
+/** The header's Live, Paused or Offline button, and a banner while the server does not answer. */
 function showFreshness() {
-  const fresh = document.getElementById("fresh"), banner = document.getElementById("offline");
-  if (!state.lastOk) return;
-  const seconds = Math.round((Date.now() - state.lastOk) / 1000), live = document.getElementById("live").checked;
-  fresh.textContent = state.offline ? "Not responding" : !live ? "Live refresh off" : seconds < 10 ? "Up to date" : seconds < 60 ? `Updated ${seconds}s ago` : `Updated ${ago(new Date(state.lastOk).toISOString())}`;
-  fresh.classList.toggle("stale", state.offline);
-  fresh.title = "Last successful refresh: " + when(new Date(state.lastOk).toISOString());
-  banner.hidden = !state.offline;
+  const button = document.getElementById("live"), banner = document.getElementById("offline");
+  const offline = Boolean(state.offline), seconds = state.lastOk ? Math.round((Date.now() - state.lastOk) / 1000) : null;
+  const updated = seconds === null ? "Loading…" : seconds < 5 ? "Updated just now." : `Updated ${seconds < 60 ? seconds + "s" : ago(new Date(state.lastOk).toISOString()).replace(" ago", "")} ago.`;
+  button.classList.toggle("offline", offline);
+  button.setAttribute("aria-pressed", String(state.live));
+  button.lastChild.textContent = offline ? "Offline" : state.live ? "Live" : "Paused";
+  button.title = offline ? `The server is not answering. ${updated}`
+    : state.live ? `${updated} The page updates itself every few seconds; click to pause.` : `${updated} Updates are paused; click to resume.`;
+  banner.hidden = !offline;
   if (state.offline) banner.replaceChildren(lucide("warn", 16), el("span", {},
     `The dashboard server is not responding. This page shows data from ${when(new Date(state.lastOk).toISOString(), false)} and reconnects by itself.`));
 }
@@ -3893,6 +3897,11 @@ function showSidebar(show, remember = false) {
   });
 }
 setInterval(() => { tickClocks(); showFreshness(); }, 1000);
+document.getElementById("live").addEventListener("click", () => {
+  state.live = !state.live;
+  showFreshness();
+  if (state.live) refresh().then(wake);
+});
 
 /* ---------- guided tour: real situations, told with real runs ---------- */
 const DEMO = document.querySelector('meta[name="auto-fix-demo"]').content === "1";
@@ -4256,7 +4265,7 @@ let refreshTimer = 0;
 function wake() {
   clearTimeout(refreshTimer);
   refreshTimer = setTimeout(async () => {
-    if (document.getElementById("live").checked) await refresh();
+    if (state.live) await refresh();
     wake();
   }, busy() ? 1500 : 4000);
 }

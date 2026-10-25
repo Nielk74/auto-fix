@@ -112,8 +112,8 @@ this layout. Nothing was committed or released.
 - [x] **Regressions in validation.** The run detail compares the baseline report with the last
   verification: fixed, still failing and newly failing tests, with a callout for regressions and
   a "newly failing" count in run lists.
-- [x] **Freshness and health.** "Updated 12s ago" in the header, a banner while the server does
-  not answer, the attention count in the nav and tab title, and opt-in browser notifications.
+- [x] **Freshness and health.** One Live / Paused / Offline button in the header (last update on
+  hover, click to pause), a banner while the server does not answer, the attention count in the nav and tab title, and opt-in browser notifications.
 - [x] **Test history.** A Tests page (runs, fixes, failures that did not reproduce, "possibly
   flaky") and a page per test listing its runs.
 - [x] **Outcome metrics.** A Metrics page: runs, fix rate, median time to a verified fix,
