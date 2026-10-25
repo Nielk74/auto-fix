@@ -63,14 +63,19 @@ header { border-bottom: 1px solid var(--line); display: flex; align-items: cente
 /* the state directory: clipped at its start, so the folder names that tell runs apart stay visible */
 .root { color: var(--muted); font-family: var(--mono); font-size: 11.5px; flex: 1; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: right; }
-/* Live, Paused or Offline: one button that says whether the page keeps itself current, and pauses it. */
+/* Live or Offline: one button that says whether the page keeps itself current; it opens the details. */
 .live { display: inline-flex; align-items: center; gap: 7px; height: 26px; padding: 0 10px; border: 1px solid var(--line); border-radius: 13px;
   background: var(--ground); color: var(--muted); font: inherit; font-size: 12px; cursor: pointer; white-space: nowrap; }
 .live:hover { border-color: var(--faint); color: var(--ink); }
 .live .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
-.live[aria-pressed="false"] .dot { background: var(--faint); }
 .live.offline { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, var(--line)); }
 .live.offline .dot { background: var(--bad); }
+.popover.livepanel { width: 340px; padding: 12px 14px; }
+.livepanel .lph { display: grid; gap: 2px; margin-bottom: 10px; }
+.livedl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 5px 14px; margin: 0 0 12px; font-size: 12.5px; }
+.livedl dt { color: var(--muted); }
+.livedl dd { margin: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.livedl dd.bad { color: var(--bad); }
 .history-filters, .pagination { display:flex; align-items:end; gap:12px; flex-wrap:wrap; margin:16px 0; }
 .history-filters label { display:grid; gap:4px; color:var(--muted); font-size:12px; }
 .history-filters input, .history-filters select, .pagination select { font:inherit; color:var(--ink); background:var(--ground); border:1px solid var(--line); border-radius:5px; padding:6px 8px; }
@@ -649,7 +654,7 @@ label.viewed:has(input:checked) { color: var(--ink); border-color: var(--accent)
   <button id="queue-link" class="qlink" type="button" hidden></button>
   <button id="tour-button" class="ib" type="button" title="Take the guided tour" aria-label="Take the guided tour"><svg class="lu" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3m.08 4h.01"/></svg></button>
   <button id="theme-toggle" class="ib" type="button"></button>
-  <button id="live" class="live" type="button" aria-pressed="true"><i class="dot" aria-hidden="true"></i><span>Live</span></button>
+  <button id="live" class="live" type="button" aria-haspopup="dialog"><i class="dot" aria-hidden="true"></i><span>Live</span></button>
 </header>
 <main>
   <aside aria-label="Runs">
@@ -1406,7 +1411,7 @@ const state = {runs: [], show: "all", workflow: link.get("wf"), openAttempts: ne
   file: link.get("file"), call: link.get("call"), figure: null, catalog: [], total:0, allTotal:0, pages:1,
   history: {page:Math.max(1, Number(link.get("page")) || 1), page_size:[25,50,100].includes(Number(link.get("size"))) ? Number(link.get("size")) : 25,
     status:link.get("status") || "", q:link.get("search") || "", since:link.get("since") || "", until:link.get("until") || "", sort:link.get("sort") || "-started"}, buildFile:link.get("log"),
-  returnHash:link.get("back") || "", request:0, live:true, offline:false, view:link.get("view"), schedules:[],timezone:"Europe/Paris",attention:[],active:[],attentionTotal:0,
+  returnHash:link.get("back") || "", request:0, offline:false, failures:0, lastError:"", view:link.get("view"), schedules:[],timezone:"Europe/Paris",attention:[],active:[],attentionTotal:0,
   batches:[],batchPage:Number(link.get("batch_page"))||1,batchPages:1,batchTotal:0};
 
 function el(tag, attrs = {}, ...children) {
@@ -2301,7 +2306,9 @@ function openMenu(anchor, items) {
   popover = box;
   box.querySelector("button")?.focus();
 }
-document.addEventListener("mousedown", event => { if (popover && !popover.contains(event.target)) closePopover(); });
+document.addEventListener("mousedown", event => {
+  if (popover && !popover.contains(event.target) && !popover.anchor?.contains(event.target)) closePopover();
+});
 document.addEventListener("keydown", event => { if (event.key === "Escape" && popover) closePopover(true); });
 document.getElementById("content").addEventListener("scroll", () => closePopover());
 
@@ -3862,16 +3869,14 @@ function showAttentionCount() {
   document.getElementById("nav-attention").title = n ? `${n} runs need attention` : "";
   document.title = (n ? `(${n}) ` : "") + "Auto Fix Runs";
 }
-/** The header's Live, Paused or Offline button, and a banner while the server does not answer. */
+/** The header's Live or Offline button, and a banner while the server does not answer. */
 function showFreshness() {
   const button = document.getElementById("live"), banner = document.getElementById("offline");
   const offline = Boolean(state.offline), seconds = state.lastOk ? Math.round((Date.now() - state.lastOk) / 1000) : null;
   const updated = seconds === null ? "Loading…" : seconds < 5 ? "Updated just now." : `Updated ${seconds < 60 ? seconds + "s" : ago(new Date(state.lastOk).toISOString()).replace(" ago", "")} ago.`;
   button.classList.toggle("offline", offline);
-  button.setAttribute("aria-pressed", String(state.live));
-  button.lastChild.textContent = offline ? "Offline" : state.live ? "Live" : "Paused";
-  button.title = offline ? `The server is not answering. ${updated}`
-    : state.live ? `${updated} The page updates itself every few seconds; click to pause.` : `${updated} Updates are paused; click to resume.`;
+  button.lastChild.textContent = offline ? "Offline" : "Live";
+  button.title = (offline ? `The server is not answering. ${updated}` : `${updated} The page updates itself every few seconds.`) + " Click for details.";
   banner.hidden = !offline;
   if (state.offline) banner.replaceChildren(lucide("warn", 16), el("span", {},
     `The dashboard server is not responding. This page shows data from ${when(new Date(state.lastOk).toISOString(), false)} and reconnects by itself.`));
@@ -3937,11 +3942,51 @@ function showSidebar(show, remember = false) {
   });
 }
 setInterval(() => { tickClocks(); showFreshness(); }, 1000);
-document.getElementById("live").addEventListener("click", () => {
-  state.live = !state.live;
-  showFreshness();
-  if (state.live) refresh().then(wake);
-});
+/** What the Live button knows, to tell a quiet page from a stuck one: the connection, timing, the worker and the queue. */
+function liveDetails() {
+  const jobs = CAN_ACT ? controls.jobs : [], at = iso => iso ? `${when(iso, false)} (${ago(iso)})` : "—";
+  return [
+    ["Connection", state.offline ? `Not answering since ${at(state.offlineSince)}` : "Connected", state.offline],
+    ["Last update", state.lastOk ? at(new Date(state.lastOk).toISOString()) : "Loading…"],
+    ["Last check took", state.lastDuration === undefined ? "—" : `${state.lastDuration} ms`],
+    ["Checks", busy() ? "every 1.5 s while jobs run" : "every 4 s"],
+    state.failures ? ["Failed checks in a row", String(state.failures), true] : null,
+    state.lastError ? ["Last error", state.lastError, true] : null,
+    ["Mode", DEMO ? "Demo: jobs are never run" : CAN_ACT ? "Run controls" : "Read-only"],
+    CAN_ACT && !DEMO ? ["Runner", controls.runner.alive ? "Active" : "Not running: queued jobs wait", !controls.runner.alive] : null,
+    CAN_ACT ? ["Queue", `${jobs.filter(job => job.status === "queued").length} queued · ${jobs.filter(job => job.status === "running").length} running`] : null,
+    ["Runs", `${state.allTotal} · ${state.attentionTotal} need attention`],
+    ["Server", location.origin],
+  ].filter(Boolean);
+}
+/** The Live button's panel: the details above, kept current while open, with Refresh now and Copy details. */
+function openLivePanel(anchor) {
+  if (popover?.anchor === anchor) { closePopover(true); return; }
+  closePopover();
+  const rows = el("dl", {class: "livedl"});
+  const fill = () => rows.replaceChildren(...liveDetails().flatMap(([label, value, bad]) => [el("dt", {}, label), el("dd", {class: bad ? "bad" : ""}, value)]));
+  const copy = async () => {
+    const details = {page: location.href, time: new Date().toISOString(), browser: navigator.userAgent,
+      ...Object.fromEntries(liveDetails().map(([label, value]) => [label, value]))};
+    try { await navigator.clipboard.writeText(JSON.stringify(details, null, 2)); toast("Details copied"); } catch (error) { toast("The browser refused to copy", "bad"); }
+  };
+  const box = el("div", {class: "popover livepanel", role: "dialog", "aria-label": "Live updates"},
+    el("div", {class: "lph"}, el("b", {}, "Live updates"), el("span", {class: "muted small"}, "The page re-reads the state directory by itself.")),
+    rows,
+    el("div", {class: "tools tight"},
+      el("button", {class: "btn small", type: "button", onclick: async () => { await refresh(); fill(); }}, lucide("rerun", 12), "Refresh now"),
+      el("button", {class: "btn small", type: "button", onclick: copy}, lucide("copy", 12), "Copy details")));
+  fill();
+  const rect = anchor.getBoundingClientRect();
+  box.anchor = anchor;
+  box.style.top = Math.round(rect.bottom + 6) + "px";
+  box.style.left = Math.round(Math.max(8, Math.min(rect.right - 340, innerWidth - 348))) + "px";
+  document.body.append(box);
+  popover = box;
+  const timer = setInterval(() => box.isConnected ? fill() : clearInterval(timer), 1000);
+  box.querySelector("button").focus();
+}
+document.getElementById("live").addEventListener("click", event => openLivePanel(event.currentTarget));
 
 /* ---------- guided tour: real situations, told with real runs ---------- */
 const DEMO = document.querySelector('meta[name="auto-fix-demo"]').content === "1";
@@ -4275,17 +4320,30 @@ async function route() {
 }
 window.addEventListener("hashchange",()=>route().catch(error=>toast(error.message,"bad")));
 async function refresh() {
+  const started = Date.now();
+  let changes;
   try {
-    const [runsChanged, jobsChanged, schedulesChanged, batchesChanged] = await Promise.all([loadRuns(), loadJobs(), loadSchedules(), loadBatches()]);
-    if (!state.selected) { if (runsChanged || jobsChanged || schedulesChanged || batchesChanged) keepFocus(renderHome); }
+    changes = await Promise.all([loadRuns(), loadJobs(), loadSchedules(), loadBatches()]);
+    state.lastOk = Date.now();
+    state.offline = false;
+    state.failures = 0;
+    state.lastError = "";
+  } catch (error) {
+    // Keep the last view while the server restarts.
+    if (!state.offline) state.offlineSince = new Date().toISOString();
+    state.offline = true;
+    state.failures += 1;
+    state.lastError = error.message;
+  }
+  if (changes) try {
+    if (!state.selected) { if (changes.some(Boolean)) keepFocus(renderHome); }
     else {
       const current = state.runs.find(run => run.id === state.selected);
       // Re-read a run only when it changed, and never while an artifact is open.
       if (state.tab !== "files" && (!current || current.status === "in_progress" || busy() || state.detail?.summary.updated !== current.updated)) await loadDetail();
     }
-    state.lastOk = Date.now();
-    state.offline = false;
-  } catch (error) { state.offline = true; /* keep the last view while the server restarts */ }
+  } catch (error) { state.lastError = "Drawing the page failed: " + error.message; }
+  state.lastDuration = Date.now() - started;
   tickClocks();
   showFreshness();
 }
@@ -4305,7 +4363,7 @@ let refreshTimer = 0;
 function wake() {
   clearTimeout(refreshTimer);
   refreshTimer = setTimeout(async () => {
-    if (state.live) await refresh();
+    await refresh();
     wake();
   }, busy() ? 1500 : 4000);
 }
