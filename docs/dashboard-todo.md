@@ -163,4 +163,5 @@ this layout. Nothing was committed or released.
 - [ ] Home, history, schedules, the run page and the new pages share classes and icons; the
   Batches page keeps its older markup (low impact).
 - [x] Run statuses are capitalised, step outcomes lowercase, consistently.
-- [ ] No theme toggle (skipped: the page follows the system theme).
+- [x] A theme switch (System, Light, Dark) in the header and in Settings, remembered per browser
+  and applied before the first paint.

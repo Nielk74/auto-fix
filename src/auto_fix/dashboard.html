@@ -6,6 +6,10 @@
 <title>Auto Fix Runs</title>
 <!-- Filled in by the server when actions are enabled; write requests must echo it. -->
 <meta name="auto-fix-token" content="">
+<script>
+// The chosen theme, set before the first paint so the page never flashes the other one.
+try { const theme = localStorage.getItem("auto-fix:theme"); if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme; } catch (error) { /* private mode */ }
+</script>
 <style>
 :root {
   color-scheme: light;
@@ -21,6 +25,12 @@
     --soft: #14161a; --sel: #16243a; --accent: #5b95ff;
     --ok: #3fb950; --bad: #f47067; --warn: #d29922; --run: #5b95ff;
   }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #0b0c0e; --ink: #d6dae1; --muted: #959ca6; --faint: #6e7681; --line: #262a30;
+  --soft: #14161a; --sel: #16243a; --accent: #5b95ff;
+  --ok: #3fb950; --bad: #f47067; --warn: #d29922; --run: #5b95ff;
 }
 * { box-sizing: border-box; }
 [hidden] { display:none !important; }
@@ -514,6 +524,10 @@ pre.view.logtext .del { color: var(--bad); }
 .chart .hit:focus-visible { stroke: var(--accent); stroke-width: 1.5; }
 .charttip { position: absolute; top: -6px; z-index: 2; pointer-events: none; max-width: 320px; padding: 6px 10px; font-size: 12px; border-radius: 6px;
   background: var(--ground); border: 1px solid var(--line); box-shadow: 0 8px 20px -8px rgb(0 0 0 / 0.3); }
+/* A table never clips its last column; columns that only add context leave a narrow content area first. */
+.box:has(> table) { overflow-x: auto; }
+#content { container-type: inline-size; }
+@container (max-width: 760px) { .hide-md { display: none; } }
 @media (max-width: 900px) {
   .topnav { order: 5; flex-basis: 100%; }
   .fresh { display: none; }
@@ -539,6 +553,7 @@ pre.view.logtext .del { color: var(--bad); }
   <span class="spacer"></span>
   <button id="queue-link" class="qlink" type="button" hidden></button>
   <span class="fresh" id="fresh" aria-live="off"></span>
+  <button id="theme-toggle" class="ib" type="button"></button>
   <label class="live" title="Re-read the state directory every 4 seconds"><input type="checkbox" id="live" checked> Live refresh</label>
 </header>
 <main>
@@ -1376,6 +1391,9 @@ const ICONS = {
   download: "<path d='M12 15V3m9 12v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/><path d='m7 10l5 5l5-5'/>",
   diff: "<path d='M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z'/><path d='M14 2v4a2 2 0 0 0 2 2h4M9 10h6m-3-3v6m-3 5h6'/>",
   arrowLeft: "<path d='m12 19l-7-7l7-7m7 7H5'/>",
+  sun: "<circle cx='12' cy='12' r='4'/><path d='M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41'/>",
+  moon: "<path d='M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401'/>",
+  monitor: "<rect width='20' height='14' x='2' y='3' rx='2'/><path d='M8 21h8m-4-4v4'/>",
   play: "<path d='M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z'/>",
 };
 function lucide(name, size = 16, cls = "") {
@@ -1651,7 +1669,7 @@ function jobRow(job, {workflow = false, move = null} = {}) {
   return el("tr", {class: "jobrow", "data-key": "job:" + job.id},
     el("td", {class: "mark-cell"}, queued ? lucide("clock", 14, "ico t-none") : failed ? icon("bad") : icon("run")),
     el("td", {class: "nowrap"}, job.title),
-    workflow ? el("td", {class: "hide-sm muted nowrap"}, workflowLabel(workflowOfJob(job), "")) : null,
+    workflow ? el("td", {class: "hide-sm hide-md muted nowrap"}, workflowLabel(workflowOfJob(job), "")) : null,
     el("td", {class: "grow"}, el("span", {class: "ellipsis", title: job.error || ""}, result)),
     el("td", {class: "hide-sm"}),
     el("td", {class: "hide-sm muted nowrap"}, shortWhen(job.started || job.created)),
@@ -1674,7 +1692,7 @@ function runRow(run, {workflow = false} = {}) {
   return el("tr", {class: "click", "data-key": "row:" + run.id, "aria-label": `${run.name}: ${st.text}`, onclick: () => select(run.id)},
     el("td", {class: "mark-cell"}, statusIcon(key)),
     el("td", {class: "runcell"}, el("span", {class: "ellipsis mono", title: run.tests.join(", ")}, testsLabel(run)), el("span", {class: "ellipsis muted small mono"}, run.name)),
-    workflow ? el("td", {class: "hide-sm muted nowrap"}, workflowLabel(workflowOf(run), run.build_type || groupName(run))) : null,
+    workflow ? el("td", {class: "hide-sm hide-md muted nowrap"}, workflowLabel(workflowOf(run), run.build_type || groupName(run))) : null,
     el("td", {class: "grow"}, el("span", {class: "ellipsis", title: run.reason || st.text}, result,
       triageActive(run.triage) ? el("span", {class: "badge"}, TRIAGE_STATE[run.triage.state]) : null)),
     el("td", {class: "hide-sm nowrap"}, testsCell(run)),
@@ -1700,7 +1718,7 @@ function runsTable(jobs, runs, {workflow = false, sortable = false} = {}) {
   const head = (label, key, cls = "") => sortable ? sortHeader(label, key, cls) : el("th", {class: cls}, label);
   return el("div", {class: "box"}, el("table", {class: "runs"},
     el("thead", {}, el("tr", {}, el("th", {}, el("span", {class: "sr"}, "Status")), el("th", {}, "Failing test · run"),
-      workflow ? el("th", {class: "hide-sm"}, "Workflow") : null, head("Result", "status"), el("th", {class: "hide-sm"}, "Validation"),
+      workflow ? el("th", {class: "hide-sm hide-md"}, "Workflow") : null, head("Result", "status"), el("th", {class: "hide-sm"}, "Validation"),
       head("Started", "started", "hide-sm"), head("Duration", "duration", "num"), el("th", {}, el("span", {class: "sr"}, "Actions")))),
     el("tbody", {}, rows, runs.map(run => runRow(run, {workflow})))));
 }
@@ -3040,10 +3058,10 @@ function attentionSection(failed) {
     return el("tr", {class: "click", "data-key": "att:" + run.id, onclick: () => select(run.id)},
       el("td", {class: "mark-cell"}, statusIcon(key)),
       el("td", {class: "runcell"}, el("span", {class: "ellipsis mono", title: run.tests.join(", ")}, testsLabel(run)), el("span", {class: "ellipsis muted small mono"}, run.name)),
-      el("td", {class: "hide-sm muted nowrap"}, workflowLabel(workflowOf(run), run.build_type || groupName(run))),
+      el("td", {class: "hide-sm hide-md muted nowrap"}, workflowLabel(workflowOf(run), run.build_type || groupName(run))),
       el("td", {class: "grow"}, el("span", {class: "ellipsis"}, el("span", {class: "t-" + st.tone + " strong"}, st.text),
         run.reason && st.tone !== "ok" ? el("span", {class: "muted"}, " · " + explain(run.reason).title) : null)),
-      el("td", {class: "hide-sm muted nowrap", title: when(run.updated)}, ago(run.updated)),
+      el("td", {class: "hide-sm hide-md muted nowrap", title: when(run.updated)}, ago(run.updated)),
       el("td", {class: "rowtools"},
         CAN_ACT && primary ? el("button", {class: "btn small" + (key === "ready" ? " primary" : ""), type: "button",
           onclick: event => { event.stopPropagation(); quickAct(run, primary[0]); }}, primary[1]) : null,
@@ -3053,16 +3071,16 @@ function attentionSection(failed) {
   const jobs = failed.map(job => el("tr", {"data-key": "attjob:" + job.id},
     el("td", {class: "mark-cell"}, icon("bad")),
     el("td", {class: "runcell"}, el("span", {class: "ellipsis"}, job.title), el("span", {class: "muted small"}, "job")),
-    el("td", {class: "hide-sm muted nowrap"}, workflowLabel(workflowOfJob(job), "")),
+    el("td", {class: "hide-sm hide-md muted nowrap"}, workflowLabel(workflowOfJob(job), "")),
     el("td", {class: "grow"}, el("span", {class: "ellipsis", title: job.error || ""}, el("span", {class: "t-bad strong"}, "Could not start"),
       el("span", {class: "muted"}, " · " + (job.error || "see the log")))),
-    el("td", {class: "hide-sm muted nowrap"}, ago(job.finished || job.started || job.created)),
+    el("td", {class: "hide-sm hide-md muted nowrap"}, ago(job.finished || job.started || job.created)),
     el("td", {class: "rowtools"}, el("button", {class: "btn small", type: "button", onclick: () => openLog(job)}, "View log"),
       iconButton("close", "Dismiss", () => removeJob(job)))));
   return el("section", {class: "project"}, el("h2", {}, "Needs attention", el("span", {class: "sub"}, total)),
     total ? el("div", {class: "box attention-list"}, el("table", {},
-      el("thead", {}, el("tr", {}, el("th", {}, el("span", {class: "sr"}, "Status")), el("th", {}, "Failing test · run"), el("th", {class: "hide-sm"}, "Workflow"),
-        el("th", {}, "Outcome"), el("th", {class: "hide-sm"}, "Waiting"), el("th", {}, el("span", {class: "sr"}, "Actions")))),
+      el("thead", {}, el("tr", {}, el("th", {}, el("span", {class: "sr"}, "Status")), el("th", {}, "Failing test · run"), el("th", {class: "hide-sm hide-md"}, "Workflow"),
+        el("th", {}, "Outcome"), el("th", {class: "hide-sm hide-md"}, "Waiting"), el("th", {}, el("span", {class: "sr"}, "Actions")))),
       el("tbody", {}, runs, jobs)))
     : el("p", {class: "muted"}, "Nothing needs attention."),
     state.attentionTotal > state.attention.length ? el("a", {href: "#view=history&status=attention"}, `All ${state.attentionTotal} runs that need attention`) : null);
@@ -3419,6 +3437,7 @@ function settingsPage() {
       row("Editable paths", c.repository.allowed_paths.join(", ")),
       row("Repair attempts", String(c.limits.max_attempts)),
       row("Baseline repetitions", String(c.limits.baseline_repetitions)))) : null,
+    el("section", {class: "project"}, el("h2", {}, "Appearance"), themePicker()),
     el("section", {class: "project"}, el("h2", {}, "Notifications"), notificationToggle()));
 }
 function notificationToggle() {
@@ -3491,6 +3510,32 @@ function notifyAttention() {
     note.onclick = () => { window.focus(); select(run.id); };
   }
 }
+/* ---------- theme: follow the system, or always light or dark ---------- */
+const THEME_KEY = "auto-fix:theme", THEMES = {system: ["monitor", "System"], light: ["sun", "Light"], dark: ["moon", "Dark"]};
+const currentTheme = () => document.documentElement.dataset.theme || "system";
+function setTheme(theme) {
+  if (theme === "system") delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = theme;
+  try { localStorage.setItem(THEME_KEY, theme); } catch (error) { /* private mode */ }
+  showTheme();
+  if (state.view === "settings" && !state.selected) renderHome();
+}
+/** The header button shows the theme in use and moves to the next one: system, light, dark. */
+function showTheme() {
+  const theme = currentTheme(), [name, label] = THEMES[theme], next = {system: "light", light: "dark", dark: "system"}[theme];
+  const button = document.getElementById("theme-toggle");
+  button.replaceChildren(lucide(name, 16));
+  button.title = `Theme: ${label}. Click for ${THEMES[next][1].toLowerCase()}.`;
+  button.setAttribute("aria-label", `Theme: ${label}; switch to ${THEMES[next][1]}`);
+  button.onclick = () => setTheme(next);
+}
+function themePicker() {
+  const theme = currentTheme();
+  return el("div", {class: "tools tight", role: "radiogroup", "aria-label": "Theme"}, Object.entries(THEMES).map(([key, [name, label]]) =>
+    el("button", {class: "btn small" + (key === theme ? " on" : ""), type: "button", role: "radio", "aria-checked": String(key === theme),
+      onclick: () => setTheme(key)}, lucide(name, 12), label)));
+}
+showTheme();
 /** The workflow tree can be hidden; phones start without it. */
 function showSidebar(show, remember = false) {
   document.body.classList.toggle("nosidebar", !show);
